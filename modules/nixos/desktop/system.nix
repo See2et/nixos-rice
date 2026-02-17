@@ -70,6 +70,7 @@ in
       ids = [ "*" ];
       settings.main = {
         capslock = "layer(control)";
+        "C-h" = "backspace";
       };
     };
   };
