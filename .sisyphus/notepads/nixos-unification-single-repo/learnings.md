@@ -68,3 +68,9 @@
 - ✓ Boot generation unchanged (105 remains current)
 - ✓ All evidence files created and verified non-empty
 
+
+## 2026-02-17 - Task 2 (Unified Flake Skeleton)
+- `flake.nix` can expose explicit host keys by nesting under `nixosConfigurations = { desktop = ...; wsl = ...; };` while preserving desktop module wiring unchanged.
+- `nixos-wsl` should stay isolated to the WSL module list; desktop evaluation remains free of `wsl.*` options.
+- A standalone Darwin Home Manager output can be evaluated without host activation by defining a minimal inline HM module in flake outputs.
+- Adding a new flake input (`nixos-wsl`) updates `flake.lock` automatically on first eval.

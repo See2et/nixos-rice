@@ -14,3 +14,11 @@
 - **Rollback Anchors**: Generation 105 + backup directory + documented restoration commands
 - **Next**: Task 2 (Unified Flake Skeleton) can proceed with confidence
 
+
+## 2026-02-17 - Task 2 Completion
+- **Decision**: Rename ambiguous `nixosConfigurations.nixos` to explicit `nixosConfigurations.desktop` and add `nixosConfigurations.wsl`.
+- **Rationale**: Explicit host keys are required for multi-host rollout and prevent accidental singleton-key assumptions in downstream tasks.
+- **Decision**: Keep `nixos-wsl` input and import it only in the WSL host graph.
+- **Rationale**: Enforces host isolation and avoids WSL option leakage into desktop path.
+- **Decision**: Provide `homeConfigurations.darwin` as standalone HM output with minimal inline Darwin-safe module for Task 2.
+- **Rationale**: Satisfies darwin output/eval contract now without pulling desktop Linux HM modules into Darwin evaluation.
