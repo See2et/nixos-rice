@@ -5,6 +5,8 @@ in
 {
   config = lib.mkIf config.programs.niri.enable {
     programs.niri.settings = {
+      prefer-no-csd = true;
+
       binds = {
         "Mod+Return".action.spawn = "alacritty";
         "Ctrl+Space".action.spawn = "rofi-launcher";
@@ -52,6 +54,15 @@ in
             { namespace = "^wallpaper$"; }
           ];
           place-within-backdrop = true;
+        }
+      ];
+
+      window-rules = [
+        {
+          matches = [
+            { "app-id" = "^Alacritty$"; }
+          ];
+          draw-border-with-background = false;
         }
       ];
 

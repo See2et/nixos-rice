@@ -1,9 +1,6 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 let
-  logoIcon = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/oatmealine/nix-config/e35030e701561951aae9da6d0e6a356f104fb479/packages/iterator-icons/icons/color-seven-red-suns.png";
-    hash = "sha256-gFdicSsMuJm/A5o+vIxa8N2uxwLnNBbtdLniUzSEoJM=";
-  };
+  logoIcon = ./assets/waybar-logo.jpg;
 in
 {
   imports = [
@@ -17,6 +14,14 @@ in
 
   config = {
     programs.niri.enable = true;
+
+    programs.alacritty = {
+      enable = true;
+      settings = {
+        window.opacity = 0.85;
+        colors.transparent_background_colors = true;
+      };
+    };
 
     programs.waybar.style = lib.mkForce ''
       @import "catppuccin.css";
