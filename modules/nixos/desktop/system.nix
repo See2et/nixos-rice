@@ -72,6 +72,9 @@ in
         capslock = "layer(control)";
         "C-h" = "backspace";
       };
+      settings.control = {
+        h = "backspace";
+      };
     };
   };
 
