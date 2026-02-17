@@ -40,3 +40,28 @@
 - **Rationale**: Previous task 4 created `hosts/wsl/default.nix` with common module import, but flake.nix still used inline WSL config, bypassing the host scaffold entirely. Without this fix, the common module was not applied to WSL.
 - **Decision**: Keep desktop `configuration.nix` settings as-is (duplicated with common) until Task 7 migrates them out.
 - **Rationale**: Removing settings from configuration.nix now would mix concerns; Task 7 handles desktop-specific migration.
+
+## 2026-02-17 - Task 5 Completion
+- **Decision**: Create home module split directories (home/common, home/linux, home/wsl, home/darwin) with empty scaffold modules.
+- **Rationale**: Establishes import graph structure for incremental migration without breaking current desktop HM functionality.
+- **Decision**: Wire Darwin HM to import `./home/common` and `./home/darwin` in flake.nix.
+- **Rationale**: Prepares Darwin HM for future content migration while keeping scaffold modules empty during this task.
+- **Decision**: Keep desktop HM in `./home.nix` (imported by `hosts/desktop/default.nix`) during scaffolding phase.
+- **Rationale**: Preserves current desktop HM functionality; migration to `home/desktop/` happens in Task 10 after common modules are extracted.
+- **Decision**: Accept platform limitation for Darwin HM build (eval succeeds, build requires aarch64-darwin system).
+- **Rationale**: Eval is sufficient proof of correct wiring; build limitation is environmental, not configuration error.
+- **Commit**: `c7e796a49e71c1c0302d54a947b3d689fc4bab60 refactor(home): scaffold platform split directories`
+
+## 2026-02-17 - Task 7 Completion
+- **Decision**: Create `modules/nixos/desktop/default.nix` and split desktop-only system domains into dedicated modules (`boot`, `filesystems`, `gdm`, `niri`, `nvidia`, `audio`, `vr`, `firewall`).
+- **Rationale**: Isolates desktop safety-critical behavior from shared/host-neutral config and establishes explicit host boundary for desktop-only options.
+- **Decision**: Wire `hosts/desktop/default.nix` to import `../../modules/nixos/desktop` while keeping `configuration.nix` for remaining non-migrated desktop config.
+- **Rationale**: Preserves existing behavior during incremental migration and avoids mixing this task with broader configuration decomposition.
+
+## 2026-02-17 - Task 8 Completion
+- **Decision**: Create `modules/nixos/wsl/default.nix` with three WSL-only settings: nix-ld, allowUnsupportedSystem, usbip.
+- **Rationale**: These settings are sourced from `/home/see2et/repos/nixos-wsl/configuration.nix` and `flake.nix` (wsl.usbip.enable). They are WSL-specific and must not pollute common or desktop modules.
+- **Decision**: Wire WSL module via `hosts/wsl/default.nix` import, not flake.nix inline.
+- **Rationale**: Follows established host scaffolding pattern from Tasks 3-4; keeps flake.nix clean and host isolation structural.
+- **Decision**: Desktop leakage verified structurally (import graph) rather than eval-only, since desktop eval depends on Task 7 (modules/nixos/desktop not yet created).
+- **Rationale**: Structural verification (grep imports) is more robust than eval for confirming isolation when dependent tasks are incomplete.

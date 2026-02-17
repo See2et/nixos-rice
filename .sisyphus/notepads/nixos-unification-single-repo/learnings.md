@@ -89,3 +89,25 @@
 - **Critical finding**: flake.nix WSL config was still inline (not using `./hosts/wsl`), so the common module import in `hosts/wsl/default.nix` was never reached. Fixed by updating flake.nix to use `./hosts/wsl`.
 - Guardrail comment in common module documents forbidden patterns; grep evidence must filter comment lines to avoid false positives.
 - `nix.settings.experimental-features` is a freeform setting that only appears in eval output when explicitly set — absence doesn't mean it's not configured at daemon level.
+
+## 2026-02-17 - Task 5 (Home Tree Scaffolding)
+- Home module split pattern: `home/{platform}/default.nix` for each target (common, linux, wsl, darwin).
+- Flake wiring for Darwin HM: `modules = [ ./home/common ./home/darwin { ... } ]` enables incremental migration without breaking current desktop HM.
+- Desktop HM remains in `./home.nix` (imported by `hosts/desktop/default.nix`) during scaffolding phase; migration to `home/desktop/` happens in Task 10.
+- Darwin HM eval succeeds with scaffold modules (proof of correct import graph wiring).
+- Darwin HM build cannot execute on x86_64-linux (platform limitation); eval is sufficient proof of correctness.
+- Scaffold modules are empty placeholders with documentation; content migration happens in Tasks 9-12.
+- Git tracking required: flake.nix changes must be staged before eval/build to avoid "path does not exist" errors in pure flake evaluation.
+
+## 2026-02-17 - Task 7 (Desktop System Migration)
+- Desktop-only option split works cleanly with a thin aggregator module (`modules/nixos/desktop/default.nix`) that imports per-domain modules.
+- Moving boot/display/gpu/audio/vr/firewall options out of `configuration.nix` preserves behavior when `hosts/desktop/default.nix` imports the desktop module tree.
+- `filesystems` ownership remains in `hardware-configuration.nix`; desktop module wiring should preserve this instead of duplicating filesystem declarations.
+- Pure flake evaluation requires newly created module files to be tracked by Git (`git add`) before `nix eval`/`nix build` sees them.
+
+## 2026-02-17 - Task 8 (WSL System Migration)
+- WSL-only settings from source repo: `programs.nix-ld.enable` + libraries, `nixpkgs.config.allowUnsupportedSystem`, `wsl.usbip.enable`.
+- `wsl.usbip.enable` is only available when `nixos-wsl.nixosModules.default` is imported (provides the `wsl.*` option namespace).
+- Module import order in `hosts/wsl/default.nix`: common -> wsl -> nixos-wsl.nixosModules.default. The WSL module sets `wsl.usbip.enable` which requires the nixos-wsl module to define the option.
+- Desktop isolation confirmed: `hosts/desktop/default.nix` does not import `modules/nixos/wsl` — structural guarantee, not just eval-time.
+- New files must be `git add`-ed before `nix eval` can see them (flake uses git-tracked tree).

@@ -1,0 +1,16 @@
+=== Task 8: WSL-Specific Options Verification ===
+Date: 2026-02-17T17:55:17+09:00
+
+--- programs.nix-ld.enable ---
+warning: Git tree '/etc/nixos' is dirty
+true
+
+--- wsl.usbip.enable ---
+warning: Git tree '/etc/nixos' is dirty
+true
+
+--- nixpkgs.config.allowUnsupportedSystem ---
+warning: Git tree '/etc/nixos' is dirty
+true
+
+All WSL-specific options evaluate to true on wsl host. PASS.
