@@ -112,13 +112,13 @@
 - Desktop isolation confirmed: `hosts/desktop/default.nix` does not import `modules/nixos/wsl` — structural guarantee, not just eval-time.
 - New files must be `git add`-ed before `nix eval` can see them (flake uses git-tracked tree).
 
-## 2026-02-17 - Task 9 (Home Common Migration)
-- Common HM modules extracted: git, gh, gpg, zsh (3 files), packages, session, xdg, files = 10 nix files total.
+## 2026-02-17 - Task 9 (Home Common Migration) — scope-corrected
+- Common HM modules extracted: git, gh, gpg, zsh (3 files), packages, session = 8 nix files total.
 - `isDarwin` parameter flows through `extraSpecialArgs` in both NixOS HM integration and standalone Darwin HM output.
 - Desktop host needs `pkgs` in its function args to pass `pkgs.rustc` as `rustToolchain` in extraSpecialArgs.
 - WSL host HM user is "nixos" (WSL default), desktop is "see2et" — username set per-host, not in common.
-- `home.file` paths in common use `../../` relative paths (from `home/common/` to repo root) for dotfile sources.
 - Linux-only packages (wl-clipboard, xclip, libnotify) correctly isolated in `home/linux/default.nix`.
 - WSL-specific session PATH (`/mnt/c/...`) and notifier files excluded from common; documented in comments.
 - All three targets (desktop, wsl, darwin) eval successfully with common HM modules wired in.
-- Dotfiles must be in the git-tracked tree for nix to see them; `git add -N` (intent-to-add) is sufficient for eval.
+- **Scope lesson**: Dotfile trees (nvim/, zellij/, codex/, opencode/, .gitconfig, .p10k.zsh, yubikey-setup.sh) are NOT part of "reusable HM modules" — they are content, not module structure. files.nix and xdg.nix that reference them must be deferred to a dotfile migration task.
+- **Scope lesson**: Task 9 scope is "git, gh, gpg, zsh core, neutral files" = program configs + packages + session. NOT dotfile content trees.

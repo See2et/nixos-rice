@@ -1,43 +1,42 @@
-Task 9: Common HM Migration - Eval Evidence
-=============================================
+Task 9: Common HM Migration - Eval Evidence (scope-corrected)
+==============================================================
 Date: 2026-02-17
 
-Common HM modules created:
-  home/common/default.nix          - imports all common modules
-  home/common/programs/git.nix     - git + lfs
-  home/common/programs/gh.nix      - GitHub CLI + gh-notify
-  home/common/programs/gpg.nix     - GPG + scdaemon
-  home/common/programs/zsh/        - zsh core, abbreviations, plugins
-  home/common/packages.nix         - platform-agnostic packages
-  home/common/session.nix          - EDITOR, UV paths, sessionPath
-  home/common/xdg.nix             - nvim, zellij XDG configs
-  home/common/files.nix           - dotfiles (.gitconfig, .p10k.zsh, codex, opencode)
+Common HM modules (scope-corrected):
+  home/common/default.nix              - imports all common modules
+  home/common/programs/git.nix         - git + lfs
+  home/common/programs/gh.nix          - GitHub CLI + gh-notify
+  home/common/programs/gpg.nix         - GPG + scdaemon
+  home/common/programs/zsh/default.nix - zsh core config
+  home/common/programs/zsh/abbreviations.nix - zsh abbreviations
+  home/common/programs/zsh/plugins.nix - zsh plugins
+  home/common/packages.nix             - platform-agnostic packages
+  home/common/session.nix              - EDITOR, UV paths, sessionPath
 
-Dotfiles copied from source repo:
-  .gitconfig, .p10k.zsh, yubikey-setup.sh
-  codex/ (AGENTS.md, config.toml, github-mcp.sh)
-  opencode/ (AGENTS.md, opencode.jsonc, oh-my-opencode.jsonc, themes/)
-  nvim/ (full neovim config)
-  zellij/ (config.kdl, layouts/)
+Deferred to dotfile migration task:
+  home/common/files.nix  - removed (referenced out-of-scope dotfile trees)
+  home/common/xdg.nix   - removed (referenced out-of-scope nvim/zellij trees)
+  Dotfile trees (.gitconfig, .p10k.zsh, codex/, opencode/, nvim/, zellij/,
+  yubikey-setup.sh) removed from this commit scope.
 
 Platform wiring:
-  hosts/desktop/default.nix - imports home/common + home/linux + home.nix
+  hosts/desktop/default.nix - imports home/common + home/linux + home.nix (from Task 7)
   hosts/wsl/default.nix     - imports home/common + home/linux + home/wsl (with HM integration)
   flake.nix darwin           - already imports home/common + home/darwin (unchanged)
 
 home/linux/default.nix - Linux-only packages (wl-clipboard, xclip, libnotify)
 
-Eval results:
+Eval results (post-correction):
   desktop: nix eval .#nixosConfigurations.desktop.config.system.build.toplevel
-    -> «derivation /nix/store/8y9hj4yb28mx9sfnkv086hcic44nr8fi-nixos-system-nixos-25.11.20260110.d030887.drv»
+    -> «derivation /nix/store/3hc4wr0xhq9nvbnpaqprrvl7mm4w50i3-nixos-system-nixos-25.11.20260110.d030887.drv»
     -> SUCCESS
 
   wsl: nix eval .#nixosConfigurations.wsl.config.system.build.toplevel
-    -> «derivation /nix/store/safl578rr9gmv87l433l2m2hj5gn81y6-nixos-system-nixos-25.11.20260110.d030887.drv»
+    -> «derivation /nix/store/bxzv3an294hh8n9kxrmka16z1r2vksa1-nixos-system-nixos-25.11.20260110.d030887.drv»
     -> SUCCESS
 
   darwin: nix eval .#homeConfigurations.darwin.activationPackage
-    -> «derivation /nix/store/hicyb6ab62ggj5dxcrnhgw0wasllpdcw-home-manager-generation.drv»
+    -> «derivation /nix/store/62hab4mw68875kqlm5ai32hf61c7gfii-home-manager-generation.drv»
     -> SUCCESS
 
-All three targets evaluate successfully with common HM modules.
+All three targets evaluate successfully with scope-corrected common HM modules.
