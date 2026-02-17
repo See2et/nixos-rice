@@ -4,7 +4,8 @@
     programs.niri.settings = {
       binds = {
         "Mod+Return".action.spawn = "alacritty";
-        "Ctrl+Space".action.spawn = "fuzzel";
+        "Ctrl+Space".action.spawn = "rofi-launcher";
+        "Mod+V".action.spawn = "cliphist-rofi";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
 
         "Mod+Q".action.close-window = { };
@@ -48,6 +49,34 @@
         { command = [ "swaybg -i /etc/nixos/tori.webp -m fill" ]; }
         { command = [ "xwayland-satellite" ]; }
       ];
+    };
+
+    systemd.user.services.cliphist-store-text = {
+      Unit = {
+        Description = "Store clipboard text history";
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --type text --watch ${pkgs.cliphist}/bin/cliphist store";
+        Type = "simple";
+        Restart = "on-failure";
+        RestartSec = 2;
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
+
+    systemd.user.services.cliphist-store-image = {
+      Unit = {
+        Description = "Store clipboard image history";
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --type image --watch ${pkgs.cliphist}/bin/cliphist store";
+        Type = "simple";
+        Restart = "on-failure";
+        RestartSec = 2;
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
     };
   };
 }

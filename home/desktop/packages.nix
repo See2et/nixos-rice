@@ -1,4 +1,15 @@
 { pkgs, ... }:
+let
+  rofiLauncher = pkgs.writeShellScriptBin "rofi-launcher" ''
+    exec ${pkgs.rofi}/bin/rofi -show drun
+  '';
+
+  cliphistRofi = pkgs.writeShellScriptBin "cliphist-rofi" ''
+    selection="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.rofi}/bin/rofi -dmenu -i -p "Clipboard")"
+    [ -n "$selection" ] || exit 0
+    printf '%s\n' "$selection" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
+  '';
+in
 {
   home.sessionVariables = {
     NIXOS_OZONE_WL = "1";
@@ -8,7 +19,8 @@
     alacritty
     kitty
     wezterm
-    fuzzel
+    rofi
+    cliphist
     xwayland-satellite
     wl-clipboard
     waybar
@@ -22,5 +34,7 @@
     vrcx
     sidequest
     wlx-overlay-s
+    rofiLauncher
+    cliphistRofi
   ];
 }
