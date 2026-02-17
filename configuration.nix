@@ -16,18 +16,6 @@
     ./hardware-configuration.nix
   ];
 
-  boot.loader.systemd-boot.enable = false;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/boot/efi";
-  boot.loader.grub = {
-    enable = true;
-    efiSupport = true;
-    device = "nodev";
-    useOSProber = true;
-    configurationLimit = 10;
-    # efiInstallAsRemovable = true;
-  };
-
   # networking.hostName = "nixos"; # Define your hosname.
 
   # Configure network connections interactively with nmcli or nmtui.
@@ -84,12 +72,6 @@
   #     default_session = initial_session;
   #   };
   # };
-  services.displayManager = {
-    gdm.enable = true;
-    defaultSession = "niri";
-    sessionPackages = [ pkgs.niri ];
-  };
-
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
@@ -97,25 +79,6 @@
 
   # Enable CUPS to print documents.
   # services.printing.enable = true;
-
-  # Enable sound.
-  services.pulseaudio.enable = false;
-  # OR
-  services.pipewire = {
-    enable = true;
-    pulse.enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    jack.enable = true;
-
-    extraConfig = {
-      pipewire."99-disable-x11-bell.conf" = {
-        "context.properties" = {
-	  "module.x11.bell" = false;
-	};
-      };
-    };
-  };
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.libinput.enable = true;
@@ -168,57 +131,7 @@
     };
   };
   hardware.steam-hardware.enable = true;
-  services.xserver.videoDrivers = [ "nvidia" ];
-  hardware.nvidia = {
-    open = true;
-    modesetting.enable = true;
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
-  environment.sessionVariables = {
-    VK_DRIVER_FILES = "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json";
-    VK_ICD_FILENAMES = "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json";
-  };
-  hardware.graphics = { 
-    enable32Bit = true;
-    extraPackages32 = with pkgs.pkgsi686Linux; [ mesa ];
-  };
   security.polkit.enable = true;
-  security.rtkit.enable = true;
-  security.pam.loginLimits = [
-    {
-      domain = "@realtime";
-      type = "-";
-      item = "rtprio";
-      value = "98";
-    }
-    {
-      domain = "@realtime";
-      type = "-";
-      item = "nice";
-      value = "-20";
-    }
-    {
-      domain = "@realtime";
-      type = "-";
-      item = "memlock";
-      value = "unlimited";
-    }
-  ];
-  systemd.user.extraConfig = ''
-    [Manager]
-    DefaultLimitRTPRIO=98
-    DefaultLimitNICE=-20
-    DefaultLimitMEMLOCK=infinity
-  '';
-  services.wivrn = {
-    enable = true;
-    openFirewall = true;
-    defaultRuntime = true;
-    autoStart = true;
-  };
-  services.avahi.enable = true;
-  services.avahi.nssmdns4 = true;
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
@@ -272,31 +185,10 @@
   services.udev.packages = [ pkgs.yubikey-personalization ];
   services.udev.enable = true;
 
-  programs.niri.enable = true;
-  programs.niri.package = pkgs.niri;
-  xdg.portal.enable = true;
-  xdg.portal.xdgOpenUsePortal = true;
-
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
-
-  # Open ports in the firewall.
-  networking.firewall = {
-    enable = true;
-    # 9943 and 9944 for ALVR
-    allowedTCPPorts = [
-      9943
-      9944
-    ];
-    allowedUDPPorts = [
-      9943
-      9944
-    ];
-  };
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
