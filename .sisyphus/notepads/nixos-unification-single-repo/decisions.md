@@ -86,5 +86,24 @@
 - **Rationale**: Establishes proper darwin module pattern while keeping scope focused on preservation (not new darwin-specific features).
 - **Decision**: Keep isDarwin parameter in flake.nix extraSpecialArgs for all HM targets.
 - **Rationale**: Enables platform-aware behavior in shared modules (e.g., abbreviations.nix) without duplicating module definitions.
-- **Decision**: Accept platform limitation for Darwin HM build (eval succeeds, build requires aarch64-darwin).
+- **Decision**: Accept platform limitation for Darwin HM build (eval succeeds, build requires aarch64-darwin system).
+
+## 2026-02-17 - Task 11 Completion (WSL Home Manager Migration)
+- **Decision**: Create home/wsl/session.nix with /mnt/c PATH segment for Windows VS Code.
+- **Rationale**: WSL-specific PATH must be isolated from common/desktop/darwin HM to prevent leakage.
+- **Decision**: Create home/wsl/files.nix with WSL notifier configuration and script.
+- **Rationale**: WSL notifier (opencode-notifier.json, opencode-wsl-notify) is WSL-only and must not appear in desktop/darwin.
+- **Decision**: Wire home/wsl imports in home/wsl/default.nix and verify via hosts/wsl/default.nix.
+- **Rationale**: WSL host already imports home/wsl; desktop host does NOT, ensuring structural isolation.
+- **Verification**: 
+  - WSL HM PATH includes `/mnt/c/Users/See2et/AppData/Local/Programs/Microsoft\ VS\ Code/bin` ✓
+  - Desktop HM PATH excludes `/mnt/c` ✓
+  - WSL HM includes notifier files ✓
+  - Desktop HM excludes notifier files ✓
+- **Commits**: 5 atomic commits (f467075, d2812bc, fd064f6, ac651d2, 55811d8)
 - **Rationale**: Eval is sufficient proof of correct wiring; build limitation is environmental, not configuration error.
+
+## 2026-02-17 - Task 10 Fix (Duplicate Niri Module)
+- **Issue**: `nix flake check` failed due to duplicate declaration of `programs.niri` option. This occurred because `home/desktop/default.nix` imported `home/desktop/niri.nix` (which declares the option) AND also declared the option itself via `programs.niri.enable = true;`.
+- **Resolution**: Removed the duplicate `programs.niri.enable = true;` declaration from `home/desktop/default.nix`. The module import in `home/desktop/default.nix` remains, ensuring the option is still declared and enabled correctly for the desktop host.
+- **Verification**: `nix flake check` passes. `nix eval` confirms `programs.niri.enable` is true on desktop and absent on WSL.
