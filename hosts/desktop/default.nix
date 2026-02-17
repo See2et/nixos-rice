@@ -28,6 +28,7 @@
     imports = [
       ../../home/common
       ../../home/linux
+      ../../home/desktop
       ../../home.nix
     ];
   };
