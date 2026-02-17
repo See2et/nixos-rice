@@ -72,6 +72,15 @@ in
 
       window-rules = [
         {
+          geometry-corner-radius = {
+            top-left = 10.0;
+            top-right = 10.0;
+            bottom-right = 10.0;
+            bottom-left = 10.0;
+          };
+          clip-to-geometry = true;
+        }
+        {
           matches = [
             { "app-id" = "^Alacritty$"; }
           ];
@@ -81,6 +90,12 @@ in
 
       layout = {
         background-color = "transparent";
+        focus-ring = {
+          width = 3.0;
+          active.color = "#7fc8ff80";
+          inactive.color = "#5fa7d180";
+          urgent.color = "#9ad9ff80";
+        };
       };
 
       spawn-at-startup = [
