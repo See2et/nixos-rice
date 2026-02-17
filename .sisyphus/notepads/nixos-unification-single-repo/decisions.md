@@ -113,3 +113,19 @@
 - **Decision**: Add `hostId` to HM `extraSpecialArgs` for desktop/wsl/darwin while retaining existing `isDarwin` and `rustToolchain` args.
 - **Rationale**: Gives modules explicit host context without changing module import topology from Tasks 10-12.
 
+## 2026-02-17 - Task 14 Completion (Guardrails + Stale Import Cleanup)
+- **Decision**: Remove `../../home.nix` import from desktop HM and inline its needed settings.
+- **Rationale**: `home.nix` is a legacy monolith; all its functionality is now covered by modular structure (catppuccin in common, session vars in common/session.nix, stateVersion/home-manager.enable in host block).
+- **Decision**: Move catppuccin module import and config to `home/common/default.nix`.
+- **Rationale**: Catppuccin theme is used by waybar (desktop) and should be available to all platforms for consistency.
+- **Decision**: Remove duplicate `hardware-configuration.nix` import from `configuration.nix`.
+- **Rationale**: `hosts/desktop/default.nix` already imports it; having it in both creates a confusing duplicate import chain.
+- **Decision**: Add explicit GUARDRAIL comments to `hosts/desktop/default.nix` header.
+- **Rationale**: Documents anti-leak boundaries (no WSL modules, no home.nix) to prevent future regressions.
+- **Decision**: Set desktop `home.stateVersion = "25.11"` (was "25.05" in home.nix).
+- **Rationale**: Aligns with WSL (25.11) and system stateVersion (25.11); the old 25.05 was stale.
+
+- [2026-02-17T09:44:51Z] Kept Task 15 strictly non-activating: no , , or  commands executed.
+- [2026-02-17T09:44:51Z] Darwin build failure is treated as platform limitation and captured with explicit trace log for review gate continuity.
+
+- [2026-02-17T09:45:23Z] Maintained non-activating scope for Task 15: no switch/test/dry-activate commands executed in this task run.

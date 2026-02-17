@@ -17,3 +17,7 @@
 - **Resolution**: Verified required Darwin identity (`home.homeDirectory`) via eval and recorded Darwin arg wiring directly in evidence text from flake wiring.
 - **Impact**: No functional blocker; host identity checks and drift guard pass.
 
+
+- [2026-02-17T09:44:51Z]  failed on current runner () because derivations require ; full failure trace captured in .
+
+- [2026-02-17T09:45:23Z] Platform mismatch remains: darwin activation package build fails on x86_64-linux due to required system aarch64-darwin; full trace is stored in .sisyphus/evidence/task-15-failure-trace.log.

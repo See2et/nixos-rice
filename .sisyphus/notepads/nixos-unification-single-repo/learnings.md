@@ -130,3 +130,51 @@
 - home/darwin/default.nix populated with assertion check and placeholder for future darwin-specific settings.
 - No nix-darwin system-level assumptions added; darwin remains Home Manager only (as per plan).
 - Darwin HM build cannot execute on x86_64-linux (platform limitation), but eval proves correctness.
+
+## 2026-02-17 - Task 11 (WSL Home Manager Migration)
+- **WSL-specific modules created**:
+  - `home/wsl/session.nix`: Adds `/mnt/c/Users/See2et/AppData/Local/Programs/Microsoft\ VS\ Code/bin` to PATH
+  - `home/wsl/files.nix`: Adds WSL notifier files (opencode-notifier.json, opencode-wsl-notify)
+  - `home/wsl/default.nix`: Imports both modules
+- **Wiring verified**:
+  - WSL host (`hosts/wsl/default.nix`) imports `../../home/wsl` ✓
+  - Desktop host (`hosts/desktop/default.nix`) does NOT import `home/wsl` ✓
+  - Darwin HM output does NOT import `home/wsl` ✓
+- **Isolation confirmed**:
+  - WSL HM PATH includes `/mnt/c` segment ✓
+  - Desktop HM PATH excludes `/mnt/c` ✓
+  - WSL HM includes notifier files ✓
+  - Desktop HM excludes notifier files ✓
+- **Commit strategy**: 5 atomic commits following SEMANTIC style (refactor, chore, test)
+  - Commit 1 (f467075): WSL HM modules (session.nix, files.nix, default.nix)
+  - Commit 2 (d2812bc): Common session documentation update
+  - Commit 3 (fd064f6): Desktop host documentation (clarifies no home/wsl import)
+  - Commit 4 (ac651d2): Cleanup stale wayvr config
+  - Commit 5 (55811d8): Evidence files for verification
+
+## 2026-02-17 - Task 11 Corrective (Notifier File Contents)
+- **Issue**: Placeholder notifier files (3 bytes, 10 bytes) replaced with actual content from source repo.
+- **Files restored**:
+  - `opencode/opencode-notifier.json`: 159 bytes, JSON config for WSL notifier
+  - `opencode/opencode-wsl-notify`: 1320 bytes, bash script for PowerShell notifications
+- **Verification**: `nix eval` confirms correct path resolution for notifier script
+- **Commit**: aec898d `fix(home-wsl): restore notifier file contents`
+- **Learning**: Placeholder files must be replaced with actual content before final verification; eval catches missing content but doesn't validate file correctness.
+## 2026-02-17 - Task 13 (Flake HM host args + users)
+- HM identity should be explicit per host: desktop sets `home.username`/`home.homeDirectory` under `home-manager.users.see2et`, WSL keeps `home-manager.users.nixos` values.
+- `home-manager.extraSpecialArgs` can carry host scoping cleanly (`hostId`, `isDarwin`, `rustToolchain`) without introducing cross-host identity drift.
+- Eval evidence confirms host-specific values: desktop user `see2et`, WSL user `nixos`, Darwin home `/Users/see2et`.
+
+## 2026-02-17 - Task 14 (Guardrails + Stale Import Cleanup)
+- **Stale import found**: `hosts/desktop/default.nix` still imported `../../home.nix` (legacy monolith). This file provided catppuccin, stateVersion, home-manager.enable, and session vars — all of which were already migrated to modular structure except catppuccin.
+- **Catppuccin moved to common**: `inputs.catppuccin.homeModules.catppuccin` import and `catppuccin = { enable = true; flavor = "mocha"; }` config moved from `home.nix` to `home/common/default.nix` so all platforms (desktop, WSL, darwin) get the theme.
+- **Duplicate import cleaned**: `configuration.nix` imported `./hardware-configuration.nix`, but `hosts/desktop/default.nix` also imported it. Removed from `configuration.nix` since host file owns hardware wiring.
+- **stateVersion alignment**: `home.nix` had `home.stateVersion = "25.05"` (stale); desktop host now sets `"25.11"` matching WSL and darwin.
+- **Guardrail comments**: Added explicit MUST NOT rules to `hosts/desktop/default.nix` header to prevent future WSL leakage.
+- **Key insight**: `home.nix` is now a legacy file only used if someone manually imports it. All its functionality is covered by the modular structure. It should be considered for removal in a future cleanup task.
+- **Eval verification**: All three configs (desktop, wsl, darwin) evaluate cleanly after changes.
+
+- [2026-02-17T09:44:51Z] Task 15 verification run:  + desktop/wsl toplevel builds passed on x86_64-linux; darwin HM activation build is not locally buildable due to required system aarch64-darwin.
+- [2026-02-17T09:44:51Z] Evidence practice: sectioned command logs with exit codes in task-15-build-suite.log makes pass/fail auditing straightforward.
+
+- [2026-02-17T09:45:23Z] Task 15 verification run confirmed: nix flake check plus desktop and wsl toplevel builds passed on x86_64-linux; darwin HM activation build is not locally buildable because it requires aarch64-darwin.
