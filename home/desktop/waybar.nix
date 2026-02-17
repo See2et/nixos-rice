@@ -199,12 +199,12 @@
 
         pulseaudio = {
           format = "{icon} {volume}%";
-          "format-muted" = "";
+          "format-muted" = "🔇";
           "format-icons" = {
             default = [
-              ""
-              ""
-              " "
+              "🔈"
+              "🔉"
+              "🔊"
             ];
           };
           "on-click" = "pavucontrol";
