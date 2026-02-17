@@ -87,6 +87,7 @@ in
     gcolor3
     pkgsUnstable.godot_4_6
     discord
+    discord-canary
     slack
     youtube-music
     yubioath-flutter
