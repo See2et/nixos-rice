@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./system.nix
     ./boot.nix
     ./filesystems.nix
     ./nixos-repo-permissions.nix

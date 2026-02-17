@@ -17,8 +17,6 @@
     ../../modules/nixos/desktop
     # Include the results of the hardware scan.
     ../../hardware-configuration.nix
-    # Desktop configuration
-    ../../configuration.nix
     # Desktop-specific modules
     inputs.niri.nixosModules.niri
     inputs.nixpkgs-xr.nixosModules.nixpkgs-xr
