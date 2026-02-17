@@ -12,8 +12,8 @@
 
 {
   imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
+    # hardware-configuration.nix is imported by hosts/desktop/default.nix
+    # Do NOT import it here to avoid duplicate imports.
   ];
 
   # networking.hostName = "nixos"; # Define your hosname.

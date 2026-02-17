@@ -1,6 +1,11 @@
 # Desktop Host Configuration
 # This module is desktop-specific and should only be imported in the desktop host configuration.
 # It imports the desktop configuration, niri, nixpkgs-xr, and home-manager module chain.
+#
+# GUARDRAILS:
+# - MUST NOT import modules/nixos/wsl, home/wsl, or nixos-wsl
+# - MUST NOT set wsl.* options
+# - MUST NOT import home.nix (legacy monolith; use home/common + home/desktop)
 
 { inputs, pkgs, ... }:
 
@@ -29,10 +34,11 @@
       ../../home/common
       ../../home/linux
       ../../home/desktop
-      ../../home.nix
     ];
     home.username = "see2et";
     home.homeDirectory = "/home/see2et";
+    home.stateVersion = "25.11";
+    programs.home-manager.enable = true;
   };
   home-manager.extraSpecialArgs = {
     inherit inputs;
