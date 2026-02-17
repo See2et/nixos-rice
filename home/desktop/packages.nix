@@ -84,6 +84,7 @@ in
     pkgsUnstable.godot_4_6
     discord
     youtube-music
+    yubioath-flutter
     alvr
     vrcx
     sidequest
