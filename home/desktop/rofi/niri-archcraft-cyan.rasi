@@ -1,0 +1,134 @@
+* {
+    background:                  #1b1b1d;
+    surface:                     #242526;
+    foreground:                  #e3e3e3;
+    muted:                       #525860;
+    border-col:                  #444950;
+    accent:                      #00d4ff;
+    urgent:                      #fa383e;
+    active:                      #00a400;
+
+    normal-background:           var(surface);
+    normal-foreground:           var(foreground);
+    alternate-normal-background: var(surface);
+    alternate-normal-foreground: var(foreground);
+    urgent-background:           var(surface);
+    urgent-foreground:           var(urgent);
+    active-background:           var(surface);
+    active-foreground:           var(active);
+    selected-normal-background:  var(accent);
+    selected-normal-foreground:  var(background);
+    selected-urgent-background:  var(urgent);
+    selected-urgent-foreground:  #ffffff;
+    selected-active-background:  var(active);
+    selected-active-foreground:  #ffffff;
+
+    border-color:                var(border-col);
+    separatorcolor:              var(border-col);
+    background-color:            transparent;
+    spacing:                     8px;
+}
+
+window {
+    width:            38%;
+    padding:          16px;
+    border:           1px;
+    border-color:     var(border-col);
+    border-radius:    6px;
+    background-color: var(background);
+}
+
+mainbox {
+    spacing: 8px;
+}
+
+inputbar {
+    padding:          10px 14px;
+    spacing:          8px;
+    border:           1px;
+    border-color:     var(border-col);
+    border-radius:    4px;
+    background-color: var(surface);
+    children:         [ "prompt", "entry" ];
+}
+
+prompt {
+    str:        "Search";
+    text-color: var(accent);
+}
+
+entry {
+    text-color:        var(foreground);
+    placeholder:       "Applications";
+    placeholder-color: var(muted);
+}
+
+listview {
+    columns:       1;
+    lines:         10;
+    spacing:       6px;
+    border:        0;
+    scrollbar:     true;
+    fixed-height:  false;
+    background-color: transparent;
+}
+
+element {
+    padding:          10px 12px;
+    spacing:          8px;
+    border:           1px;
+    border-color:     var(border-col);
+    border-radius:    4px;
+    background-color: var(surface);
+    text-color:       var(foreground);
+    children:         [ "element-icon", "element-text" ];
+}
+
+element normal.normal {
+    background-color: var(normal-background);
+    text-color:       var(normal-foreground);
+}
+
+element normal.urgent {
+    background-color: var(urgent-background);
+    text-color:       var(urgent-foreground);
+}
+
+element normal.active {
+    background-color: var(active-background);
+    text-color:       var(active-foreground);
+}
+
+element selected.normal {
+    background-color: var(selected-normal-background);
+    text-color:       var(selected-normal-foreground);
+}
+
+element selected.urgent {
+    background-color: var(selected-urgent-background);
+    text-color:       var(selected-urgent-foreground);
+}
+
+element selected.active {
+    background-color: var(selected-active-background);
+    text-color:       var(selected-active-foreground);
+}
+
+element-text {
+    background-color: transparent;
+    text-color:       inherit;
+}
+
+element-icon {
+    background-color: transparent;
+    text-color:       inherit;
+    size:             1em;
+}
+
+scrollbar {
+    width:            6px;
+    handle-width:     6px;
+    border:           0;
+    background-color: #1f2022;
+    handle-color:     #5a5f68;
+}

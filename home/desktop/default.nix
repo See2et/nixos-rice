@@ -6,6 +6,7 @@ in
   imports = [
     ./niri.nix
     ./waybar.nix
+    ./rofi.nix
     ./packages.nix
     ./alvr.nix
     ./zen-browser.nix

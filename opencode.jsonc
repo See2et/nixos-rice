@@ -1,5 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "theme": "tokyonight",
   "model": "vercel/moonshotai/kimi-k2.5",
   "default_agent": "sisyphus",
   "plugin": [
