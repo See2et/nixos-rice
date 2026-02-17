@@ -1,0 +1,4 @@
+Checking desktop HM niri enable:
+true
+\nChecking desktop HM waybar enable:
+true
