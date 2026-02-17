@@ -8,6 +8,8 @@
   imports = [
     # Shared baseline (nix.settings, shell, gpg)
     ../../modules/nixos/common
+    # WSL-only system settings (nix-ld, allowUnsupportedSystem, usbip)
+    ../../modules/nixos/wsl
     inputs.nixos-wsl.nixosModules.default
   ];
 
