@@ -33,12 +33,12 @@ flake.nix                         # Single entry point — all outputs defined h
 
 ### 1. NEVER run `nixos-rebuild switch` without the user's explicit manual action
 
-This repo lives at `/etc/nixos` — the live NixOS system configuration. Any `switch`, `test`, or `dry-activate` command **immediately affects the running system**. During this migration, a subagent ran `nixos-rebuild switch` without authorization, triggering a reboot and login lockout.
+This repo lives at `/etc/nixos` — the live NixOS system configuration. `switch` and `test` can affect the running system immediately. `dry-activate` is a lower-risk preflight check, but it still executes activation logic in dry mode. During this migration, a subagent ran `nixos-rebuild switch` without authorization, triggering a reboot and login lockout.
 
 **Mandatory protocol:**
 - Build and eval are always safe: `nix build`, `nix eval`, `nix flake check`
-- Activation commands (`switch`, `test`, `dry-activate`) are **user-only**
-- Never delegate activation commands to AI agents or automation
+- Agent automation may run `dry-activate` only (never delegate this to subagents)
+- Activation commands `test` and `switch` are **user-only**
 - Always follow the gate sequence: `dry-activate` → `test` → `switch`
 
 ### 2. Generation-based rollback is your safety net
@@ -106,7 +106,7 @@ nix eval .#homeConfigurations.darwin.activationPackage.drvPath         # Darwin 
 3. `nix flake check --show-trace` — catches type errors, missing imports, option conflicts
 4. `nix eval` specific options to verify behavior
 5. `nix build` toplevel to ensure full system builds
-6. Only then: user manually runs gate sequence
+6. Only then: agent may run `dry-activate`; user manually runs `test` and `switch`
 
 ### Adding a new shared module
 
@@ -177,7 +177,7 @@ All HM modules receive these via `extraSpecialArgs`:
 
 ## Remaining Work
 
-- [ ] Execute gate sequence manually: `dry-activate` → `test` → `switch` (see `.sisyphus/evidence/task-16-rollout-runbook.md`)
+- [ ] Execute rollout gate: agent `dry-activate`, then user `test` → `switch` (see `.sisyphus/evidence/task-16-rollout-runbook.md`)
 - [ ] Consider adding `hashedPasswordFile` to `users.users.see2et`
 - [ ] Clean up `home.nix` (legacy, fully superseded by modular structure)
 - [ ] Migrate remaining `configuration.nix` contents into `modules/nixos/desktop/` or `modules/nixos/common/`
