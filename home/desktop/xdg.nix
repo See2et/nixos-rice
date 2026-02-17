@@ -32,6 +32,28 @@
     '';
   };
 
+  home.file.".local/bin/wlx-overlay-s" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      force_openxr=1
+      for arg in "$@"; do
+        case "$arg" in
+          --openxr|--openvr)
+            force_openxr=0
+            break
+            ;;
+        esac
+      done
+
+      if [ "$force_openxr" -eq 1 ]; then
+        exec "${config.home.homeDirectory}/.nix-profile/bin/wlx-overlay-s" --openxr "$@"
+      fi
+
+      exec "${config.home.homeDirectory}/.nix-profile/bin/wlx-overlay-s" "$@"
+    '';
+  };
+
   xdg = {
     desktopEntries = {
       steam = {
@@ -58,6 +80,7 @@
     };
 
     configFile = {
+      "wayvr/openxr_actions.json5".source = ./wayvr/openxr_actions.json5;
       "wlxoverlay/openxr_actions.json5".source = ./wayvr/openxr_actions.json5;
     };
 
