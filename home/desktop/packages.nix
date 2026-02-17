@@ -37,6 +37,8 @@ in
     brightnessctl
     gcolor3
     discord
+    youtube-music
+    notion-app-enhanced
     alvr
     vrcx
     sidequest
