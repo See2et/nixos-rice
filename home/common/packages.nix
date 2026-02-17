@@ -12,6 +12,7 @@
       zsh
       gcc
       unzip
+      cargo
       rust-analyzer
       tre-command
       lsd
