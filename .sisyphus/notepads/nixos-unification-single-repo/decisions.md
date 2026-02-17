@@ -65,3 +65,18 @@
 - **Rationale**: Follows established host scaffolding pattern from Tasks 3-4; keeps flake.nix clean and host isolation structural.
 - **Decision**: Desktop leakage verified structurally (import graph) rather than eval-only, since desktop eval depends on Task 7 (modules/nixos/desktop not yet created).
 - **Rationale**: Structural verification (grep imports) is more robust than eval for confirming isolation when dependent tasks are incomplete.
+
+## 2026-02-17 - Task 9 Completion
+- **Decision**: Extract platform-agnostic HM modules from WSL source repo into `home/common/`.
+- **Modules**: git, gh, gpg, zsh (core + abbreviations + plugins), packages, session, xdg, files.
+- **Rationale**: These modules have no platform-specific dependencies and can be shared across desktop, WSL, and Darwin targets.
+- **Decision**: Keep `isDarwin` parameter in abbreviations.nix for the `re` abbreviation (different rebuild commands per platform).
+- **Rationale**: The abbreviation is functionally common but the command differs; parameterizing is cleaner than splitting.
+- **Decision**: Place Linux-only packages (wl-clipboard, xclip, libnotify) in `home/linux/default.nix`, not common.
+- **Rationale**: These packages are unavailable or unnecessary on Darwin; keeping them in linux/ prevents Darwin eval failures.
+- **Decision**: Wire WSL host with full HM integration (home-manager.nixosModules + users.nixos) importing common + linux + wsl.
+- **Rationale**: WSL host needs HM for the same user experience; username is "nixos" (WSL default) vs "see2et" (desktop).
+- **Decision**: Copy all dotfiles (.gitconfig, .p10k.zsh, codex/, opencode/, nvim/, zellij/, yubikey-setup.sh) into this repo.
+- **Rationale**: `home.file` and `xdg.configFile` use relative paths from the module; files must exist in the repo tree.
+- **Decision**: Keep WSL-specific files (opencode-notifier.json, opencode-wsl-notify) in repo but NOT referenced from common.
+- **Rationale**: These files will be referenced from `home/wsl/` in Task 11; having them in the repo avoids a second copy step.

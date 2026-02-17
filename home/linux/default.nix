@@ -1,8 +1,12 @@
 # Linux-specific Home Manager modules
 # Settings common to all Linux targets (desktop + WSL) but not Darwin
-# To be populated in later tasks
+# Packages that are Linux-only go here
 
 { config, pkgs, inputs, ... }:
 {
-  # Placeholder for Linux-common HM modules
+  home.packages = with pkgs; [
+    wl-clipboard
+    xclip
+    libnotify
+  ];
 }

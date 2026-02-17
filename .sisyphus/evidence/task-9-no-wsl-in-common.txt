@@ -1,0 +1,20 @@
+Task 9: WSL Leakage Check in home/common
+==========================================
+Date: 2026-02-17
+
+grep -rn '/mnt/c|opencode-wsl-notify|opencode-notifier' home/common/
+
+Results (comments only, no functional leakage):
+  home/common/files.nix:2:   # WSL-specific files (opencode-notifier.json, opencode-wsl-notify) belong in home/wsl
+  home/common/default.nix:3: # CRITICAL: No /mnt/c paths, no WSL notifier, no platform-specific packages
+  home/common/session.nix:2: # WSL-specific PATH (/mnt/c/...) belongs in home/wsl
+
+VERDICT: PASS
+All matches are documentation comments explaining what NOT to put in common.
+No functional WSL-specific code exists in home/common/.
+
+WSL-specific items correctly excluded from common:
+  - /mnt/c/Users/.../VS Code/bin PATH -> belongs in home/wsl/session.nix
+  - opencode-notifier.json -> belongs in home/wsl/files.nix
+  - opencode-wsl-notify script -> belongs in home/wsl/files.nix
+  - wl-clipboard, xclip, libnotify -> placed in home/linux/ (not common)

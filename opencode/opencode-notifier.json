@@ -1,0 +1,11 @@
+{
+  "notification": false,
+  "command": {
+    "enabled": true,
+    "path": "opencode-wsl-notify",
+    "args": [
+      "{event}",
+      "{message}"
+    ]
+  }
+}
