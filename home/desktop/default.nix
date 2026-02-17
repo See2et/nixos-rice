@@ -18,8 +18,13 @@ in
     programs.alacritty = {
       enable = true;
       settings = {
-        window.opacity = 0.85;
+        window.opacity = 0.9;
         colors.transparent_background_colors = true;
+        colors.draw_bold_text_with_bright_colors = false;
+        colors.primary.foreground = "#bac2de";
+        colors.primary.bright_foreground = "#bac2de";
+        colors.normal.white = "#aeb7d6";
+        colors.bright.white = "#9aa4c6";
       };
     };
 
@@ -331,7 +336,10 @@ in
         backlight = {
           device = "intel_backlight";
           format = "{icon} {percent}%";
-          "format-icons" = [ "" "" ];
+          "format-icons" = [
+            ""
+            ""
+          ];
           "scroll-step" = 1;
         };
 
@@ -343,7 +351,13 @@ in
           };
           "full-at" = 98;
           format = "{icon} {capacity}%";
-          "format-icons" = [ "" "" "" "" "" ];
+          "format-icons" = [
+            ""
+            ""
+            ""
+            ""
+            ""
+          ];
           "format-critical" = " {capacity}%";
           "tooltip-format" = "{timeTo} ({power}W)";
           "format-charging" = " {capacity}%";
@@ -360,7 +374,11 @@ in
             phone = "";
             portable = "";
             car = "";
-            default = [ "" "" "" ];
+            default = [
+              ""
+              ""
+              ""
+            ];
           };
           "scroll-step" = 1;
           "on-click" = "pavucontrol";
