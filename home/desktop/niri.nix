@@ -1,4 +1,7 @@
 { pkgs, lib, config, ... }:
+let
+  wallpaperPath = "${config.xdg.dataHome}/wallpapers/tori.webp";
+in
 {
   config = lib.mkIf config.programs.niri.enable {
     programs.niri.settings = {
@@ -43,10 +46,31 @@
         "Mod+Ctrl+WheelScrollUp".action.set-window-height = "+5%";
       };
 
+      layer-rules = [
+        {
+          matches = [
+            { namespace = "^wallpaper$"; }
+          ];
+          place-within-backdrop = true;
+        }
+      ];
+
+      layout = {
+        background-color = "transparent";
+      };
+
       spawn-at-startup = [
         # { command = [ "mako" ]; }
-        { command = [ "wayber" ]; }
-        { command = [ "swaybg -i /etc/nixos/tori.webp -m fill" ]; }
+        { command = [ "waybar" ]; }
+        {
+          command = [
+            "${pkgs.swaybg}/bin/swaybg"
+            "-i"
+            wallpaperPath
+            "-m"
+            "fill"
+          ];
+        }
         { command = [ "xwayland-satellite" ]; }
       ];
     };
