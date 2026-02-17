@@ -7,6 +7,7 @@ in
     ./niri.nix
     ./waybar.nix
     ./packages.nix
+    ./zen-browser.nix
     ./xdg.nix
   ];
 

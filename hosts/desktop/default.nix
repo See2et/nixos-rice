@@ -28,6 +28,7 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "hm-backup";
+  home-manager.overwriteBackup = true;
   home-manager.users.see2et = {
     imports = [
       ../../home/common

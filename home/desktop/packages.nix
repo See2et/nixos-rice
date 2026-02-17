@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 let
   rofiLauncher = pkgs.writeShellScriptBin "rofi-launcher" ''
     exec ${pkgs.rofi}/bin/rofi -show drun
@@ -37,7 +37,6 @@ in
     brightnessctl
     gcolor3
     discord
-    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
     alvr
     vrcx
     sidequest
