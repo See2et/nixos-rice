@@ -72,7 +72,6 @@ in
 
       spawn-at-startup = [
         # { command = [ "mako" ]; }
-        { command = [ "waybar" ]; }
         {
           command = [
             "${pkgs.swaybg}/bin/swaybg"
