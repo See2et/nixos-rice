@@ -13,7 +13,7 @@ in
       prefer-no-csd = true;
 
       binds = {
-        "Mod+Return".action.spawn = "alacritty";
+        "Mod+Return".action.spawn = "alacritty-cwd";
         "Mod+Shift+Return".action.spawn = "zen-beta";
         "Ctrl+Space".action.spawn = "rofi-launcher";
         "Mod+S".action.spawn = "screenshot-picker";
