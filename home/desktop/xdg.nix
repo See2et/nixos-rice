@@ -4,7 +4,30 @@
     executable = true;
     text = ''
       #!/usr/bin/env bash
-      unset VK_DRIVER_FILES VK_ICD_FILENAMES VK_LAYER_PATH VK_INSTANCE_LAYERS
+      steamvr_launch=0
+      for arg in "$@"; do
+        case "$arg" in
+          *250820*|*SteamVR*|*steamvr*)
+            steamvr_launch=1
+            break
+            ;;
+        esac
+      done
+
+      if [ "$steamvr_launch" -eq 1 ]; then
+        nvidia_icd="/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json:/run/opengl-driver-32/share/vulkan/icd.d/nvidia_icd.i686.json"
+        export VK_DRIVER_FILES="$nvidia_icd"
+        export VK_ICD_FILENAMES="$nvidia_icd"
+        export __NV_PRIME_RENDER_OFFLOAD=1
+        export __VK_LAYER_NV_optimus=NVIDIA_only
+        export __GLX_VENDOR_LIBRARY_NAME=nvidia
+        export DRI_PRIME=1
+      else
+        unset VK_DRIVER_FILES VK_ICD_FILENAMES
+        unset __NV_PRIME_RENDER_OFFLOAD __VK_LAYER_NV_optimus __GLX_VENDOR_LIBRARY_NAME DRI_PRIME
+      fi
+
+      unset VK_LAYER_PATH VK_INSTANCE_LAYERS
       exec /run/current-system/sw/bin/steam "$@"
     '';
   };

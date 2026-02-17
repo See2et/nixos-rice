@@ -1,12 +1,7 @@
 { ... }:
 
 {
-  services.wivrn = {
-    enable = true;
-    openFirewall = true;
-    defaultRuntime = true;
-    autoStart = true;
-  };
+  services.wivrn.enable = false;
 
   services.avahi.enable = true;
   services.avahi.nssmdns4 = true;
