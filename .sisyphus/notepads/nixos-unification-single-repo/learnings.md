@@ -1,0 +1,70 @@
+# NixOS Unification Migration - Learnings
+
+## Project Conventions
+
+### Repository Structure
+- `/etc/nixos/` - Main NixOS configuration (desktop target)
+- `/home/see2et/repos/nixos-wsl/` - WSL configuration (source for migration)
+
+### Critical Files (Desktop Safety)
+- `/etc/nixos/hardware-configuration.nix` - BOOT-CRITICAL, never modify without rollback plan
+- `/etc/nixos/configuration.nix` - Main desktop config
+- `/etc/nixos/home.nix` - Desktop Home Manager config
+
+### Module Boundaries
+- `hosts/desktop/` - Desktop-only host configuration
+- `hosts/wsl/` - WSL-only host configuration
+- `modules/nixos/common/` - Shared NixOS modules
+- `modules/nixos/desktop/` - Desktop-only NixOS modules
+- `modules/nixos/wsl/` - WSL-only NixOS modules
+- `home/common/` - Shared Home Manager modules
+- `home/linux/` - Linux-specific HM modules
+- `home/wsl/` - WSL-specific HM modules
+- `home/darwin/` - Darwin-specific HM modules
+
+### Safety Rules
+1. Desktop safety is the #1 constraint
+2. Never skip `dry-activate` + `test` gates before `switch`
+3. WSL options must NOT leak into desktop modules
+4. Hardware configuration is desktop-only
+5. `/mnt/c/` paths must NOT appear in common modules
+
+### Git Strategy
+- Each task has a commit message specified
+- Pre-commit verification is mandatory
+- Evidence files go to `.sisyphus/evidence/task-{N}-*`
+
+## NixOS-WSL Reference
+- Already modular structure in `/home/see2et/repos/nixos-wsl/`
+- WSL module usage: `nixos-wsl.nixosModules.default`
+- Darwin HM output exists at `homeConfigurations.darwin`
+
+## Release Alignment
+- nixpkgs: `nixos-25.11`
+- home-manager: `release-25.11`
+
+## Task 1 - Baseline Snapshot and Rollback Anchors (2026-02-17)
+
+### Execution Summary
+- **Current Generation**: 105 (baseline for unification)
+- **Current System**: `/nix/store/zlvsxilxxngf2h1z46br2m2w1gfi2g8q-nixos-system-nixos-25.11.20260110.d030887`
+- **Backup Location**: `/etc/nixos.pre-unify.20260217-1732`
+- **Evidence Files**: 
+  - `.sisyphus/evidence/task-1-generations.txt` (full generation list)
+  - `.sisyphus/evidence/task-1-current-system.txt` (current-system symlink target)
+  - `.sisyphus/evidence/task-1-no-switch.txt` (rollback documentation)
+
+### Key Learnings
+1. **Generation History**: 105 generations exist; current is 105 (2026-02-17 17:01:29)
+2. **NixOS Version**: 25.11.20260110.d030887 (matches target release alignment)
+3. **Backup Strategy**: Full `/etc/nixos` copy with timestamp ensures complete recovery
+4. **Rollback Path**: Two options documented:
+   - Restore from backup: `sudo cp -a /etc/nixos.pre-unify.20260217-1732 /etc/nixos`
+   - Use generation rollback: `sudo nixos-rebuild switch --profile /nix/var/nix/profiles/system --rollback`
+
+### Safety Verification
+- ✓ No activation commands executed (read-only baseline capture)
+- ✓ Hardware configuration preserved in backup
+- ✓ Boot generation unchanged (105 remains current)
+- ✓ All evidence files created and verified non-empty
+

@@ -1,0 +1,27 @@
+# Task 1 No-Switch Evidence
+# Generated: 2026-02-17 17:32:00
+
+## Verification: No nixos-rebuild switch executed during Task 1
+
+### Command History Check
+The following commands were executed in this task:
+1. sudo nixos-rebuild list-generations (read-only, no activation)
+2. readlink -f /run/current-system (read-only, no activation)
+3. sudo cp -a /etc/nixos /etc/nixos.pre-unify.20260217-1732 (backup only, no activation)
+
+### Proof
+- No `nixos-rebuild switch` command appears in task execution log
+- No `nixos-rebuild boot` command appears in task execution log
+- No `nixos-rebuild test` command appears in task execution log
+- No `nixos-rebuild dry-activate` command appears in task execution log
+- All commands executed were read-only or backup operations
+
+### Rollback Path (if needed)
+To restore to pre-unification state:
+  sudo cp -a /etc/nixos.pre-unify.20260217-1732 /etc/nixos
+  sudo nixos-rebuild switch --flake /etc/nixos#desktop
+
+### Current Generation (Baseline)
+Generation 105 (current) is the baseline for this unification task.
+To rollback to this generation if needed:
+  sudo nixos-rebuild switch --profile /nix/var/nix/profiles/system --rollback

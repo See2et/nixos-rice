@@ -1,0 +1,1 @@
+/nix/store/zlvsxilxxngf2h1z46br2m2w1gfi2g8q-nixos-system-nixos-25.11.20260110.d030887
