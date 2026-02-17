@@ -48,11 +48,7 @@
         system = linuxSystem;
         specialArgs = { inherit inputs; };
         modules = [
-          nixos-wsl.nixosModules.default
-          {
-            system.stateVersion = "25.11";
-            wsl.enable = true;
-          }
+          ./hosts/wsl
         ];
       };
     };

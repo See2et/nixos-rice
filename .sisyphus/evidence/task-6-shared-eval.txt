@@ -1,0 +1,28 @@
+=== Task 6: Shared Module Extraction - Eval Evidence ===
+Date: 2026-02-17T08:47:10Z
+
+--- Desktop: nix.settings.experimental-features ---
+[ "nix-command" "flakes" "nix-command" "flakes" ]
+
+--- WSL: nix.settings.experimental-features ---
+[ "nix-command" "flakes" ]
+
+--- Desktop: programs.gnupg.agent.enable ---
+true
+
+--- WSL: programs.gnupg.agent.enable ---
+true
+
+--- Desktop: programs.zsh.enable ---
+true
+
+--- WSL: programs.zsh.enable ---
+true
+
+--- Desktop: nixpkgs.config.allowUnfree ---
+true
+
+--- WSL: wsl.enable (host isolation preserved) ---
+true
+
+RESULT: All shared settings apply to both hosts. PASS.

@@ -22,3 +22,21 @@
 - **Rationale**: Enforces host isolation and avoids WSL option leakage into desktop path.
 - **Decision**: Provide `homeConfigurations.darwin` as standalone HM output with minimal inline Darwin-safe module for Task 2.
 - **Rationale**: Satisfies darwin output/eval contract now without pulling desktop Linux HM modules into Darwin evaluation.
+
+## 2026-02-17 - Task 3 Completion
+- **Decision**: Create `hosts/desktop/default.nix` following the WSL host pattern established in Task 2.
+- **Rationale**: Consistent host scaffolding structure enables future multi-host expansion and improves code organization.
+- **Decision**: Consolidate all desktop module imports (hardware, configuration, niri, nixpkgs-xr, home-manager) into the host entry.
+- **Rationale**: Centralizes desktop-specific wiring in one place, reducing flake.nix complexity and preventing module leakage.
+- **Decision**: Update flake.nix to reference `./hosts/desktop` instead of inline module list.
+- **Rationale**: Simplifies flake outputs, improves readability, and establishes pattern for future host additions.
+- **Commit**: `e29714f refactor(hosts): scaffold desktop host entry`
+
+## 2026-02-17 - Task 6 Completion
+- **Decision**: Extract only truly platform-neutral settings into `modules/nixos/common/default.nix`.
+- **Shared settings**: `nix.settings.experimental-features`, `nixpkgs.config.allowUnfree`, `programs.zsh.enable`, `programs.gnupg.agent`.
+- **Rationale**: These four settings are identical across desktop and WSL; extracting them reduces duplication and establishes the shared module pattern.
+- **Decision**: Fix flake.nix WSL wiring to use `./hosts/wsl` instead of inline modules.
+- **Rationale**: Previous task 4 created `hosts/wsl/default.nix` with common module import, but flake.nix still used inline WSL config, bypassing the host scaffold entirely. Without this fix, the common module was not applied to WSL.
+- **Decision**: Keep desktop `configuration.nix` settings as-is (duplicated with common) until Task 7 migrates them out.
+- **Rationale**: Removing settings from configuration.nix now would mix concerns; Task 7 handles desktop-specific migration.

@@ -74,3 +74,18 @@
 - `nixos-wsl` should stay isolated to the WSL module list; desktop evaluation remains free of `wsl.*` options.
 - A standalone Darwin Home Manager output can be evaluated without host activation by defining a minimal inline HM module in flake outputs.
 - Adding a new flake input (`nixos-wsl`) updates `flake.lock` automatically on first eval.
+
+## 2026-02-17 - Task 3 (Desktop Host Scaffolding)
+- Host scaffolding pattern: `hosts/{host}/default.nix` imports all host-specific modules and configuration files.
+- Desktop host entry consolidates: hardware-configuration.nix, configuration.nix, niri, nixpkgs-xr, and home-manager module chain.
+- Flake wiring simplification: `modules = [ ./hosts/desktop ]` replaces inline module list, improving readability and maintainability.
+- Hardware UUID and filesystem settings preserved exactly through hardware-configuration.nix import chain.
+- Desktop module behavior unchanged; scaffolding is purely structural reorganization.
+- Eval verification confirms: `system.stateVersion = "25.11"` and `fileSystems."/".fsType = "ext4"` resolve correctly through host entry.
+
+## 2026-02-17 - Task 6 (Shared Module Extraction Baseline)
+- Safe shared settings identified: `nix.settings.experimental-features`, `nixpkgs.config.allowUnfree`, `programs.zsh.enable`, `programs.gnupg.agent` (with SSH support).
+- NixOS merges list options (like `experimental-features`) from multiple modules — duplicates are harmless but visible in eval output.
+- **Critical finding**: flake.nix WSL config was still inline (not using `./hosts/wsl`), so the common module import in `hosts/wsl/default.nix` was never reached. Fixed by updating flake.nix to use `./hosts/wsl`.
+- Guardrail comment in common module documents forbidden patterns; grep evidence must filter comment lines to avoid false positives.
+- `nix.settings.experimental-features` is a freeform setting that only appears in eval output when explicitly set — absence doesn't mean it's not configured at daemon level.
