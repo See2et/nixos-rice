@@ -57,6 +57,8 @@
       darwin = home-manager.lib.homeManagerConfiguration {
         pkgs = pkgsDarwin;
         modules = [
+          ./home/common
+          ./home/darwin
           {
             home.username = "see2et";
             home.homeDirectory = "/Users/see2et";
