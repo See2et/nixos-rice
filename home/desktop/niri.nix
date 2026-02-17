@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   wallpaperPath = "${config.xdg.dataHome}/wallpapers/tori.webp";
 in
@@ -12,15 +17,21 @@ in
         "Ctrl+Space".action.spawn = "rofi-launcher";
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
+        "Mod+Shift+Slash".action.show-hotkey-overlay = { };
 
         "Mod+Q".action.close-window = { };
 
         "Mod+H".action.focus-column-left = [ ];
         "Mod+J".action.focus-window-down = [ ];
         "Mod+K".action.focus-window-up = [ ];
+        "Mod+Ctrl+J".action.focus-window-down-or-top = [ ];
+        "Mod+Ctrl+K".action.focus-window-up-or-bottom = [ ];
         "Mod+L".action.focus-column-right = [ ];
         "Mod+U".action.focus-workspace-down = [ ];
         "Mod+I".action.focus-workspace-up = [ ];
+
+        "Mod+Comma".action.consume-window-into-column = [ ];
+        "Mod+Period".action.expel-window-from-column = [ ];
 
         "Mod+Shift+H".action.move-column-left = [ ];
         "Mod+Shift+J".action.move-window-down = [ ];
