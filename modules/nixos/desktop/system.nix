@@ -1,5 +1,19 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
+let
+  steamPkgs = import inputs.nixpkgs-steam {
+    system = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfree = true;
+  };
+  steamVulkanIcd =
+    "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json"
+    + ":"
+    + "/run/opengl-driver-32/share/vulkan/icd.d/nvidia_icd.i686.json";
+  steamExtraEnv = {
+    VK_DRIVER_FILES = steamVulkanIcd;
+    VK_ICD_FILENAMES = steamVulkanIcd;
+  };
+in
 {
   networking.networkmanager.enable = true;
 
@@ -85,7 +99,8 @@
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
     localNetworkGameTransfers.openFirewall = true;
-    package = pkgs.steam.override {
+    package = steamPkgs.steam.override {
+      extraEnv = steamExtraEnv;
       extraPkgs =
         pkgs': with pkgs'; [
           SDL2
@@ -122,7 +137,8 @@
     skkDictionaries.l
     skkDictionaries.jinmei
     skkDictionaries.geo
-    (steam.override {
+    (steamPkgs.steam.override {
+      extraEnv = steamExtraEnv;
       extraPkgs =
         pkgs': with pkgs'; [
           SDL2

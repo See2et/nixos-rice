@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-steam.url = "github:NixOS/nixpkgs/75563f8f5237c44ed7b8a51fd870ed3d6a11eb82";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
@@ -26,7 +27,7 @@
     opencode.url = "github:albertov/opencode/dev";
   };
 
-  outputs = { self, nixpkgs, home-manager, niri, nixos-wsl, catppuccin, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
+  outputs = { self, nixpkgs, nixpkgs-steam, home-manager, niri, nixos-wsl, catppuccin, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
   let
     linuxSystem = "x86_64-linux";
     darwinSystem = "aarch64-darwin";
