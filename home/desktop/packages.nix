@@ -5,11 +5,14 @@ let
   '';
 
   cliphistPicker = pkgs.writeShellScriptBin "cliphist-picker" ''
-    selection="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.rofi}/bin/rofi -dmenu -i -p "Clipboard")"
+    sleep 0.12
+    selection="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Clipboard")"
+    rofiStatus=$?
+    [ "$rofiStatus" -eq 0 ] || exit 0
     [ -n "$selection" ] || exit 0
-    ${pkgs.cliphist}/bin/cliphist decode <<<"$selection" | ${pkgs.wl-clipboard}/bin/wl-copy
-    sleep 0.1
-    ${pkgs.wtype}/bin/wtype -M ctrl v -m ctrl
+    itemId="''${selection%%$'\t'*}"
+    [[ "$itemId" =~ ^[0-9]+$ ]] || exit 0
+    ${pkgs.cliphist}/bin/cliphist decode <<<"$selection" | ${pkgs.wl-clipboard}/bin/wl-copy || exit 0
   '';
 in
 {
@@ -23,7 +26,6 @@ in
     wezterm
     rofi
     cliphist
-    wtype
     xwayland-satellite
     wl-clipboard
     waybar
