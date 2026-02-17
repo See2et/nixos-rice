@@ -30,6 +30,8 @@ in
     wl-clipboard
     waybar
     playerctl
+    wlogout
+    swaylock
     pavucontrol
     pulseaudio
     brightnessctl
