@@ -6,6 +6,8 @@
     ./plugins.nix
   ];
 
+  home.file.".p10k.zsh".source = ./p10k.zsh;
+
   programs.zsh = {
     enable = true;
 
@@ -23,8 +25,6 @@
         zshConfig = lib.mkOrder 1000 ''
           export ABBR_QUIET=1
           ABBR_SET_EXPANSION_CURSOR=1
-
-          typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 
           eval "$(zoxide init zsh)"
           eval "$(${pkgs.uv}/bin/uv generate-shell-completion zsh)"
