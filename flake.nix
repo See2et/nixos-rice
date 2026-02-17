@@ -40,17 +40,7 @@
         system = linuxSystem;
         specialArgs = { inherit inputs; };
         modules = [
-          ./configuration.nix
-
-          niri.nixosModules.niri
-          nixpkgs-xr.nixosModules.nixpkgs-xr
-
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.see2et = import ./home.nix;
-          }
+          ./hosts/desktop
         ];
       };
 
