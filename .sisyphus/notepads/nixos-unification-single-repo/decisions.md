@@ -107,3 +107,9 @@
 - **Issue**: `nix flake check` failed due to duplicate declaration of `programs.niri` option. This occurred because `home/desktop/default.nix` imported `home/desktop/niri.nix` (which declares the option) AND also declared the option itself via `programs.niri.enable = true;`.
 - **Resolution**: Removed the duplicate `programs.niri.enable = true;` declaration from `home/desktop/default.nix`. The module import in `home/desktop/default.nix` remains, ensuring the option is still declared and enabled correctly for the desktop host.
 - **Verification**: `nix flake check` passes. `nix eval` confirms `programs.niri.enable` is true on desktop and absent on WSL.
+## 2026-02-17 - Task 13 Completion
+- **Decision**: Keep host identity declarations at host wiring points instead of common HM modules.
+- **Rationale**: Prevents accidental propagation of one platform identity (username/homeDirectory) into others.
+- **Decision**: Add `hostId` to HM `extraSpecialArgs` for desktop/wsl/darwin while retaining existing `isDarwin` and `rustToolchain` args.
+- **Rationale**: Gives modules explicit host context without changing module import topology from Tasks 10-12.
+

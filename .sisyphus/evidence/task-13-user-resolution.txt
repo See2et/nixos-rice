@@ -1,0 +1,9 @@
+desktop.home.username=see2et
+wsl.home.username=nixos
+darwin.home.homeDirectory=/Users/see2et
+desktop.extraSpecialArgs.hostId=desktop
+wsl.extraSpecialArgs.hostId=wsl
+desktop.extraSpecialArgs.isDarwin=false
+wsl.extraSpecialArgs.isDarwin=false
+darwin.extraSpecialArgs.hostId=darwin (wired in flake.nix)
+darwin.extraSpecialArgs.isDarwin=true (wired in flake.nix)

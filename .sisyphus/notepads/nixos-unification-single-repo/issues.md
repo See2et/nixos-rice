@@ -12,3 +12,8 @@
 - **Issue**: Initial desktop eval failed with `path '/nix/store/.../modules/nixos/desktop' does not exist` after introducing new module files.
 - **Resolution**: Staged newly created module files and related host/config updates before re-running eval/build.
 - **Impact**: Eval and desktop toplevel build succeeded; no functional regression detected in scoped desktop options.
+## 2026-02-17 - Task 13 note
+- **Issue**: `nix eval` cannot directly introspect Darwin HM `extraSpecialArgs` via `homeConfigurations.darwin._module.args.*` attribute path in this output shape.
+- **Resolution**: Verified required Darwin identity (`home.homeDirectory`) via eval and recorded Darwin arg wiring directly in evidence text from flake wiring.
+- **Impact**: No functional blocker; host identity checks and drift guard pass.
+

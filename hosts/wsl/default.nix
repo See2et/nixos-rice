@@ -36,6 +36,7 @@
   home-manager.extraSpecialArgs = {
     inherit inputs;
     isDarwin = false;
+    hostId = "wsl";
     rustToolchain = pkgs.rustc;
   };
 }

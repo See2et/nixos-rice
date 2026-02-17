@@ -31,10 +31,13 @@
       ../../home/desktop
       ../../home.nix
     ];
+    home.username = "see2et";
+    home.homeDirectory = "/home/see2et";
   };
   home-manager.extraSpecialArgs = {
     inherit inputs;
     isDarwin = false;
+    hostId = "desktop";
     rustToolchain = pkgs.rustc;
   };
 }

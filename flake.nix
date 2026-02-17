@@ -69,6 +69,7 @@
         extraSpecialArgs = {
           inherit inputs;
           isDarwin = true;
+          hostId = "darwin";
           rustToolchain = pkgsDarwin.rustc;
         };
       };
