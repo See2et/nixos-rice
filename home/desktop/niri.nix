@@ -16,6 +16,7 @@ in
         "Mod+Return".action.spawn = "alacritty";
         "Mod+Shift+Return".action.spawn = "zen-beta";
         "Ctrl+Space".action.spawn = "rofi-launcher";
+        "Mod+S".action.spawn = "screenshot-picker";
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };

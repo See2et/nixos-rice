@@ -1,4 +1,9 @@
-{ pkgs, inputs, ... }:
+{
+  pkgs,
+  inputs,
+  config,
+  ...
+}:
 let
   pkgsUnstable = import inputs.nixpkgs-unstable {
     inherit (pkgs.stdenv.hostPlatform) system;
@@ -19,6 +24,39 @@ let
     [[ "$itemId" =~ ^[0-9]+$ ]] || exit 0
     ${pkgs.cliphist}/bin/cliphist decode <<<"$selection" | ${pkgs.wl-clipboard}/bin/wl-copy || exit 0
   '';
+
+  screenshotPicker = pkgs.writeShellScriptBin "screenshot-picker" ''
+    sleep 0.12
+
+    mode="$(printf '%s\n' "Area (trim)" "Full screen" | ${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Screenshot")"
+    rofiStatus=$?
+    [ "$rofiStatus" -eq 0 ] || exit 0
+    [ -n "$mode" ] || exit 0
+
+    screenshotsDir="${config.xdg.userDirs.pictures}/Screenshots"
+    mkdir -p "$screenshotsDir"
+    timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
+
+    case "$mode" in
+      "Full screen")
+        target="$screenshotsDir/screenshot-$timestamp-full.png"
+        ${pkgs.grim}/bin/grim "$target" || exit 0
+        ;;
+      "Area (trim)")
+        geometry="$(${pkgs.slurp}/bin/slurp)"
+        [ -n "$geometry" ] || exit 0
+        target="$screenshotsDir/screenshot-$timestamp-area.png"
+        ${pkgs.grim}/bin/grim -g "$geometry" "$target" || exit 0
+        g
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+
+    ${pkgs.wl-clipboard}/bin/wl-copy < "$target" || exit 0
+    ${pkgs.libnotify}/bin/notify-send "Screenshot saved" "Copied to clipboard: $target"
+  '';
 in
 {
   home.sessionVariables = {
@@ -31,6 +69,8 @@ in
     wezterm
     rofi
     cliphist
+    grim
+    slurp
     xwayland-satellite
     wl-clipboard
     waybar
@@ -50,5 +90,6 @@ in
     wlx-overlay-s
     rofiLauncher
     cliphistPicker
+    screenshotPicker
   ];
 }
