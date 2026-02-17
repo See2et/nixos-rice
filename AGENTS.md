@@ -12,11 +12,11 @@ This is a unified NixOS flake repo managing three targets from a single source o
 ```
 flake.nix                         # Single entry point — all outputs defined here
 ├── hosts/
-│   ├── desktop/default.nix       # Desktop host wiring (imports hw, config, niri, nvidia, HM)
+│   ├── desktop/default.nix       # Desktop host wiring (imports hw, desktop modules, niri, nvidia, HM)
 │   └── wsl/default.nix           # WSL host wiring (imports nixos-wsl, HM)
 ├── modules/nixos/
 │   ├── common/default.nix        # Shared NixOS baseline (nix settings, zsh, gpg)
-│   ├── desktop/                  # Desktop-only system: boot, gdm, nvidia, audio, vr, firewall, niri, filesystems
+│   ├── desktop/                  # Desktop-only system: system, boot, gdm, nvidia, audio, vr, firewall, niri, filesystems
 │   └── wsl/default.nix           # WSL-only system: nix-ld, usbip, allowUnsupportedSystem
 ├── home/
 │   ├── common/                   # Shared HM: git, gh, gpg, zsh, packages, session, catppuccin
@@ -24,9 +24,8 @@ flake.nix                         # Single entry point — all outputs defined h
 │   ├── desktop/                  # Desktop HM: niri, waybar, xdg, desktop packages
 │   ├── wsl/                      # WSL HM: /mnt/c PATH, notifier files
 │   └── darwin/default.nix        # Darwin HM: placeholder + isDarwin assertion
-├── configuration.nix             # Legacy desktop config (partially migrated, still imported by desktop host)
 ├── hardware-configuration.nix    # Desktop hardware — imported ONLY by hosts/desktop
-└── home.nix                      # Legacy HM monolith — superseded, safe to remove
+└── home/                         # Modular Home Manager tree (common/linux/desktop/wsl/darwin)
 ```
 
 ## Critical Safety Rules for /etc/nixos
@@ -66,7 +65,7 @@ This is the most common failure mode when creating new modules. If you see `path
 
 ### 4. User `see2et` has no declarative password
 
-`users.users.see2et` in `configuration.nix` uses `isNormalUser = true` without `hashedPassword` or `initialPassword`. If GDM restarts (e.g., during `switch`), the user must already have a password set via `passwd`. Consider adding `hashedPasswordFile` to prevent future lockouts.
+`users.users.see2et` in `modules/nixos/desktop/system.nix` uses `isNormalUser = true` without `hashedPassword` or `initialPassword`. If GDM restarts (e.g., during `switch`), the user must already have a password set via `passwd`. Consider adding `hashedPasswordFile` to prevent future lockouts.
 
 ## Host Isolation Boundaries
 
@@ -173,14 +172,10 @@ All HM modules receive these via `extraSpecialArgs`:
 1. **One concern per file** — `boot.nix`, `nvidia.nix`, `audio.nix` etc. are independently testable
 2. **Host files are wiring, not logic** — `hosts/*/default.nix` only `imports` and sets identity (username, homeDirectory, stateVersion)
 3. **Common modules must be platform-agnostic** — if it references `/mnt/c`, Wayland, or `hardware-configuration.nix`, it doesn't belong in `common/`
-4. **`home.nix` and `configuration.nix` are legacy** — all new work goes into the modular structure; these files exist only for backward compatibility during the transition
+4. **Modular files are canonical** — all new work goes into `modules/nixos/*` and `home/*`; avoid reintroducing root-level monolith files
 
 ## Remaining Work
 
-- [ ] Execute rollout gate: agent `dry-activate`, then user `test` → `switch` (see `.sisyphus/evidence/task-16-rollout-runbook.md`)
-- [ ] Consider adding `hashedPasswordFile` to `users.users.see2et`
-- [ ] Clean up `home.nix` (legacy, fully superseded by modular structure)
-- [ ] Migrate remaining `configuration.nix` contents into `modules/nixos/desktop/` or `modules/nixos/common/`
-- [ ] Address `services.xserver.displayManager.gdm.enable` deprecation → rename to `services.displayManager.gdm.enable`
-- [ ] Dotfile content migration (nvim/, zellij/, codex/ configs → proper HM module declarations)
-- [ ] Darwin HM build verification on actual aarch64-darwin machine
+- [ ] Execute rollout gate interactively on host: `sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop`, then user `test` → `switch` (blocked here: non-interactive sudo/systemd auth)
+- [ ] Add `hashedPasswordFile` for `users.users.see2et` once a secure secret path/mechanism is provided
+- [ ] Darwin HM build verification on an actual aarch64-darwin machine

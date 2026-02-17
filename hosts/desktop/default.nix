@@ -5,7 +5,7 @@
 # GUARDRAILS:
 # - MUST NOT import modules/nixos/wsl, home/wsl, or nixos-wsl
 # - MUST NOT set wsl.* options
-# - MUST NOT import home.nix (legacy monolith; use home/common + home/desktop)
+# - MUST NOT reintroduce a root-level home.nix monolith
 
 { inputs, pkgs, ... }:
 
