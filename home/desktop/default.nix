@@ -16,6 +16,7 @@ in
 
   config = {
     programs.niri.enable = true;
+    services.swaync.enable = true;
 
     programs.alacritty = {
       enable = true;
@@ -175,6 +176,32 @@ in
         color: @pink;
       }
 
+      #custom-notifications {
+        margin: 0;
+        min-width: 1.8em;
+        font-family: "FiraCode Nerd Font", "Symbols Nerd Font Mono", "Noto Color Emoji", sans-serif;
+      }
+
+      #custom-notifications.none,
+      #custom-notifications.inhibited-none {
+        color: @text;
+      }
+
+      #custom-notifications.notification,
+      #custom-notifications.inhibited-notification {
+        color: @yellow;
+      }
+
+      #custom-notifications.dnd-none,
+      #custom-notifications.dnd-inhibited-none {
+        color: @overlay1;
+      }
+
+      #custom-notifications.dnd-notification,
+      #custom-notifications.dnd-inhibited-notification {
+        color: @peach;
+      }
+
       #custom-power {
         color: @red;
       }
@@ -221,6 +248,7 @@ in
         "modules-right" = [
           "group/playback"
           "group/status"
+          "group/notifications"
           "tray"
           "group/power"
         ];
@@ -247,6 +275,11 @@ in
             "custom/lock"
             "custom/power"
           ];
+        };
+
+        "group/notifications" = {
+          orientation = "inherit";
+          modules = [ "custom/notifications" ];
         };
 
         "image#logo" = {
@@ -295,6 +328,26 @@ in
         tray = {
           "icon-size" = 16;
           spacing = 4;
+        };
+
+        "custom/notifications" = {
+          "return-type" = "json";
+          exec = "swaync-client -swb";
+          format = "{icon}";
+          "format-icons" = {
+            notification = " ";
+            none = "";
+            "dnd-notification" = " ";
+            "dnd-none" = "";
+            "inhibited-notification" = " ";
+            "inhibited-none" = "";
+            "dnd-inhibited-notification" = " ";
+            "dnd-inhibited-none" = "";
+          };
+          tooltip = true;
+          escape = true;
+          "on-click" = "swaync-client -t -sw";
+          "on-click-right" = "swaync-client -d -sw";
         };
 
         "custom/music" = {
