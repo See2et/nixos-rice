@@ -7,7 +7,35 @@
 
   fonts.packages = with pkgs; [
     nerd-fonts.fira-code
+    noto-fonts-cjk-sans
+    noto-fonts-color-emoji
   ];
+
+  fonts.fontconfig = {
+    enable = true;
+    defaultFonts = {
+      serif = [
+        "Noto Serif CJK JP"
+        "Noto Color Emoji"
+        "serif"
+      ];
+      sansSerif = [
+        "FiraCode Nerd Font"
+        "Noto Sans CJK JP"
+        "Noto Sans CJK KR"
+        "Noto Sans CJK SC"
+        "Noto Color Emoji"
+        "sans-serif"
+      ];
+      monospace = [
+        "FiraCode Nerd Font"
+        "Noto Sans CJK JP"
+        "Noto Color Emoji"
+        "monospace"
+      ];
+      emoji = [ "Noto Color Emoji" ];
+    };
+  };
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.inputMethod = {

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 {
   programs.waybar = {
     enable = true;
@@ -7,7 +7,7 @@
       @import "catppuccin.css";
 
       * {
-        font-family: FiraCode Nerd Font;
+        font-family: "FiraCode Nerd Font", "Noto Sans CJK JP", "Noto Sans CJK SC", "Noto Color Emoji", sans-serif;
         font-size: 17px;
         min-height: 0;
       }
