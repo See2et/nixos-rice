@@ -6,6 +6,8 @@
 
 {
   imports = [
+    # Shared baseline (nix.settings, shell, gpg)
+    ../../modules/nixos/common
     # Include the results of the hardware scan.
     ../../hardware-configuration.nix
     # Desktop configuration
