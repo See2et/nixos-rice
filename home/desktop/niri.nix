@@ -5,7 +5,7 @@
       binds = {
         "Mod+Return".action.spawn = "alacritty";
         "Ctrl+Space".action.spawn = "rofi-launcher";
-        "Mod+V".action.spawn = "cliphist-rofi";
+        "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
 
         "Mod+Q".action.close-window = { };

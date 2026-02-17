@@ -4,10 +4,12 @@ let
     exec ${pkgs.rofi}/bin/rofi -show drun
   '';
 
-  cliphistRofi = pkgs.writeShellScriptBin "cliphist-rofi" ''
+  cliphistPicker = pkgs.writeShellScriptBin "cliphist-picker" ''
     selection="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.rofi}/bin/rofi -dmenu -i -p "Clipboard")"
     [ -n "$selection" ] || exit 0
-    printf '%s\n' "$selection" | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy
+    ${pkgs.cliphist}/bin/cliphist decode <<<"$selection" | ${pkgs.wl-clipboard}/bin/wl-copy
+    sleep 0.1
+    ${pkgs.wtype}/bin/wtype -M ctrl v -m ctrl
   '';
 in
 {
@@ -21,6 +23,7 @@ in
     wezterm
     rofi
     cliphist
+    wtype
     xwayland-satellite
     wl-clipboard
     waybar
@@ -35,6 +38,6 @@ in
     sidequest
     wlx-overlay-s
     rofiLauncher
-    cliphistRofi
+    cliphistPicker
   ];
 }
