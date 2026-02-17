@@ -1,0 +1,1 @@
+error: flake 'git+file:///etc/nixos' does not provide attribute 'packages.x86_64-linux.nixosConfigurations.desktop.config.wsl', 'legacyPackages.x86_64-linux.nixosConfigurations.desktop.config.wsl' or 'nixosConfigurations.desktop.config.wsl'

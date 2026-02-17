@@ -1,0 +1,47 @@
+===== Task 16: Rollback Proof =====
+Date: 2026-02-17T10:28:20Z
+
+===== Rollback Option 1: Generation Rollback =====
+Current generation: 105
+Command: sudo nixos-rebuild switch --profile /nix/var/nix/profiles/system --rollback
+Effect: Reverts to generation 104 (same NixOS version, prior config state)
+
+===== Rollback Option 2: Backup Restore =====
+Backup: /etc/nixos.pre-unify.20260217-1732
+Commands:
+  sudo rm -rf /etc/nixos
+  sudo cp -a /etc/nixos.pre-unify.20260217-1732 /etc/nixos
+  sudo nixos-rebuild switch --flake /etc/nixos#desktop
+Effect: Restores pre-unification configuration entirely
+
+===== Rollback Option 3: Specific Generation =====
+Command: sudo nix-env --switch-generation <N> -p /nix/var/nix/profiles/system
+Then: sudo /nix/var/nix/profiles/system/bin/switch-to-configuration switch
+Effect: Activates any specific prior generation
+
+===== Backup Existence Verification =====
+PASS: Backup directory exists
+COMMAND: ls -la /etc/nixos.pre-unify.20260217-1732/ | head -10
+total 528
+drwxr-xr-x  5 root root    4096 Feb 17 17:11 .
+drwxr-xr-x 37 root root    4096 Feb 17 19:20 ..
+-rw-r--r--  1 root root    8513 Feb 17 16:29 configuration.nix
+-rw-r--r--  1 root root   12456 Feb 17 16:35 flake.lock
+-rw-r--r--  1 root root    1217 Feb 17 16:33 flake.nix
+drwxr-xr-x  7 root root    4096 Feb 17 17:00 .git
+-rw-r--r--  1 root root    1164 Jan 12 05:54 hardware-configuration.nix
+-rw-r--r--  1 root root    7337 Feb 17 17:01 home.nix
+-rw-r--r--  1 1000 users    811 Jan 12 01:02 mocha.css
+
+===== Generation History (last 10) =====
+Generation  Build-date           NixOS version            Kernel   Configuration Revision  Specialisation  Current
+105         2026-02-17 17:01:29  25.11.20260110.d030887   6.12.64  Unknown                 []              True
+104         2026-02-17 16:37:59  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+103         2026-02-17 16:26:03  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+102         2026-02-17 16:23:30  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+101         2026-02-17 16:20:10  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+100         2026-01-14 02:38:50  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+99          2026-01-14 02:18:22  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+98          2026-01-14 02:14:35  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+97          2026-01-14 02:03:53  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+96          2026-01-14 02:01:58  25.11.20260110.d030887   6.12.64  Unknown                 []              False

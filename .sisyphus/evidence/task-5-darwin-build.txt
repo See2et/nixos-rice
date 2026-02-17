@@ -1,0 +1,73 @@
+warning: Git tree '/etc/nixos' is dirty
+these 18 derivations will be built:
+  /nix/store/cdkpgwwv9s37s3qv6f3cbi2wr2abhxbn-hm_Userssee2et.cache.keep.drv
+  /nix/store/cs3dzw6v4s52qkcmch9f2wvgj7q68rfk-home-manager.drv
+  /nix/store/6vvs712wrbd7z57l9dzpij0xdzpiczag-options.json.drv
+  /nix/store/n5f8gsbpbaa8mvrmagpd240vbmrzxzsv-home-configuration-reference-manpage.drv
+  /nix/store/rd6gvlzy84ynz8kdyw2gw63d3b80h483-hm-session-vars.sh.drv
+  /nix/store/v5wqxna4g7cp8kdwwks1l1wacs817qg2-builder.pl.drv
+  /nix/store/k8ypv0wbc9pwa3gifbw24ac9hlxippd5-home-manager-fonts.drv
+  /nix/store/hlwpdmfnq7gb2ry2az7bs7mw4favcka7-hm_LibraryFonts.homemanagerfontsversion.drv
+  /nix/store/p6iy3xrq0432djqmpbm4bl94cyzp0935-hm_Userssee2et.localstate.keep.drv
+  /nix/store/sxpxf6nryk96f6bv1dci9almv23hbs0a-user-dbus-services.drv
+  /nix/store/33llnn7zp9d7nzlgch872vcgiygfcjla-home-manager-files.drv
+  /nix/store/9w2vai26jzsnpvgm5qd9nmgsndc46bi8-cleanup.drv
+  /nix/store/cm285h9frsx9g4h4wpn0ckybw3pisvsz-link.drv
+  /nix/store/j5qq78ikqr2rjvndgh1vsrxvh1p7hpxq-home-manager-applications.drv
+  /nix/store/phb8bb25y7zmkajp50w8qw29cj2a9w0v-check-link-targets.sh.drv
+  /nix/store/vgziimlg0nn2833qg4pg1wxlsjl06f16-home-manager-path.drv
+  /nix/store/3pfyv99b957azdjzsmiz2dzn0w67vsnq-activation-script.drv
+  /nix/store/aah9ixf37flyv4lz6x5a4vdb1zddg9pp-home-manager-generation.drv
+these 30 paths will be fetched (121.67 MiB download, 929.34 MiB unpacked):
+  /nix/store/hhzg7sy1d5p6l0jkjcblqm3n7r9xzbya-apple-sdk-14.4
+  /nix/store/iywb4ywdf2jdiv9hyqp0451ldawissd0-aws-crt-cpp-0.34.3
+  /nix/store/rhh5zy69cd4kqw560cmsn0mrn2jhraiq-aws-sdk-cpp-1.11.647
+  /nix/store/03kh4p8lq4c1qzry28jnpdp04ym0l78w-cctools-1010.6
+  /nix/store/6vzaqhmgg44zq6gghl3m7yl0f5qi2gda-cctools-1010.6-libtool
+  /nix/store/z2gb40k2v9v9hfsy6p37rgwg5pw1vq8x-cctools-binutils-darwin-1010.6
+  /nix/store/ach9rgczp42ay6qrb5kpj8lxrxf5ll8m-cctools-binutils-darwin-wrapper-1010.6
+  /nix/store/dj17z73wacgqcnrynj964p8j9lj4gpb4-clang-21.1.7
+  /nix/store/cqpfsvjnx0p8v8ygfwcw3fwni3xgbcd3-clang-21.1.7-lib
+  /nix/store/5yp55mb61iz4m2fh2p46zzx5ycgmp4vy-clang-wrapper-21.1.7
+  /nix/store/7gsdvhzrljq9ygcrrxk0lyxzzw8bscch-curl-8.17.0
+  /nix/store/xwfrrchv9c954vjvnhk0pjlx9qxrrg0k-ld64-954.16
+  /nix/store/r7vq6mkh6jpp6qnjm9ic6gbgrb1vgsjf-libgit2-1.9.2-lib
+  /nix/store/640xp5fvsvab0zx9ji1w9q1s460m9zm4-llvm-21.1.7
+  /nix/store/9dvn584whj0dpzq2cw7s1shm92r5jyxk-man-db-2.13.1
+  /nix/store/1rf174v8ansa2b23xsvsjqkk12sxs6g0-nix-2.31.2+1
+  /nix/store/x4xpkspbbi1gqq6lif2ivfr8flk9rbrc-nix-2.31.2+1
+  /nix/store/f95ivpndzqhl14dd8vp854nb11zs1rxs-nix-cmd-2.31.2+1
+  /nix/store/njqqqxmikkgg1sgjz3d71fmlilwmigcv-nix-expr-2.31.2+1
+  /nix/store/fq4ax0ixjvncg42m8r7igrk9gyi6x1w1-nix-fetchers-2.31.2+1
+  /nix/store/3k8qpq42iwia0bxfk61578gw6q7p4jq4-nix-flake-2.31.2+1
+  /nix/store/vlbpr3wfhjm01slnc4vd7xf2djfnh0vz-nix-main-2.31.2+1
+  /nix/store/ksnjs0yla2f47z40kv8ha5yi82kxn810-nix-store-2.31.2+1
+  /nix/store/nv3haaj1vh67rk0l81haw8civmc373nh-nix-util-2.31.2+1
+  /nix/store/1bdvs845yzpckxv8ki7fh619b25sgk77-nixos-option
+  /nix/store/faf20iwqqyglsr807ks1flplqn5bmd8p-nixos-render-docs-0.0
+  /nix/store/harvwv14nmfr4ci99s7lypjcm1jw2fq8-python3-3.13.11
+  /nix/store/xy3sdr17yrf0m8hks9lakpl0fw8i4bq6-python3.13-markdown-it-py-3.0.0
+  /nix/store/vxnhrl25fm6jj9dw0ba1wz79xcisll0r-python3.13-mdit-py-plugins-0.4.2
+  /nix/store/a7ag1kqya5nzgccapnc3xrx3zwp5v7gh-python3.13-mdurl-0.1.2
+copying path '/nix/store/9dvn584whj0dpzq2cw7s1shm92r5jyxk-man-db-2.13.1' from 'https://cache.nixos.org'...
+error: Cannot build '/nix/store/v5wqxna4g7cp8kdwwks1l1wacs817qg2-builder.pl.drv'.
+       Reason: required system or feature not available
+       Required system: 'aarch64-darwin' with features {}
+       Current system: 'x86_64-linux' with features {benchmark, big-parallel, kvm, nixos-test}
+error: Cannot build '/nix/store/phb8bb25y7zmkajp50w8qw29cj2a9w0v-check-link-targets.sh.drv'.
+       Reason: required system or feature not available
+       Required system: 'aarch64-darwin' with features {}
+       Current system: 'x86_64-linux' with features {benchmark, big-parallel, kvm, nixos-test}
+error: Cannot build '/nix/store/cdkpgwwv9s37s3qv6f3cbi2wr2abhxbn-hm_Userssee2et.cache.keep.drv'.
+       Reason: required system or feature not available
+       Required system: 'aarch64-darwin' with features {}
+       Current system: 'x86_64-linux' with features {benchmark, big-parallel, kvm, nixos-test}
+error: Cannot build '/nix/store/3pfyv99b957azdjzsmiz2dzn0w67vsnq-activation-script.drv'.
+       Reason: 1 dependency failed.
+       Output paths:
+         /nix/store/zsz9wh95x6g2cykygcfiqfzag16l5wxy-activation-script
+error: Cannot build '/nix/store/aah9ixf37flyv4lz6x5a4vdb1zddg9pp-home-manager-generation.drv'.
+       Reason: 1 dependency failed.
+       Output paths:
+         /nix/store/phrsh5mds2s4m0vmgl4k4c7c8xxzw4zc-home-manager-generation
+BUILD SUCCESS

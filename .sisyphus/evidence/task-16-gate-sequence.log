@@ -1,0 +1,51 @@
+===== Task 16: Activation-Gated Rollout Evidence =====
+Date: 2026-02-17T10:27:54Z
+
+===== IMPORTANT: This task is DOCUMENTATION-ONLY =====
+No activation commands (switch/test/dry-activate) are executed.
+A prior subagent incident ran switch without authorization;
+system remained on same generation 105 with no config drift.
+
+===== Current Generation State =====
+COMMAND: sudo nixos-rebuild list-generations | head -5
+Generation  Build-date           NixOS version            Kernel   Configuration Revision  Specialisation  Current
+105         2026-02-17 17:01:29  25.11.20260110.d030887   6.12.64  Unknown                 []              True
+104         2026-02-17 16:37:59  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+103         2026-02-17 16:26:03  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+102         2026-02-17 16:23:30  25.11.20260110.d030887   6.12.64  Unknown                 []              False
+
+===== Current System Path =====
+COMMAND: readlink -f /run/current-system
+/nix/store/zlvsxilxxngf2h1z46br2m2w1gfi2g8q-nixos-system-nixos-25.11.20260110.d030887
+
+===== Pre-Unification Baseline (from Task 1) =====
+Baseline generation: 105
+Baseline system: /nix/store/zlvsxilxxngf2h1z46br2m2w1gfi2g8q-nixos-system-nixos-25.11.20260110.d030887
+Backup location: /etc/nixos.pre-unify.20260217-1732
+
+===== Match Verification =====
+PASS: Current system matches pre-unification baseline
+
+===== Flake Check (non-activating) =====
+COMMAND: nix flake check --show-trace 2>&1
+warning: Git tree '/etc/nixos' is dirty
+evaluating flake...
+checking flake output 'nixosConfigurations'...
+checking NixOS configuration 'nixosConfigurations.desktop'...
+checking NixOS configuration 'nixosConfigurations.wsl'...
+checking flake output 'homeConfigurations'...
+EXIT CODE: 0
+
+===== Desktop Toplevel Build (non-activating) =====
+COMMAND: nix build .#nixosConfigurations.desktop.config.system.build.toplevel --dry-run 2>&1
+warning: Git tree '/etc/nixos' is dirty
+EXIT CODE: 0
+
+===== Gate Sequence Policy =====
+The following commands MUST be executed in strict order by the USER:
+  1. sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop
+  2. sudo nixos-rebuild test --flake /etc/nixos#desktop
+  3. (Only if both pass) sudo nixos-rebuild switch --flake /etc/nixos#desktop
+
+===== Evidence: No activation commands executed in this task =====
+Verified: This task produced only documentation and non-activating evidence.
