@@ -1,5 +1,10 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 let
+  pkgsUnstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+
   rofiLauncher = pkgs.writeShellScriptBin "rofi-launcher" ''
     exec ${pkgs.rofi}/bin/rofi -show drun
   '';
@@ -36,6 +41,7 @@ in
     pulseaudio
     brightnessctl
     gcolor3
+    pkgsUnstable.godot_4_6
     discord
     youtube-music
     alvr
