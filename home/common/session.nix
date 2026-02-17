@@ -4,6 +4,8 @@
 {
   home.sessionVariables = {
     EDITOR = "nvim";
+    VISUAL = "nvim";
+    SUDO_EDITOR = "nvim";
     UV_TOOL_DIR = "${config.xdg.dataHome}/uv/tools";
     UV_TOOL_BIN_DIR = "${config.xdg.dataHome}/uv/tools/bin";
   };
