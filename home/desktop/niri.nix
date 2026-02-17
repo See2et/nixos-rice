@@ -14,6 +14,7 @@ in
 
       binds = {
         "Mod+Return".action.spawn = "alacritty";
+        "Mod+Shift+Return".action.spawn = "zen-beta";
         "Ctrl+Space".action.spawn = "rofi-launcher";
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
