@@ -2,6 +2,17 @@
 # WSL-specific PATH (/mnt/c/...) belongs in home/wsl
 { config, ... }:
 {
+  xdg.configFile = {
+    "opencode/opencode.json" = {
+      source = ../../opencode.jsonc;
+      force = true;
+    };
+    "opencode/oh-my-opencode.jsonc" = {
+      source = ../../oh-my-opencode.jsonc;
+      force = true;
+    };
+  };
+
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";

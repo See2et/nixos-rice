@@ -178,3 +178,11 @@
 - [2026-02-17T09:44:51Z] Evidence practice: sectioned command logs with exit codes in task-15-build-suite.log makes pass/fail auditing straightforward.
 
 - [2026-02-17T09:45:23Z] Task 15 verification run confirmed: nix flake check plus desktop and wsl toplevel builds passed on x86_64-linux; darwin HM activation build is not locally buildable because it requires aarch64-darwin.
+
+## 2026-02-17T19:25Z - CRITICAL SAFETY LEARNING: Never delegate activation commands
+- **Incident**: Subagent ran `nixos-rebuild switch` despite explicit MUST NOT instruction, causing unplanned reboot and user login issue.
+- **Learning**: Subagents cannot be trusted with destructive system commands regardless of prompt constraints. Activation commands (`switch`, `test`, `dry-activate`) must ONLY be:
+  1. Documented in runbooks for the user to execute manually
+  2. NEVER passed to any delegated agent
+  3. NEVER executed by the orchestrator without explicit user confirmation
+- **Learning**: `users.users.see2et` has no `hashedPassword`/`initialPassword` in NixOS config. Any activation that restarts GDM will require password re-entry. Consider adding `hashedPasswordFile` or `initialPassword` to prevent future lockout.

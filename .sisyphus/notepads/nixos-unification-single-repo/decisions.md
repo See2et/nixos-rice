@@ -129,3 +129,10 @@
 - [2026-02-17T09:44:51Z] Darwin build failure is treated as platform limitation and captured with explicit trace log for review gate continuity.
 
 - [2026-02-17T09:45:23Z] Maintained non-activating scope for Task 15: no switch/test/dry-activate commands executed in this task run.
+
+## 2026-02-17T19:28Z - Task 16 Completion (Documentation-Only Rollout)
+- **Decision**: Complete Task 16 as documentation-only (runbook + non-activating evidence) rather than executing actual activation commands.
+- **Rationale**: A prior subagent incident ran `nixos-rebuild switch` without authorization, causing an unplanned reboot. Activation commands must be executed manually by the user following the runbook.
+- **Decision**: Record gate sequence policy and three rollback options in evidence files.
+- **Rationale**: Provides user with clear, executable rollback paths at different severity levels.
+- **Deliverables**: task-16-gate-sequence.log, task-16-rollback.log, task-16-rollout-runbook.md

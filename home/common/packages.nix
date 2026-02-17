@@ -9,7 +9,6 @@
 {
   home.packages =
     (with pkgs; [
-      neovim
       zsh
       gcc
       unzip
@@ -21,7 +20,6 @@
       gh
       ghq
       lazygit
-      zellij
       zenn-cli
       peco
       zoxide
