@@ -28,7 +28,7 @@ let
   screenshotPicker = pkgs.writeShellScriptBin "screenshot-picker" ''
     sleep 0.12
 
-    mode="$(printf '%s\n' "Area (trim)" "Full screen" | ${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Screenshot")"
+    mode="$(printf '%s\n' "Area (trim)" "Full screen" "Focused window" | ${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Screenshot")"
     rofiStatus=$?
     [ "$rofiStatus" -eq 0 ] || exit 0
     [ -n "$mode" ] || exit 0
@@ -47,7 +47,11 @@ let
         [ -n "$geometry" ] || exit 0
         target="$screenshotsDir/screenshot-$timestamp-area.png"
         ${pkgs.grim}/bin/grim -g "$geometry" "$target" || exit 0
-        g
+        ;;
+      "Focused window")
+        ${pkgs.niri}/bin/niri msg action screenshot-window || exit 0
+        ${pkgs.libnotify}/bin/notify-send "Screenshot saved" "Focused window captured"
+        exit 0
         ;;
       *)
         exit 0
