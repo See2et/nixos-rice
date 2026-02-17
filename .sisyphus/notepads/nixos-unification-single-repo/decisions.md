@@ -80,3 +80,11 @@
 - **Rationale**: `home.file` and `xdg.configFile` use relative paths from the module; files must exist in the repo tree.
 - **Decision**: Keep WSL-specific files (opencode-notifier.json, opencode-wsl-notify) in repo but NOT referenced from common.
 - **Rationale**: These files will be referenced from `home/wsl/` in Task 11; having them in the repo avoids a second copy step.
+
+## 2026-02-17 - Task 12 Completion
+- **Decision**: Populate home/darwin/default.nix with assertion check and placeholder structure.
+- **Rationale**: Establishes proper darwin module pattern while keeping scope focused on preservation (not new darwin-specific features).
+- **Decision**: Keep isDarwin parameter in flake.nix extraSpecialArgs for all HM targets.
+- **Rationale**: Enables platform-aware behavior in shared modules (e.g., abbreviations.nix) without duplicating module definitions.
+- **Decision**: Accept platform limitation for Darwin HM build (eval succeeds, build requires aarch64-darwin).
+- **Rationale**: Eval is sufficient proof of correct wiring; build limitation is environmental, not configuration error.

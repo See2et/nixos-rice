@@ -122,3 +122,11 @@
 - All three targets (desktop, wsl, darwin) eval successfully with common HM modules wired in.
 - **Scope lesson**: Dotfile trees (nvim/, zellij/, codex/, opencode/, .gitconfig, .p10k.zsh, yubikey-setup.sh) are NOT part of "reusable HM modules" — they are content, not module structure. files.nix and xdg.nix that reference them must be deferred to a dotfile migration task.
 - **Scope lesson**: Task 9 scope is "git, gh, gpg, zsh core, neutral files" = program configs + packages + session. NOT dotfile content trees.
+
+## 2026-02-17 - Task 12 (Darwin Home Manager Preservation)
+- Darwin HM output was already evaluable from Task 5 scaffolding; Task 12 focuses on populating the darwin module with proper structure.
+- `isDarwin` parameter flows through flake.nix `extraSpecialArgs` into all HM modules, including abbreviations.nix.
+- The `re` abbreviation correctly resolves to `home-manager switch --flake /etc/nixos#darwin` when isDarwin=true (verified via nix eval).
+- home/darwin/default.nix populated with assertion check and placeholder for future darwin-specific settings.
+- No nix-darwin system-level assumptions added; darwin remains Home Manager only (as per plan).
+- Darwin HM build cannot execute on x86_64-linux (platform limitation), but eval proves correctness.
