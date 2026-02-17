@@ -17,6 +17,11 @@
     };
     catppuccin.url = "github:catppuccin/nix";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     opencode.url = "github:albertov/opencode/dev";
   };

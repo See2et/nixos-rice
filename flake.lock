@@ -419,7 +419,8 @@
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
-        "opencode": "opencode"
+        "opencode": "opencode",
+        "zen-browser": "zen-browser"
       }
     },
     "systems": {
@@ -503,6 +504,29 @@
       "original": {
         "owner": "Supreeeme",
         "repo": "xwayland-satellite",
+        "type": "github"
+      }
+    },
+    "zen-browser": {
+      "inputs": {
+        "home-manager": [
+          "home-manager"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1771303996,
+        "narHash": "sha256-cwf75uTx8cGJCP+nohi7iVTE+lmfevBxNgirkMLkuEY=",
+        "owner": "0xc000022070",
+        "repo": "zen-browser-flake",
+        "rev": "a7659a805bda3ae8e4861572d8dc0f1d29f3fc3c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "0xc000022070",
+        "repo": "zen-browser-flake",
         "type": "github"
       }
     }
