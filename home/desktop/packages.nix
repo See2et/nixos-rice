@@ -152,6 +152,7 @@ in
     youtube-music
     yubioath-flutter
     obsidian
+    obs-studio
     xfce.thunar
     xfce.thunar-archive-plugin
     xfce.thunar-volman
