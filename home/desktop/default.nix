@@ -7,6 +7,7 @@
     ./ui-tokens.nix
     ./surfaces.nix
     ./packages.nix
+    ./obs.nix
     ./alvr.nix
     ./zen-browser.nix
     ./xdg.nix
