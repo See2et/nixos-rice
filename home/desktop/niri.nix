@@ -4,6 +4,9 @@
   config,
   ...
 }:
+let
+  t = config.desktop.ui.tokens;
+in
 {
   config = lib.mkIf config.programs.niri.enable {
     programs.niri.settings = {
@@ -77,23 +80,69 @@
           ];
           place-within-backdrop = true;
         }
+        {
+          matches = [
+            { namespace = "^(rofi|wlogout)$"; }
+          ];
+          opacity = t.opacity.overlay;
+          geometry-corner-radius = {
+            top-left = t.radii.lg * 1.0;
+            top-right = t.radii.lg * 1.0;
+            bottom-right = t.radii.lg * 1.0;
+            bottom-left = t.radii.lg * 1.0;
+          };
+        }
+        {
+          matches = [
+            { namespace = "^swaync"; }
+          ];
+          opacity = t.opacity.panel;
+          geometry-corner-radius = {
+            top-left = t.radii.md * 1.0;
+            top-right = t.radii.md * 1.0;
+            bottom-right = t.radii.md * 1.0;
+            bottom-left = t.radii.md * 1.0;
+          };
+        }
       ];
 
       window-rules = [
         {
           geometry-corner-radius = {
-            top-left = 10.0;
-            top-right = 10.0;
-            bottom-right = 10.0;
-            bottom-left = 10.0;
+            top-left = t.radii.lg * 1.0;
+            top-right = t.radii.lg * 1.0;
+            bottom-right = t.radii.lg * 1.0;
+            bottom-left = t.radii.lg * 1.0;
           };
           clip-to-geometry = true;
         }
         {
           matches = [
-            { "app-id" = "^Alacritty$"; }
+            { "app-id" = "^(Alacritty|kitty|org\\.wezfurlong\\.wezterm)$"; }
           ];
           draw-border-with-background = false;
+        }
+        {
+          matches = [
+            { "app-id" = "^(org\\.pulseaudio\\.pavucontrol|pavucontrol|org\\.gnome\\.Calculator|gcolor3)$"; }
+            { title = "^Picture-in-Picture$"; }
+          ];
+          open-floating = true;
+        }
+        {
+          matches = [
+            {
+              "app-id" = "^(discord|discordcanary|Slack|slack|firefox|zen|zen-beta)$";
+              "is-active" = false;
+            }
+          ];
+          opacity = 0.96;
+        }
+        {
+          matches = [
+            { "is-floating" = true; }
+          ];
+          opacity = 0.98;
         }
       ];
 
@@ -102,9 +151,9 @@
         background-color = "transparent";
         focus-ring = {
           width = 3.0;
-          active.color = "#7fc8ff80";
-          inactive.color = "#5fa7d180";
-          urgent.color = "#9ad9ff80";
+          active.color = "#00d4ff80";
+          inactive.color = "#44495080";
+          urgent.color = "#ffcc6680";
         };
       };
 

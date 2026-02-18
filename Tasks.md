@@ -65,7 +65,7 @@
   - 壁紙とUI配色の関係が意図として文章化されている。
   - 壁紙を変えてもテーマ全体が破綻しない。
 
-### [ ] T2-3: niriのビジュアルルールを拡張する
+### [x] T2-3: niriのビジュアルルールを拡張する
 - 背景: gaps/radius/focus ringは良い土台だが、個性としてはまだ弱い。
 - 対象: 必要な範囲でアプリ別のwindow/layerルール（floating/opacity/border例外など）を増やす。
 - 完了条件:
@@ -98,3 +98,4 @@
 - 土台はすでに強い（niriキー設定、壁紙導線、Waybarモジュール、Rofiテーマ、swaync有効化）。
 - いまの最大ボトルネックはパッケージ不足ではなく、責務整理とデザイン一貫性。
 - T1-3でLauncher/Power/Lock導線を `rofi-launcher` / `desktop-power-menu` / `desktop-session-action` に整理し、操作と見た目の統一基盤を作成。
+- T2-3で`home/desktop/niri.nix`のwindow/layer rulesを拡張し、terminal・utility・communication・floatingレイヤーの見た目挙動を明示化。
