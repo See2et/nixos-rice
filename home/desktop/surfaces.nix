@@ -37,7 +37,9 @@ in
       timeout = 6;
       "timeout-low" = 2;
       "timeout-critical" = 0;
-      fit-to-screen = true;
+      fit-to-screen = false;
+      "layer-shell-cover-screen" = false;
+      "control-center-height" = -1;
 
       widgets = [
         "title"
@@ -88,6 +90,12 @@ in
       }
 
       .floating-notifications {
+        background: transparent;
+      }
+
+      blankwindow,
+      .blank-window,
+      #control-center-window {
         background: transparent;
       }
 
