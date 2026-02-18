@@ -17,6 +17,10 @@ in
       "control-center-layer" = "top";
       "layer-shell" = true;
       cssPriority = "application";
+      "control-center-width" = 420;
+      "control-center-height" = 640;
+      "notification-window-width" = 420;
+      "notification-window-height" = 180;
       "control-center-margin-top" = t.spacing.xxl;
       "control-center-margin-right" = t.spacing.xxl;
       "control-center-margin-bottom" = t.spacing.xxl;
@@ -26,10 +30,56 @@ in
       "notification-icon-size" = 48;
       "notification-body-image-height" = 100;
       "notification-body-image-width" = 200;
+      "notification-grouping" = true;
+      "relative-timestamps" = true;
+      "transition-time" = 180;
+      "hide-on-clear" = true;
+      "hide-on-action" = true;
       timeout = 6;
-      "timeout-low" = 3;
+      "timeout-low" = 2;
       "timeout-critical" = 0;
       fit-to-screen = true;
+
+      widgets = [
+        "title"
+        "dnd"
+        "volume"
+        "backlight"
+        "notifications"
+      ];
+
+      "widget-config" = {
+        title = {
+          text = "Inbox";
+          "clear-all-button" = true;
+          "button-text" = "Clear";
+        };
+        dnd.text = "Focus";
+        volume = {
+          label = "Volume";
+          "show-per-app" = false;
+        };
+        backlight = {
+          label = "Brightness";
+          device = "intel_backlight";
+        };
+        notifications.vexpand = true;
+      };
+
+      "notification-visibility" = {
+        "desktop-osd-volume" = {
+          state = "transient";
+          "app-name" = "^desktop-osd$";
+          summary = "^Volume$";
+          "override-urgency" = "low";
+        };
+        "desktop-osd-brightness" = {
+          state = "transient";
+          "app-name" = "^desktop-osd$";
+          summary = "^Brightness$";
+          "override-urgency" = "low";
+        };
+      };
     };
 
     style = lib.mkForce ''
@@ -38,11 +88,23 @@ in
         font-size: ${toString t.typography.size.md}px;
       }
 
+      .floating-notifications {
+        background: transparent;
+      }
+
       .control-center {
         background: alpha(${t.colors.background}, ${toString t.opacity.overlay});
         border: 1px solid ${t.colors.border};
         border-radius: ${toString t.radii.lg}px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      }
+
+      .control-center .control-center-list {
+        padding: ${toString t.spacing.sm}px;
+      }
+
+      .control-center .control-center-list-placeholder {
+        color: ${t.colors.muted};
       }
 
       .notification {
@@ -51,7 +113,19 @@ in
         border: 1px solid ${t.colors.border};
         border-radius: ${toString t.radii.md}px;
         margin: ${toString t.spacing.md}px ${toString t.spacing.xxl}px;
-        padding: ${toString t.spacing.md}px;
+        padding: ${toString t.spacing.sm}px;
+      }
+
+      .notification .notification-default-action {
+        border-radius: ${toString t.radii.md}px;
+      }
+
+      .notification .notification-default-action .summary {
+        font-size: ${toString t.typography.size.md}px;
+      }
+
+      .notification .notification-default-action .body {
+        color: ${t.colors.muted};
       }
 
       .notification.critical {
@@ -63,12 +137,45 @@ in
         background: ${t.colors.surfaceElevated};
       }
 
+      .notification progressbar trough {
+        background: ${t.colors.surfaceElevated};
+        border-radius: ${toString t.radii.pill}px;
+        min-height: 6px;
+      }
+
+      .notification progressbar progress {
+        background: ${t.colors.accent};
+        border-radius: ${toString t.radii.pill}px;
+      }
+
       .widget-title,
       .widget-dnd,
       .widget-mpris,
       .widget-volume,
       .widget-backlight {
+        background: ${t.colors.surface};
+        border: 1px solid ${t.colors.border};
         border-radius: ${toString t.radii.md}px;
+      }
+
+      .widget-title button,
+      .widget-dnd switch,
+      .widget-volume button,
+      .widget-backlight button {
+        border-radius: ${toString t.radii.sm}px;
+      }
+
+      .widget-volume scale trough,
+      .widget-backlight scale trough {
+        min-height: 6px;
+        border-radius: ${toString t.radii.pill}px;
+        background: ${t.colors.surfaceElevated};
+      }
+
+      .widget-volume scale highlight,
+      .widget-backlight scale highlight {
+        border-radius: ${toString t.radii.pill}px;
+        background: ${t.colors.accent};
       }
     '';
   };
