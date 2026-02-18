@@ -4,9 +4,6 @@
   config,
   ...
 }:
-let
-  wallpaperPath = "${config.xdg.dataHome}/wallpapers/tori.webp";
-in
 {
   config = lib.mkIf config.programs.niri.enable {
     programs.niri.settings = {
@@ -20,6 +17,11 @@ in
         "Mod+S".action.spawn = "screenshot-picker";
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
+        "Mod+Shift+N".action.spawn = [ "desktop-wallpaper-cycle" "next" ];
+        "Mod+Shift+P".action.spawn = [ "desktop-wallpaper-cycle" "prev" ];
+        "Mod+Shift+R".action.spawn = [ "desktop-wallpaper-cycle" "random" ];
+        "Mod+Shift+A".action.spawn = [ "desktop-wallpaper-auto" "toggle" ];
+        "Mod+Shift+X".action.spawn = [ "desktop-wallpaper-auto" "off" ];
         "XF86AudioRaiseVolume".action.spawn = [ "desktop-volume" "up" ];
         "XF86AudioLowerVolume".action.spawn = [ "desktop-volume" "down" ];
         "XF86AudioMute".action.spawn = [ "desktop-volume" "mute" ];
@@ -106,17 +108,16 @@ in
         };
       };
 
+      overview = {
+        "backdrop-color" = "transparent";
+      };
+
       spawn-at-startup = [
         # { command = [ "mako" ]; }
         {
-          command = [
-            "${pkgs.swaybg}/bin/swaybg"
-            "-i"
-            wallpaperPath
-            "-m"
-            "fill"
-          ];
+          command = [ "${pkgs.swww}/bin/swww-daemon" ];
         }
+        { command = [ "desktop-wallpaper-apply" ]; }
         { command = [ "xwayland-satellite" ]; }
       ];
     };

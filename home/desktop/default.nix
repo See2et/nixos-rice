@@ -2,6 +2,7 @@
 {
   imports = [
     ./niri.nix
+    ./wallpaper.nix
     ./idle.nix
     ./waybar.nix
     ./rofi.nix
