@@ -11,6 +11,7 @@ in
     ./alvr.nix
     ./zen-browser.nix
     ./xdg.nix
+    ./theme.nix
   ];
 
   options.programs.niri.enable = lib.mkEnableOption "niri";
