@@ -18,4 +18,14 @@
       "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
     };
   };
+
+  systemd.user.services = {
+    xdg-desktop-portal.environment = {
+      XDG_CURRENT_DESKTOP = "niri:GNOME";
+    };
+
+    xdg-desktop-portal-gnome.environment = {
+      XDG_CURRENT_DESKTOP = "niri:GNOME";
+    };
+  };
 }
