@@ -68,7 +68,7 @@
   };
 
   home.activation.steamVrLaunchOptions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    steamvr_launch_options="${config.home.homeDirectory}/.local/share/Steam/steamapps/common/SteamVR/bin/vrmonitor.sh %command%"
+    steamvr_launch_options="QT_QPA_PLATFORM=xcb %command%"
     userdata_root="${config.home.homeDirectory}/.local/share/Steam/userdata"
 
     if [ -d "$userdata_root" ]; then
@@ -98,8 +98,14 @@ block_start, block_body, block_end, close_indent = match.groups()
 launch_re = re.compile(r'(\n[ \t]*"LaunchOptions"[ \t]*"[^"]*")')
 new_launch_line = f'\n{close_indent}\t"LaunchOptions"\t\t"{desired}"'
 
-if launch_re.search(block_body):
-    new_block_body = launch_re.sub(new_launch_line, block_body, count=1)
+launch_matches = list(launch_re.finditer(block_body))
+if launch_matches:
+    target_match = launch_matches[-1]
+    new_block_body = (
+        f"{block_body[:target_match.start()]}"
+        f"{new_launch_line}"
+        f"{block_body[target_match.end():]}"
+    )
 else:
     new_block_body = f"{block_body}{new_launch_line}"
 

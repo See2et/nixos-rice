@@ -153,7 +153,6 @@ in
 
       spawn-at-startup = [
         # { command = [ "mako" ]; }
-        { command = [ "xwayland-satellite" ]; }
       ];
     };
 
