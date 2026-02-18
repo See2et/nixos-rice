@@ -1,63 +1,130 @@
 { ... }:
+let
+  logoIcon = ./assets/waybar-logo.jpg;
+in
 {
   programs.waybar = {
     enable = true;
     systemd.enable = true;
     style = ''
       @import "catppuccin.css";
+      @define-color accent @rosewater;
 
       * {
-        font-family: "FiraCode Nerd Font", "Noto Sans CJK JP", "Noto Sans CJK SC", "Noto Color Emoji", sans-serif;
-        font-size: 17px;
+        border: none;
+        border-radius: 0;
         min-height: 0;
       }
 
-      #waybar {
-        background: transparent;
+      button,
+      button:hover {
+        box-shadow: none;
+      }
+
+      window#waybar {
         color: @text;
-        margin: 5px 5px;
+        background: alpha(@base, 0.9999999);
+        border-radius: 1em;
+        font-family: "FiraCode Nerd Font", "Noto Sans CJK JP", "Noto Sans CJK SC", "Noto Color Emoji", sans-serif;
+        font-size: 13px;
+        font-style: normal;
+        min-height: 0;
+      }
+
+      #workspaces,
+      .modules-right box {
+        background-color: @surface0;
+        margin: 0 0.25em;
+        padding: 0.15em 0.25em;
+        border-radius: 1em;
+      }
+
+      .modules-right label.module {
+        margin: 0 0.5em;
+      }
+
+      .modules-left #image {
+        margin: 0 0.5em;
+      }
+
+      .modules-right box {
+        padding: 0.15em 0.4em;
+      }
+
+      .modules-left,
+      .modules-right {
+        margin: 0.4em 0.5em;
       }
 
       #workspaces {
-        border-radius: 1rem;
-        margin: 5px;
         background-color: @surface0;
-        margin-left: 1rem;
+        padding: 0;
       }
 
       #workspaces button {
-        color: @lavender;
-        border-radius: 1rem;
-        padding: 0.4rem;
+        background-color: transparent;
+        color: @text;
+        padding: 0 0.4em;
+        transition: none;
+      }
+
+      #workspaces button:nth-child(1) {
+        border-top-left-radius: 1em;
+        border-bottom-left-radius: 1em;
+      }
+
+      #workspaces button:nth-last-child(1) {
+        border-top-right-radius: 1em;
+        border-bottom-right-radius: 1em;
+      }
+
+      #workspaces button.empty {
+        color: @overlay0;
+      }
+
+      #workspaces button.visible {
+        background: @surface1;
+      }
+
+      #workspaces button.focused {
+        box-shadow: none;
       }
 
       #workspaces button.active {
-        color: @sky;
-        border-radius: 1rem;
+        background: @accent;
+        color: @surface0;
       }
 
       #workspaces button:hover {
-        color: @sapphire;
-        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: @text;
+        box-shadow: none;
       }
 
-      #custom-music,
-      #tray,
-      #backlight,
-      #clock,
-      #battery,
-      #pulseaudio,
-      #custom-lock,
-      #custom-power {
-        background-color: @surface0;
-        padding: 0.5rem 1rem;
-        margin: 5px 0;
+      #workspaces button.active:hover {
+        background: @accent;
+        color: @surface0;
+      }
+
+      #workspaces button.urgent {
+        background: @red;
+        color: @surface0;
+      }
+
+      #window {
+        background: transparent;
+      }
+
+      window#waybar.floating #window {
+        color: @pink;
       }
 
       #clock {
-        color: @blue;
-        border-radius: 0px 1rem 1rem 0px;
-        margin-right: 1rem;
+        color: @lavender;
+      }
+
+      #power-profiles-daemon {
+        color: @teal;
       }
 
       #battery {
@@ -69,78 +136,196 @@
       }
 
       #battery.warning:not(.charging) {
-        color: @red;
+        color: @peach;
+      }
+
+      #battery.critical:not(.charging) {
+        color: @maroon;
       }
 
       #backlight {
         color: @yellow;
       }
 
-      #backlight, #battery {
-          border-radius: 0;
-      }
-
       #pulseaudio {
-        color: @maroon;
-        border-radius: 1rem 0px 0px 1rem;
-        margin-left: 1rem;
+        color: @pink;
       }
 
-      #custom-music {
-        color: @mauve;
-        border-radius: 1rem;
+      #custom-notifications {
+        margin: 0;
+        min-width: 1.8em;
+        font-family: "FiraCode Nerd Font", "Symbols Nerd Font Mono", "Noto Color Emoji", sans-serif;
       }
 
-      #custom-lock {
-          border-radius: 1rem 0px 0px 1rem;
-          color: @lavender;
+      #custom-notifications.none,
+      #custom-notifications.inhibited-none {
+        color: @text;
+      }
+
+      #custom-notifications.notification,
+      #custom-notifications.inhibited-notification {
+        color: @yellow;
+      }
+
+      #custom-notifications.dnd-none,
+      #custom-notifications.dnd-inhibited-none {
+        color: @overlay1;
+      }
+
+      #custom-notifications.dnd-notification,
+      #custom-notifications.dnd-inhibited-notification {
+        color: @peach;
       }
 
       #custom-power {
-          margin-right: 1rem;
-          border-radius: 0px 1rem 1rem 0px;
-          color: @red;
+        color: @red;
       }
 
-      #tray {
-        margin-right: 1rem;
-        border-radius: 1rem;
+      #privacy {
+        margin: 0 0.25em;
+        padding: 0;
+      }
+
+      #privacy-item {
+        padding: 0 1px;
+        color: @text;
+      }
+
+      tooltip {
+        background: @base;
+        border: 1px solid @surface2;
+      }
+
+      tooltip * {
+        padding: 0;
+        margin: 0;
+        color: @text;
+        font-family: "FiraCode Nerd Font", "Noto Sans CJK JP", "Noto Sans CJK SC", monospace;
       }
     '';
     settings = [
       {
         layer = "top";
-        position = "top";
+        position = "bottom";
+        height = 28;
+        "margin-top" = 6;
+        "margin-left" = 6;
+        "margin-right" = 6;
+        "margin-bottom" = 6;
 
-        "modules-left" = [ "niri/workspaces" ];
-        "modules-center" = [ "custom/music" ];
+        "modules-left" = [
+          "image#logo"
+          "niri/workspaces"
+          "niri/window"
+        ];
+        "modules-center" = [ "clock" ];
         "modules-right" = [
-          "pulseaudio"
-          "backlight"
-          "battery"
-          "clock"
+          "group/playback"
+          "group/status"
+          "group/notifications"
           "tray"
-          "custom/lock"
-          "custom/power"
+          "group/power"
         ];
 
+        "group/playback" = {
+          orientation = "inherit";
+          modules = [ "custom/music" ];
+        };
+
+        "group/status" = {
+          orientation = "inherit";
+          modules = [
+            "pulseaudio"
+            "backlight"
+            "battery"
+            "power-profiles-daemon"
+            "privacy"
+          ];
+        };
+
+        "group/power" = {
+          orientation = "inherit";
+          modules = [
+            "custom/lock"
+            "custom/power"
+          ];
+        };
+
+        "group/notifications" = {
+          orientation = "inherit";
+          modules = [ "custom/notifications" ];
+        };
+
+        "image#logo" = {
+          path = logoIcon;
+          size = 20;
+          tooltip = false;
+          interval = 0;
+        };
+
         "niri/workspaces" = {
-          "format" = "{icon}";
+          format = "{icon}";
           "format-icons" = {
-            "active" = "";
-            "focused" = "";
-            "empty" = "";
-            "default" = "";
+            active = "";
+            focused = "";
+            empty = "";
+            default = "";
           };
         };
 
+        "niri/window" = {
+          format = "{}";
+          icon = true;
+          "icon-size" = 16;
+          rewrite = {
+            "(.*) - Vivaldi" = "$1";
+            "(.*) - Visual Studio Code" = "$1";
+            "(\\S+\\.js\\s.*)" = " $1";
+            "(\\S+\\.ts\\s.*)" = " $1";
+            "(\\S+\\.go\\s.*)" = " $1";
+            "(\\S+\\.lua\\s.*)" = " $1";
+            "(\\S+\\.java\\s.*)" = " $1";
+            "(\\S+\\.rb\\s.*)" = " $1";
+            "(\\S+\\.php\\s.*)" = " $1";
+            "(\\S+\\.jsonc?\\s.*)" = " $1";
+            "(\\S+\\.md\\s.*)" = " $1";
+            "(\\S+\\.txt\\s.*)" = " $1";
+            "(\\S+\\.cs\\s.*)" = " $1";
+            "(\\S+\\.c\\s.*)" = " $1";
+            "(\\S+\\.cpp\\s.*)" = " $1";
+            "(\\S+\\.hs\\s.*)" = " $1";
+            ".*Discord | (.*) | .*" = "$1 - ArmCord";
+          };
+          "separate-outputs" = true;
+        };
+
         tray = {
-          "icon-size" = 21;
-          spacing = 10;
+          "icon-size" = 16;
+          spacing = 4;
+        };
+
+        "custom/notifications" = {
+          "return-type" = "json";
+          exec = "swaync-client -swb";
+          format = "{icon}";
+          "format-icons" = {
+            notification = " ";
+            none = "";
+            "dnd-notification" = " ";
+            "dnd-none" = "";
+            "inhibited-notification" = " ";
+            "inhibited-none" = "";
+            "dnd-inhibited-notification" = " ";
+            "dnd-inhibited-none" = "";
+          };
+          tooltip = true;
+          escape = true;
+          "on-click" = "swaync-client -t -sw";
+          "on-click-right" = "swaync-client -d -sw";
         };
 
         "custom/music" = {
-          format = "  {}";
+          format = "♫ {}";
           escape = true;
           interval = 5;
           tooltip = false;
@@ -151,63 +336,104 @@
 
         clock = {
           timezone = "Asia/Tokyo";
-          "tooltip-format" = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-          "format-alt" = " {:%d/%m/%Y}";
-          format = " {:%H:%M}";
+          format = "{:%H:%M}";
+          "format-alt" = "{:%a %b %d %R}";
+          "tooltip-format" = "<tt><small>{calendar}</small></tt>";
+          calendar = {
+            mode = "year";
+            "mode-mon-col" = 3;
+            "weeks-pos" = "right";
+            "on-scroll" = 1;
+            "on-click-right" = "mode";
+            format = {
+              months = "<span color='#ffead3'><b>{}</b></span>";
+              days = "<span color='#ecc6d9'><b>{}</b></span>";
+              weeks = "<span color='#99ffdd'><b>W{}</b></span>";
+              weekdays = "<span color='#ffcc66'><b>{}</b></span>";
+              today = "<span color='#ff6699'><b><u>{}</u></b></span>";
+            };
+            actions = {
+              "on-click-right" = "mode";
+              "on-click-forward" = "tz_up";
+              "on-click-backward" = "tz_down";
+              "on-scroll-up" = "shift_up";
+              "on-scroll-down" = "shift_down";
+            };
+          };
         };
 
         backlight = {
           device = "intel_backlight";
-          format = "{icon}";
+          format = "{icon} {percent}%";
           "format-icons" = [
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
+            ""
+            ""
           ];
+          "scroll-step" = 1;
         };
 
         battery = {
+          interval = 30;
           states = {
-            warning = 30;
-            critical = 15;
+            warning = 20;
+            critical = 10;
           };
-          format = "{icon}";
-          "format-charging" = "";
-          "format-plugged" = "";
-          "format-alt" = "{icon}";
+          "full-at" = 98;
+          format = "{icon} {capacity}%";
           "format-icons" = [
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
-            ""
+            ""
+            ""
+            ""
+            ""
+            ""
           ];
+          "format-critical" = " {capacity}%";
+          "tooltip-format" = "{timeTo} ({power}W)";
+          "format-charging" = " {capacity}%";
         };
 
         pulseaudio = {
           format = "{icon} {volume}%";
-          "format-muted" = "🔇";
+          "format-bluetooth" = "{icon} {volume}%";
+          "format-muted" = " {volume}%";
           "format-icons" = {
+            headphone = "";
+            "hands-free" = "";
+            headset = "";
+            phone = "";
+            portable = "";
+            car = "";
             default = [
-              "🔈"
-              "🔉"
-              "🔊"
+              ""
+              ""
+              ""
             ];
           };
+          "scroll-step" = 1;
           "on-click" = "pavucontrol";
+          "ignored-sinks" = [ "Easy Effects Sink" ];
+        };
+
+        privacy = {
+          "icon-spacing" = 0;
+          "icon-size" = 12;
+          "transition-duration" = 250;
+          modules = [
+            { type = "screenshare"; }
+            { type = "audio-in"; }
+          ];
+        };
+
+        "power-profiles-daemon" = {
+          format = "{icon}";
+          tooltip = true;
+          "tooltip-format" = "Power profile: {profile}\nDriver: {driver}";
+          "format-icons" = {
+            default = "";
+            performance = " perf";
+            balanced = " balance";
+            "power-saver" = " save";
+          };
         };
 
         "custom/lock" = {
@@ -217,9 +443,10 @@
         };
 
         "custom/power" = {
-          tooltip = false;
+          tooltip = true;
+          "tooltip-format" = "Power menu";
           "on-click" = "wlogout &";
-          format = "襤";
+          format = "⏻";
         };
       }
     ];
