@@ -21,13 +21,17 @@ in
 
       window#waybar {
         color: ${t.colors.foreground};
-        background-color: ${t.colors.background};
-        border: 1px solid ${t.colors.border};
-        border-radius: ${toString t.radii.lg}px;
+        background-color: transparent;
         font-family: ${t.typography.family};
         font-size: ${toString t.typography.size.md}px;
         font-style: normal;
         min-height: 0;
+      }
+
+      window#waybar > box {
+        background-color: ${t.colors.background};
+        border: 1px solid ${t.colors.border};
+        border-radius: ${toString t.radii.lg}px;
       }
 
       #workspaces,
