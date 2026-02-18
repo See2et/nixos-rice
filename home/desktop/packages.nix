@@ -144,7 +144,141 @@ let
     ${pkgs.cliphist}/bin/cliphist decode <<<"$selection" | ${pkgs.wl-clipboard}/bin/wl-copy || exit 0
   '';
 
+  screenshotInstant = pkgs.writeShellScriptBin "screenshot-instant" ''
+    screenshotsDir="${config.xdg.userDirs.pictures}/Screenshots"
+    mkdir -p "$screenshotsDir"
+
+    timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
+    target="$screenshotsDir/screenshot-$timestamp-full.png"
+
+    ${pkgs.grim}/bin/grim "$target" || exit 0
+    ${pkgs.wl-clipboard}/bin/wl-copy < "$target" || exit 0
+    ${pkgs.libnotify}/bin/notify-send "Screenshot saved" "Copied to clipboard: $target"
+  '';
+
   screenshotPicker = pkgs.writeShellScriptBin "screenshot-picker" ''
+    screenshotsDir="${config.xdg.userDirs.pictures}/Screenshots"
+    mkdir -p "$screenshotsDir"
+    timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
+
+    frozenFrame="$(${pkgs.coreutils}/bin/mktemp /tmp/screenshot-frozen-XXXXXX.png)"
+    trap 'rm -f "$frozenFrame"' EXIT
+
+    ${pkgs.grim}/bin/grim "$frozenFrame" || exit 0
+
+    focused_geometry() {
+      focusedWindowJson="$(${pkgs.niri}/bin/niri msg --json focused-window 2>/dev/null || true)"
+      [ -n "$focusedWindowJson" ] || return 1
+      [ "$focusedWindowJson" != "null" ] || return 1
+
+      printf '%s' "$focusedWindowJson" | ${pkgs.jq}/bin/jq -r '
+        (
+          .Ok.FocusedWindow
+          // .Ok.Window
+          // .FocusedWindow
+          // .Window
+          // .
+        ) as $window
+        | $window.layout as $layout
+        | ($layout.window_size // empty) as $size
+        | if ($size | length) == 2 then
+            ($layout.window_offset_in_tile // [0.0, 0.0]) as $offset
+            | ($layout.tile_pos_in_workspace_view // null) as $tile
+            | if $tile != null then
+                ($tile[0] + $offset[0]) as $x
+                | ($tile[1] + $offset[1]) as $y
+              else
+                $offset[0] as $x
+                | $offset[1] as $y
+              end
+            | ($x | floor) as $xf
+            | ($y | floor) as $yf
+            | ($size[0] | floor) as $width
+            | ($size[1] | floor) as $height
+            | if $width > 0 and $height > 0 then
+                ($xf | tostring) + "," + ($yf | tostring) + " " + ($width | tostring) + "x" + ($height | tostring)
+              else empty end
+          else empty end
+      ' 2>/dev/null
+    }
+
+    layout_origin() {
+      outputsJson="$(${pkgs.niri}/bin/niri msg -j outputs 2>/dev/null || true)"
+      [ -n "$outputsJson" ] || {
+        printf '0 0\n'
+        return 0
+      }
+
+      printf '%s' "$outputsJson" | ${pkgs.jq}/bin/jq -r '
+        def outputs:
+          if type == "array" then .
+          elif .Ok.Outputs? then .Ok.Outputs
+          elif .Outputs? then .Outputs
+          else [] end;
+
+        def ox:
+          .logical.x
+          // .logical.position[0]
+          // .position.x
+          // .position[0]
+          // .x
+          // 0;
+
+        def oy:
+          .logical.y
+          // .logical.position[1]
+          // .position.y
+          // .position[1]
+          // .y
+          // 0;
+
+        [ outputs[]? | [ ((ox // 0) | tonumber? // 0), ((oy // 0) | tonumber? // 0) ] ] as $coords
+        | if ($coords | length) == 0 then
+            "0 0"
+          else
+            (([$coords[] | .[0]] | min | floor | tostring) + " " + ([$coords[] | .[1]] | min | floor | tostring))
+          end
+      ' 2>/dev/null || printf '0 0\n'
+    }
+
+    crop_frozen_geometry() {
+      geometry="$1"
+      destination="$2"
+      [ -n "$geometry" ] || return 1
+      [ -n "$destination" ] || return 1
+
+      position="''${geometry%% *}"
+      size="''${geometry#* }"
+      [ "$position" != "$geometry" ] || return 1
+
+      x="''${position%%,*}"
+      y="''${position##*,}"
+      width="''${size%%x*}"
+      height="''${size##*x}"
+
+      [[ "$x" =~ ^-?[0-9]+$ ]] || return 1
+      [[ "$y" =~ ^-?[0-9]+$ ]] || return 1
+      [[ "$width" =~ ^[0-9]+$ ]] || return 1
+      [[ "$height" =~ ^[0-9]+$ ]] || return 1
+
+      [ "$width" -gt 0 ] || return 1
+      [ "$height" -gt 0 ] || return 1
+
+      adjustedX=$((x - layoutOriginX))
+      adjustedY=$((y - layoutOriginY))
+
+      [ "$adjustedX" -ge 0 ] || return 1
+      [ "$adjustedY" -ge 0 ] || return 1
+
+      ${pkgs.imagemagick}/bin/magick "$frozenFrame" -crop "''${width}x''${height}+''${adjustedX}+''${adjustedY}" +repage "$destination"
+    }
+
+    origin="$(layout_origin)"
+    layoutOriginX="''${origin%% *}"
+    layoutOriginY="''${origin##* }"
+    [[ "$layoutOriginX" =~ ^-?[0-9]+$ ]] || layoutOriginX=0
+    [[ "$layoutOriginY" =~ ^-?[0-9]+$ ]] || layoutOriginY=0
+
     sleep 0.12
 
     mode="$(printf '%s\n' "Area (trim)" "Full screen" "Focused window" | ${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Screenshot")"
@@ -152,25 +286,27 @@ let
     [ "$rofiStatus" -eq 0 ] || exit 0
     [ -n "$mode" ] || exit 0
 
-    screenshotsDir="${config.xdg.userDirs.pictures}/Screenshots"
-    mkdir -p "$screenshotsDir"
-    timestamp="$(date +%Y-%m-%d_%H-%M-%S)"
-
     case "$mode" in
       "Full screen")
         target="$screenshotsDir/screenshot-$timestamp-full.png"
-        ${pkgs.grim}/bin/grim "$target" || exit 0
+        ${pkgs.coreutils}/bin/cp "$frozenFrame" "$target" || exit 0
         ;;
       "Area (trim)")
         geometry="$(${pkgs.slurp}/bin/slurp)"
         [ -n "$geometry" ] || exit 0
         target="$screenshotsDir/screenshot-$timestamp-area.png"
-        ${pkgs.grim}/bin/grim -g "$geometry" "$target" || exit 0
+        crop_frozen_geometry "$geometry" "$target" || exit 0
         ;;
       "Focused window")
-        ${pkgs.niri}/bin/niri msg action screenshot-window || exit 0
-        ${pkgs.libnotify}/bin/notify-send "Screenshot saved" "Focused window captured"
-        exit 0
+        geometry="$(focused_geometry || true)"
+        if [ -n "$geometry" ]; then
+          target="$screenshotsDir/screenshot-$timestamp-window.png"
+          crop_frozen_geometry "$geometry" "$target" || exit 0
+        else
+          ${pkgs.niri}/bin/niri msg action screenshot-window || exit 0
+          ${pkgs.libnotify}/bin/notify-send "Screenshot saved" "Focused window captured (live fallback)"
+          exit 0
+        fi
         ;;
       *)
         exit 0
@@ -340,6 +476,7 @@ in
     desktopSessionAction
     desktopPowerMenu
     cliphistPicker
+    screenshotInstant
     screenshotPicker
     desktopVolume
     desktopBrightness

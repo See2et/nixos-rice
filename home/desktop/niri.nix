@@ -17,7 +17,8 @@ in
         "Mod+Shift+Return".action.spawn = "zen-beta";
         "Ctrl+Space".action.spawn = "rofi-launcher";
         "Mod+Escape".action.spawn = "desktop-power-menu";
-        "Mod+S".action.spawn = "screenshot-picker";
+        "Mod+S".action.spawn = "screenshot-instant";
+        "Mod+Shift+S".action.spawn = "screenshot-picker";
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
         "Mod+Shift+N".action.spawn = [ "desktop-wallpaper-cycle" "next" ];
