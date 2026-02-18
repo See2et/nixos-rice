@@ -7,6 +7,10 @@
       source = ../../opencode.jsonc;
       force = true;
     };
+    "opencode/AGENTS.md" = {
+      source = ../../opencode/AGENTS.md;
+      force = true;
+    };
     "opencode/oh-my-opencode.jsonc" = {
       source = ../../oh-my-opencode.jsonc;
       force = true;
