@@ -11,7 +11,7 @@
 
 ## 優先度 0（まず構造的負債を解消）
 
-### [ ] T0-1: Waybarの責務を一本化する
+### [x] T0-1: Waybarの責務を一本化する
 - 背景: Waybar設定が実質的に複数箇所で定義され、差分の追跡と調整が難しい。
 - 対象: `home/desktop/waybar.nix` と `home/desktop/default.nix` のどちらを正とするか決める。
 - 完了条件:
