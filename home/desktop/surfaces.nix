@@ -16,7 +16,7 @@ in
       layer = "overlay";
       "control-center-layer" = "top";
       "layer-shell" = true;
-      cssPriority = "application";
+      cssPriority = "user";
       "control-center-width" = 420;
       "notification-window-width" = 420;
       "notification-window-height" = 180;
@@ -93,6 +93,15 @@ in
         background: transparent;
       }
 
+      .floating-notifications > scrolledwindow,
+      .floating-notifications > scrolledwindow > viewport {
+        background: transparent;
+        box-shadow: none;
+        border: none;
+      }
+
+      notificationwindow,
+      .notification-window,
       blankwindow,
       .blank-window,
       #control-center-window {
