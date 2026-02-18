@@ -1,2 +1,0 @@
-warning: Git tree '/etc/nixos' is dirty
-error: flake 'git+file:///etc/nixos' does not provide attribute 'packages.x86_64-linux.nixosConfigurations.wsl.config.home-manager.users.see2et.programs.niri.enable', 'legacyPackages.x86_64-linux.nixosConfigurations.wsl.config.home-manager.users.see2et.programs.niri.enable' or 'nixosConfigurations.wsl.config.home-manager.users.see2et.programs.niri.enable'

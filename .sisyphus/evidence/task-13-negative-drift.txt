@@ -1,1 +1,0 @@
-PASS: drift guard holds (desktop=see2et, wsl=nixos)

@@ -1,6 +1,0 @@
-Checking WSL HM niri enable (should fail):
-warning: Git tree '/etc/nixos' is dirty
-error: flake 'git+file:///etc/nixos' does not provide attribute 'packages.x86_64-linux.nixosConfigurations.wsl.config.home-manager.users.nixos.programs.niri.enable', 'legacyPackages.x86_64-linux.nixosConfigurations.wsl.config.home-manager.users.nixos.programs.niri.enable' or 'nixosConfigurations.wsl.config.home-manager.users.nixos.programs.niri.enable'
-       Did you mean one of inori, navi or noti?
-\nChecking WSL HM waybar enable (should be false):
-false

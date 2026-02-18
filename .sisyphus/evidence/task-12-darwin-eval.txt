@@ -1,3 +1,0 @@
-"/nix/store/62hab4mw68875kqlm5ai32hf61c7gfii-home-manager-generation.drv"
-warning: Git tree '/etc/nixos' is dirty
-"/nix/store/62hab4mw68875kqlm5ai32hf61c7gfii-home-manager-generation.drv"
