@@ -438,7 +438,7 @@ in
 
         "custom/lock" = {
           tooltip = false;
-          "on-click" = "swaylock -f";
+          "on-click" = "desktop-lock";
           format = "";
         };
 

@@ -114,7 +114,7 @@ in
     layout = [
       {
         label = "lock";
-        action = "swaylock -f";
+        action = "desktop-lock";
         text = "Lock";
         keybind = "l";
       }

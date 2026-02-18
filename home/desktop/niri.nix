@@ -18,7 +18,7 @@ in
         "Ctrl+Space".action.spawn = "rofi-launcher";
         "Mod+S".action.spawn = "screenshot-picker";
         "Mod+V".action.spawn = "cliphist-picker";
-        "Mod+Alt+L".action.spawn = [ "swaylock" "-f" ];
+        "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };
 

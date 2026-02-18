@@ -2,6 +2,7 @@
 {
   imports = [
     ./niri.nix
+    ./idle.nix
     ./waybar.nix
     ./rofi.nix
     ./ui-tokens.nix
