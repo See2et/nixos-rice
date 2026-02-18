@@ -151,6 +151,7 @@ in
     slack
     youtube-music
     yubioath-flutter
+    obsidian
     alvr
     vrcx
     sidequest
