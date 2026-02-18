@@ -89,6 +89,7 @@ in
       ];
 
       layout = {
+        gaps = 10;
         background-color = "transparent";
         focus-ring = {
           width = 3.0;
