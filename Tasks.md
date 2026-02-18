@@ -42,7 +42,7 @@
   - 通知スタイルが明示され、グローバルテーマと整合している。
   - OSDが後付け感なく、全体UXに溶け込んでいる。
 
-### [ ] T1-3: Launcher + Power Menu を統一する
+### [x] T1-3: Launcher + Power Menu を統一する
 - 背景: Launcher/Powerは高頻度操作なので、ここの質が完成度を大きく左右する。
 - 対象: Rofi、Power menu、Lock動線の見た目と操作感を統一する。
 - 完了条件:
@@ -97,3 +97,4 @@
 ## 現状メモ
 - 土台はすでに強い（niriキー設定、壁紙導線、Waybarモジュール、Rofiテーマ、swaync有効化）。
 - いまの最大ボトルネックはパッケージ不足ではなく、責務整理とデザイン一貫性。
+- T1-3でLauncher/Power/Lock導線を `rofi-launcher` / `desktop-power-menu` / `desktop-session-action` に整理し、操作と見た目の統一基盤を作成。

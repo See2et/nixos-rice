@@ -16,6 +16,7 @@ in
         "Mod+Return".action.spawn = "alacritty-cwd";
         "Mod+Shift+Return".action.spawn = "zen-beta";
         "Ctrl+Space".action.spawn = "rofi-launcher";
+        "Mod+Escape".action.spawn = "desktop-power-menu";
         "Mod+S".action.spawn = "screenshot-picker";
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+Alt+L".action.spawn = [ "desktop-lock" ];

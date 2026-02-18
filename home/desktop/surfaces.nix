@@ -221,31 +221,31 @@ in
     layout = [
       {
         label = "lock";
-        action = "desktop-lock";
+        action = "desktop-session-action lock";
         text = "Lock";
         keybind = "l";
       }
       {
         label = "logout";
-        action = "niri msg action quit";
+        action = "desktop-session-action logout";
         text = "Logout";
         keybind = "e";
       }
       {
         label = "suspend";
-        action = "systemctl suspend";
+        action = "desktop-session-action suspend";
         text = "Suspend";
         keybind = "u";
       }
       {
         label = "reboot";
-        action = "systemctl reboot";
+        action = "desktop-session-action reboot";
         text = "Reboot";
         keybind = "r";
       }
       {
         label = "shutdown";
-        action = "systemctl poweroff";
+        action = "desktop-session-action shutdown";
         text = "Shutdown";
         keybind = "s";
       }

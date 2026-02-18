@@ -445,7 +445,7 @@ in
         "custom/power" = {
           tooltip = true;
           "tooltip-format" = "Power menu";
-          "on-click" = "wlogout &";
+          "on-click" = "desktop-power-menu";
           format = "⏻";
         };
       }

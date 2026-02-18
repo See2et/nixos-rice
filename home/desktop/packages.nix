@@ -11,7 +11,67 @@ let
   };
 
   rofiLauncher = pkgs.writeShellScriptBin "rofi-launcher" ''
-    exec ${pkgs.rofi}/bin/rofi -show drun
+    exec ${pkgs.rofi}/bin/rofi \
+      -show drun \
+      -modi "drun,run,window"
+  '';
+
+  desktopSessionAction = pkgs.writeShellScriptBin "desktop-session-action" ''
+    action="''${1:-}"
+
+    case "$action" in
+      lock)
+        exec desktop-lock
+        ;;
+      logout)
+        exec ${pkgs.niri}/bin/niri msg action quit
+        ;;
+      suspend)
+        exec systemctl suspend
+        ;;
+      reboot)
+        exec systemctl reboot
+        ;;
+      shutdown)
+        exec systemctl poweroff
+        ;;
+      *)
+        exit 1
+        ;;
+    esac
+  '';
+
+  desktopPowerMenu = pkgs.writeShellScriptBin "desktop-power-menu" ''
+    choice="$(
+      printf '%s\n' "L Lock" "E Logout" "U Suspend" "R Reboot" "S Shutdown" \
+        | ${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Session"
+    )"
+    rofiStatus=$?
+    [ "$rofiStatus" -eq 0 ] || exit 0
+    [ -n "$choice" ] || exit 0
+
+    actionKey="''${choice%% *}"
+
+    case "$actionKey" in
+      L)
+        exec ${desktopSessionAction}/bin/desktop-session-action lock
+        ;;
+      E)
+        exec ${desktopSessionAction}/bin/desktop-session-action logout
+        ;;
+      U)
+        exec ${desktopSessionAction}/bin/desktop-session-action suspend
+        ;;
+      R)
+        exec ${desktopSessionAction}/bin/desktop-session-action reboot
+        ;;
+      S)
+        exec ${desktopSessionAction}/bin/desktop-session-action shutdown
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
   '';
 
   alacrittyCwd = pkgs.writeShellScriptBin "alacritty-cwd" ''
@@ -277,6 +337,8 @@ in
     sidequest
     wlx-overlay-s
     rofiLauncher
+    desktopSessionAction
+    desktopPowerMenu
     cliphistPicker
     screenshotPicker
     desktopVolume
