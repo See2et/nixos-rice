@@ -18,11 +18,59 @@ let
 
     mkdir -p "${stateDir}"
 
-    ensure_daemon() {
-      if ! ${pkgs.swww}/bin/swww query >/dev/null 2>&1; then
-        ${pkgs.swww}/bin/swww-daemon >/dev/null 2>&1 &
-        sleep 0.25
+    startup=0
+    if [ "''${1:-}" = "--startup" ]; then
+      startup=1
+      shift
+    fi
+
+    pick_wayland_display() {
+      local runtime="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+      local sock
+
+      if [ -n "''${WAYLAND_DISPLAY:-}" ] && [ -S "$runtime/$WAYLAND_DISPLAY" ]; then
+        return 0
       fi
+
+      for sock in "$runtime"/wayland-*; do
+        if [ -S "$sock" ]; then
+          WAYLAND_DISPLAY="$(basename "$sock")"
+          export WAYLAND_DISPLAY
+          return 0
+        fi
+      done
+
+      return 1
+    }
+
+    ensure_daemon() {
+      local attempt
+
+      for attempt in $(seq 1 30); do
+        if pick_wayland_display; then
+          break
+        fi
+        sleep 0.2
+      done
+
+      if ! pick_wayland_display; then
+        printf '%s\n' "desktop-wallpaper-apply: Wayland socket not ready" >&2
+        return 1
+      fi
+
+      if ! ${pkgs.swww}/bin/swww query >/dev/null 2>&1; then
+        ${pkgs.swww}/bin/swww-daemon --no-cache >/dev/null 2>&1 &
+      fi
+
+      for attempt in $(seq 1 30); do
+        if ${pkgs.swww}/bin/swww query >/dev/null 2>&1; then
+          return 0
+        fi
+        sleep 0.2
+      done
+
+      printf '%s\n' "desktop-wallpaper-apply: swww-daemon not ready" >&2
+      return 1
     }
 
     collect_wallpapers() {
@@ -40,23 +88,36 @@ let
     }
 
     target="''${1:-}"
-    if [ -z "$target" ]; then
-      if [ -s "${currentFile}" ]; then
-        target="$(<"${currentFile}")"
-      else
-        target="$(collect_wallpapers | head -n 1)"
+    if [ -z "$target" ] && [ -s "${currentFile}" ]; then
+      candidate="$(<"${currentFile}")"
+      if [ -f "$candidate" ]; then
+        target="$candidate"
       fi
     fi
 
-    [ -n "$target" ] || exit 0
-    [ -f "$target" ] || exit 0
+    if [ -z "$target" ]; then
+      target="$(collect_wallpapers | head -n 1 || true)"
+    fi
+
+    [ -n "$target" ] || {
+      printf '%s\n' "desktop-wallpaper-apply: no wallpaper candidates found" >&2
+      exit 1
+    }
+    [ -f "$target" ] || {
+      printf '%s\n' "desktop-wallpaper-apply: wallpaper not found: $target" >&2
+      exit 1
+    }
 
     ensure_daemon
 
-    ${pkgs.swww}/bin/swww img "$target" \
-      --transition-type fade \
-      --transition-fps 60 \
-      --transition-duration 1.0
+    if [ "$startup" -eq 1 ]; then
+      ${pkgs.swww}/bin/swww img "$target" --transition-type none
+    else
+      ${pkgs.swww}/bin/swww img "$target" \
+        --transition-type fade \
+        --transition-fps 60 \
+        --transition-duration 1.0
+    fi
 
     printf '%s\n' "$target" >"${currentFile}"
   '';
@@ -175,6 +236,27 @@ in
         Unit = "desktop-wallpaper-rotate.service";
       };
       Install.WantedBy = [ "timers.target" ];
+    };
+
+    systemd.user.services.desktop-wallpaper-startup = {
+      Unit = {
+        Description = "Apply wallpaper during graphical session startup";
+        PartOf = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+        Before = [
+          "waybar.service"
+          "swaync.service"
+        ];
+      };
+      Service = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        Restart = "on-failure";
+        RestartSec = 1;
+        ExecStart = "${desktopWallpaperApply}/bin/desktop-wallpaper-apply --startup";
+        TimeoutStartSec = 10;
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
     };
   };
 }

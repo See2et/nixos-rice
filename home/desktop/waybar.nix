@@ -243,7 +243,6 @@ in
             "backlight"
             "battery"
             "power-profiles-daemon"
-            "privacy"
           ];
         };
 

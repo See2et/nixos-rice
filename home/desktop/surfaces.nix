@@ -18,7 +18,6 @@ in
       "layer-shell" = true;
       cssPriority = "application";
       "control-center-width" = 420;
-      "control-center-height" = 640;
       "notification-window-width" = 420;
       "notification-window-height" = 180;
       "control-center-margin-top" = t.spacing.xxl;

@@ -92,18 +92,6 @@ in
             bottom-left = t.radii.lg * 1.0;
           };
         }
-        {
-          matches = [
-            { namespace = "^swaync"; }
-          ];
-          opacity = t.opacity.panel;
-          geometry-corner-radius = {
-            top-left = t.radii.md * 1.0;
-            top-right = t.radii.md * 1.0;
-            bottom-right = t.radii.md * 1.0;
-            bottom-left = t.radii.md * 1.0;
-          };
-        }
       ];
 
       window-rules = [
@@ -163,10 +151,6 @@ in
 
       spawn-at-startup = [
         # { command = [ "mako" ]; }
-        {
-          command = [ "${pkgs.swww}/bin/swww-daemon" ];
-        }
-        { command = [ "desktop-wallpaper-apply" ]; }
         { command = [ "xwayland-satellite" ]; }
       ];
     };
