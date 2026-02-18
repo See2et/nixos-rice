@@ -1,6 +1,6 @@
 { config, ... }:
 let
-  logoIcon = ./assets/waybar-logo.jpg;
+  logoIcon = ./assets/waybar-logo.png;
   t = config.desktop.ui.tokens;
 in
 {
