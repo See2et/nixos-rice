@@ -4,6 +4,8 @@
     ./niri.nix
     ./waybar.nix
     ./rofi.nix
+    ./ui-tokens.nix
+    ./surfaces.nix
     ./packages.nix
     ./alvr.nix
     ./zen-browser.nix
@@ -15,7 +17,6 @@
 
   config = {
     programs.niri.enable = true;
-    services.swaync.enable = true;
 
     programs.alacritty = {
       enable = true;

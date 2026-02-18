@@ -1,15 +1,13 @@
-{ ... }:
+{ config, ... }:
 let
   logoIcon = ./assets/waybar-logo.jpg;
+  t = config.desktop.ui.tokens;
 in
 {
   programs.waybar = {
     enable = true;
     systemd.enable = true;
     style = ''
-      @import "catppuccin.css";
-      @define-color accent @rosewater;
-
       * {
         border: none;
         border-radius: 0;
@@ -22,68 +20,69 @@ in
       }
 
       window#waybar {
-        color: @text;
-        background: alpha(@base, 0.9999999);
-        border-radius: 1em;
-        font-family: "FiraCode Nerd Font", "Noto Sans CJK JP", "Noto Sans CJK SC", "Noto Color Emoji", sans-serif;
-        font-size: 13px;
+        color: ${t.colors.foreground};
+        background-color: ${t.colors.background};
+        border: 1px solid ${t.colors.border};
+        border-radius: ${toString t.radii.lg}px;
+        font-family: ${t.typography.family};
+        font-size: ${toString t.typography.size.md}px;
         font-style: normal;
         min-height: 0;
       }
 
       #workspaces,
       .modules-right box {
-        background-color: @surface0;
-        margin: 0 0.25em;
-        padding: 0.15em 0.25em;
-        border-radius: 1em;
+        background-color: ${t.colors.surface};
+        margin: 0 ${toString t.spacing.sm}px;
+        padding: ${toString t.spacing.xs}px ${toString t.spacing.sm}px;
+        border-radius: ${toString t.radii.lg}px;
       }
 
       .modules-right label.module {
-        margin: 0 0.5em;
+        margin: 0 ${toString t.spacing.lg}px;
       }
 
       .modules-left #image {
-        margin: 0 0.5em;
+        margin: 0 ${toString t.spacing.lg}px;
       }
 
       .modules-right box {
-        padding: 0.15em 0.4em;
+        padding: ${toString t.spacing.xs}px ${toString t.spacing.md}px;
       }
 
       .modules-left,
       .modules-right {
-        margin: 0.4em 0.5em;
+        margin: ${toString t.spacing.md}px ${toString t.spacing.lg}px;
       }
 
       #workspaces {
-        background-color: @surface0;
+        background-color: ${t.colors.surface};
         padding: 0;
       }
 
       #workspaces button {
         background-color: transparent;
-        color: @text;
-        padding: 0 0.4em;
+        color: ${t.colors.foreground};
+        padding: 0 ${toString t.spacing.md}px;
         transition: none;
       }
 
       #workspaces button:nth-child(1) {
-        border-top-left-radius: 1em;
-        border-bottom-left-radius: 1em;
+        border-top-left-radius: ${toString t.radii.lg}px;
+        border-bottom-left-radius: ${toString t.radii.lg}px;
       }
 
       #workspaces button:nth-last-child(1) {
-        border-top-right-radius: 1em;
-        border-bottom-right-radius: 1em;
+        border-top-right-radius: ${toString t.radii.lg}px;
+        border-bottom-right-radius: ${toString t.radii.lg}px;
       }
 
       #workspaces button.empty {
-        color: @overlay0;
+        color: ${t.colors.muted};
       }
 
       #workspaces button.visible {
-        background: @surface1;
+        background: ${t.colors.surfaceElevated};
       }
 
       #workspaces button.focused {
@@ -91,24 +90,24 @@ in
       }
 
       #workspaces button.active {
-        background: @accent;
-        color: @surface0;
+        background: ${t.colors.accent};
+        color: ${t.colors.background};
       }
 
       #workspaces button:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: @text;
+        background: ${t.colors.surfaceElevated};
+        color: ${t.colors.foreground};
         box-shadow: none;
       }
 
       #workspaces button.active:hover {
-        background: @accent;
-        color: @surface0;
+        background: ${t.colors.accent};
+        color: ${t.colors.background};
       }
 
       #workspaces button.urgent {
-        background: @red;
-        color: @surface0;
+        background: ${t.colors.danger};
+        color: ${t.colors.background};
       }
 
       #window {
@@ -116,102 +115,103 @@ in
       }
 
       window#waybar.floating #window {
-        color: @pink;
+        color: ${t.colors.accent};
       }
 
       #clock {
-        color: @lavender;
+        color: ${t.colors.lavender};
       }
 
       #power-profiles-daemon {
-        color: @teal;
+        color: ${t.colors.info};
       }
 
       #battery {
-        color: @green;
+        color: ${t.colors.success};
       }
 
       #battery.charging {
-        color: @green;
+        color: ${t.colors.success};
       }
 
       #battery.warning:not(.charging) {
-        color: @peach;
+        color: ${t.colors.warning};
       }
 
       #battery.critical:not(.charging) {
-        color: @maroon;
+        color: ${t.colors.danger};
       }
 
       #backlight {
-        color: @yellow;
+        color: ${t.colors.warning};
       }
 
       #pulseaudio {
-        color: @pink;
+        color: ${t.colors.accent};
       }
 
       #custom-notifications {
         margin: 0;
         min-width: 1.8em;
-        font-family: "FiraCode Nerd Font", "Symbols Nerd Font Mono", "Noto Color Emoji", sans-serif;
+        font-family: ${t.typography.iconFamily};
       }
 
       #custom-notifications.none,
       #custom-notifications.inhibited-none {
-        color: @text;
+        color: ${t.colors.foreground};
       }
 
       #custom-notifications.notification,
       #custom-notifications.inhibited-notification {
-        color: @yellow;
+        color: ${t.colors.warning};
       }
 
       #custom-notifications.dnd-none,
       #custom-notifications.dnd-inhibited-none {
-        color: @overlay1;
+        color: ${t.colors.muted};
       }
 
       #custom-notifications.dnd-notification,
       #custom-notifications.dnd-inhibited-notification {
-        color: @peach;
+        color: ${t.colors.warning};
       }
 
       #custom-power {
-        color: @red;
+        color: ${t.colors.danger};
       }
 
       #privacy {
-        margin: 0 0.25em;
+        margin: 0 ${toString t.spacing.sm}px;
         padding: 0;
       }
 
       #privacy-item {
         padding: 0 1px;
-        color: @text;
+        color: ${t.colors.foreground};
       }
 
       tooltip {
-        background: @base;
-        border: 1px solid @surface2;
+        background: ${t.colors.background};
+        border: 1px solid ${t.colors.border};
+        border-radius: ${toString t.radii.sm}px;
       }
 
       tooltip * {
         padding: 0;
         margin: 0;
-        color: @text;
-        font-family: "FiraCode Nerd Font", "Noto Sans CJK JP", "Noto Sans CJK SC", monospace;
+        color: ${t.colors.foreground};
+        font-family: ${t.typography.monoFamily};
       }
     '';
     settings = [
       {
         layer = "top";
         position = "bottom";
-        height = 28;
-        "margin-top" = 6;
-        "margin-left" = 6;
-        "margin-right" = 6;
-        "margin-bottom" = 6;
+        height = t.sizes.barHeight;
+        "margin-top" = t.spacing.md;
+        "margin-left" = t.spacing.md;
+        "margin-right" = t.spacing.md;
+        "margin-bottom" = t.spacing.md;
 
         "modules-left" = [
           "image#logo"
@@ -258,7 +258,7 @@ in
 
         "image#logo" = {
           path = logoIcon;
-          size = 20;
+          size = t.sizes.barLogo;
           tooltip = false;
           interval = 0;
         };
@@ -300,8 +300,8 @@ in
         };
 
         tray = {
-          "icon-size" = 16;
-          spacing = 4;
+          "icon-size" = t.sizes.trayIcon;
+          spacing = t.spacing.sm;
         };
 
         "custom/notifications" = {
@@ -346,11 +346,11 @@ in
             "on-scroll" = 1;
             "on-click-right" = "mode";
             format = {
-              months = "<span color='#ffead3'><b>{}</b></span>";
-              days = "<span color='#ecc6d9'><b>{}</b></span>";
-              weeks = "<span color='#99ffdd'><b>W{}</b></span>";
-              weekdays = "<span color='#ffcc66'><b>{}</b></span>";
-              today = "<span color='#ff6699'><b><u>{}</u></b></span>";
+              months = "<span color='${t.colors.foreground}'><b>{}</b></span>";
+              days = "<span color='${t.colors.accent}'><b>{}</b></span>";
+              weeks = "<span color='${t.colors.info}'><b>W{}</b></span>";
+              weekdays = "<span color='${t.colors.warning}'><b>{}</b></span>";
+              today = "<span color='${t.colors.danger}'><b><u>{}</u></b></span>";
             };
             actions = {
               "on-click-right" = "mode";
@@ -416,7 +416,7 @@ in
 
         privacy = {
           "icon-spacing" = 0;
-          "icon-size" = 12;
+          "icon-size" = t.sizes.privacyIcon;
           "transition-duration" = 250;
           modules = [
             { type = "screenshare"; }
@@ -452,8 +452,5 @@ in
     ];
   };
 
-  catppuccin.waybar = {
-    enable = true;
-    mode = "createLink";
-  };
+  catppuccin.waybar.enable = false;
 }
