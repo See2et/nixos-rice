@@ -20,6 +20,7 @@ in
         "Mod+S".action.spawn = "screenshot-instant";
         "Mod+Shift+S".action.spawn = "screenshot-picker";
         "Mod+V".action.spawn = "cliphist-picker";
+        "Mod+E".action.spawn = "emoji-picker";
         "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
         "Mod+Shift+N".action.spawn = [ "desktop-wallpaper-cycle" "next" ];
         "Mod+Shift+P".action.spawn = [ "desktop-wallpaper-cycle" "prev" ];

@@ -144,6 +144,15 @@ let
     ${pkgs.cliphist}/bin/cliphist decode <<<"$selection" | ${pkgs.wl-clipboard}/bin/wl-copy || exit 0
   '';
 
+  emojiPicker = pkgs.writeShellScriptBin "emoji-picker" ''
+    sleep 0.12
+    exec ${pkgs.rofimoji}/bin/rofimoji \
+      --selector rofi \
+      --clipboarder wl-copy \
+      --action copy \
+      --prompt "Emoji"
+  '';
+
   screenshotInstant = pkgs.writeShellScriptBin "screenshot-instant" ''
     screenshotsDir="${config.xdg.userDirs.pictures}/Screenshots"
     mkdir -p "$screenshotsDir"
@@ -444,6 +453,7 @@ in
     kitty
     wezterm
     rofi
+    rofimoji
     cliphist
     grim
     slurp
@@ -476,6 +486,7 @@ in
     desktopSessionAction
     desktopPowerMenu
     cliphistPicker
+    emojiPicker
     screenshotInstant
     screenshotPicker
     desktopVolume
