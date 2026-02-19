@@ -163,6 +163,15 @@ PY
     mimeApps = {
       enable = true;
       associations.added = {
+        "image/avif" = [ "swayimg-visible.desktop" ];
+        "image/gif" = [ "swayimg-visible.desktop" ];
+        "image/jpeg" = [ "swayimg-visible.desktop" ];
+        "image/png" = [ "swayimg-visible.desktop" ];
+        "image/webp" = [ "swayimg-visible.desktop" ];
+        "video/mp4" = [ "mpv.desktop" ];
+        "video/quicktime" = [ "mpv.desktop" ];
+        "video/webm" = [ "mpv.desktop" ];
+        "video/x-matroska" = [ "mpv.desktop" ];
         "application/xhtml+xml" = [
           "zen-url.desktop"
           "zen-beta.desktop"
@@ -192,6 +201,15 @@ PY
         ];
       };
       defaultApplications = {
+        "image/avif" = [ "swayimg-visible.desktop" ];
+        "image/gif" = [ "swayimg-visible.desktop" ];
+        "image/jpeg" = [ "swayimg-visible.desktop" ];
+        "image/png" = [ "swayimg-visible.desktop" ];
+        "image/webp" = [ "swayimg-visible.desktop" ];
+        "video/mp4" = [ "mpv.desktop" ];
+        "video/quicktime" = [ "mpv.desktop" ];
+        "video/webm" = [ "mpv.desktop" ];
+        "video/x-matroska" = [ "mpv.desktop" ];
         "application/xhtml+xml" = [
           "zen-url.desktop"
           "zen-beta.desktop"
@@ -223,6 +241,28 @@ PY
     };
 
     desktopEntries = {
+      swayimg-visible = {
+        name = "Swayimg";
+        genericName = "Image viewer";
+        comment = "Image viewer for Sway/Wayland";
+        exec = "/etc/profiles/per-user/${config.home.username}/bin/swayimg %F";
+        terminal = false;
+        type = "Application";
+        icon = "swayimg";
+        categories = [
+          "Graphics"
+          "Viewer"
+        ];
+        mimeType = [
+          "image/avif"
+          "image/gif"
+          "image/jpeg"
+          "image/png"
+          "image/webp"
+        ];
+        startupNotify = false;
+      };
+
       zen-url = {
         name = "Zen Browser URL Handler";
         genericName = "Web Browser";

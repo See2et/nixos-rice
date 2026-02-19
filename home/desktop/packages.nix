@@ -590,6 +590,8 @@ in
     wl-clipboard
     waybar
     playerctl
+    swayimg
+    mpv
     wlogout
     swaylock
     pavucontrol
