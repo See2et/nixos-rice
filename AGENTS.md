@@ -107,6 +107,16 @@ nix eval .#homeConfigurations.darwin.activationPackage.drvPath         # Darwin 
 5. `nix build` toplevel to ensure full system builds
 6. Only then: agent may run `dry-activate`; user manually runs `test` and `switch`
 
+### Desktop rice QA checklist (T3-2)
+
+Run this lightweight checklist after any desktop theme/token/wallpaper change:
+- Typography: Waybar, launcher, notifications, and lock/power UI use consistent font family/scale (no accidental fallback fonts).
+- Spacing: paddings, gaps, and corner radii remain visually consistent across bar, launcher, notifications, and lock/power surfaces.
+- Contrast: text/icons stay readable for normal + urgent states against the current wallpaper/background.
+- Interaction latency: launcher, power menu, lock, and OSD feedback appear quickly and without visible stutter.
+- Toolkit consistency: check at least one GTK app and one Qt app for icon, cursor, and theme parity.
+- Before/after: capture the same three scenes (idle desktop, launcher open, notification + OSD) and compare side-by-side before accepting changes.
+
 ### Adding a new shared module
 
 ```nix
