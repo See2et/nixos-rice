@@ -3,12 +3,17 @@ return {
     config = function()
         local mason = require("mason")
         local mason_lspconfig = require("mason-lspconfig")
+        local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
+        capabilities.workspace = capabilities.workspace or {}
+        capabilities.workspace.didChangeConfiguration = capabilities.workspace.didChangeConfiguration or {}
+        capabilities.workspace.didChangeConfiguration.dynamicRegistration = true
 
         vim.lsp.config('*', {
-            capabilities = require('cmp_nvim_lsp').default_capabilities(),
+            capabilities = capabilities,
         })
 
-        local servers = {
+        local mason_servers = {
             "lua_ls",
             "ts_ls",
             "denols",
@@ -16,15 +21,18 @@ return {
             "rust_analyzer",
             "taplo",
             "tinymist",
-            "nil_ls",
-            "yamlls",
-            "markdownlint-cli2"
+            "yamlls"
         }
+        local servers = vim.list_extend(vim.deepcopy(mason_servers), {
+            "nixd",
+        })
 
-        mason.setup()
+        mason.setup({
+            PATH = "append",
+        })
         mason_lspconfig.setup({
-            automatic_enable = true,
-            ensure_installed = servers
+            automatic_enable = false,
+            ensure_installed = mason_servers
         })
 
         vim.lsp.enable(servers)
