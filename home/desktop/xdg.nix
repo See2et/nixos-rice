@@ -175,6 +175,9 @@ PY
           "zen-url.desktop"
           "zen-beta.desktop"
         ];
+        "x-scheme-handler/figma" = [
+          "figma-url.desktop"
+        ];
         "x-scheme-handler/http" = [
           "zen-url.desktop"
           "zen-beta.desktop"
@@ -200,6 +203,9 @@ PY
         "x-scheme-handler/about" = [
           "zen-url.desktop"
           "zen-beta.desktop"
+        ];
+        "x-scheme-handler/figma" = [
+          "figma-url.desktop"
         ];
         "x-scheme-handler/http" = [
           "zen-url.desktop"
@@ -235,6 +241,22 @@ PY
           "x-scheme-handler/http"
           "x-scheme-handler/https"
           "x-scheme-handler/unknown"
+        ];
+        startupNotify = true;
+      };
+
+      figma-url = {
+        name = "Figma URL Handler";
+        genericName = "Design Tool";
+        exec = "/etc/profiles/per-user/${config.home.username}/bin/figma-linux %U";
+        terminal = false;
+        type = "Application";
+        icon = "figma-linux";
+        categories = [
+          "Graphics"
+        ];
+        mimeType = [
+          "x-scheme-handler/figma"
         ];
         startupNotify = true;
       };
