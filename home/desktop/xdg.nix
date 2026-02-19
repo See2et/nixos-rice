@@ -121,6 +121,44 @@ PY
     fi
   '';
 
+  home.activation.oyasumiOverlayDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    overlay_config="${config.home.homeDirectory}/.config/oyasumi/overlay_config.toml"
+
+    if [ -f "$overlay_config" ]; then
+      tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
+
+      if ${pkgs.python3}/bin/python - "$overlay_config" "$tmp_file" <<'PY'
+import pathlib
+import re
+import sys
+
+source = pathlib.Path(sys.argv[1])
+target = pathlib.Path(sys.argv[2])
+text = source.read_text(encoding="utf-8", errors="ignore")
+
+text = re.sub(
+    r"^\s*draw_only_when_on_overlay\s*=\s*true\s*$",
+    "draw_only_when_on_overlay = false",
+    text,
+    flags=re.M,
+)
+text = re.sub(
+    r'^\s*show_mode\s*=\s*"last_controller"\s*$',
+    'show_mode="hmd"',
+    text,
+    flags=re.M,
+)
+
+target.write_text(text, encoding="utf-8")
+PY
+      then
+        ${pkgs.coreutils}/bin/mv "$tmp_file" "$overlay_config"
+      else
+        ${pkgs.coreutils}/bin/rm -f "$tmp_file"
+      fi
+    fi
+  '';
+
   xdg = {
     desktopEntries = {
       steam = {

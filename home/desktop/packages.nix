@@ -93,6 +93,31 @@ let
     export GIO_MODULE_DIR="${pkgs.glib-networking}/lib/gio/modules"
     export GSETTINGS_SCHEMA_DIR="${oyasumiGSettingsPath}"
 
+    steamvr_openxr_manifest="$HOME/.local/share/Steam/steamapps/common/SteamVR/steamxr_linux64.json"
+    openxr_config_dir="$XDG_CONFIG_HOME/openxr/1"
+    openxr_active_runtime="$openxr_config_dir/active_runtime.json"
+
+    if [ -z "''${XR_RUNTIME_JSON:-}" ] && [ -f "$steamvr_openxr_manifest" ]; then
+      export XR_RUNTIME_JSON="$steamvr_openxr_manifest"
+    fi
+
+    if [ -z "''${OPENXR_RUNTIME_JSON:-}" ] && [ -n "''${XR_RUNTIME_JSON:-}" ]; then
+      export OPENXR_RUNTIME_JSON="$XR_RUNTIME_JSON"
+    fi
+
+    if [ -n "''${XR_RUNTIME_JSON:-}" ] && [ ! -f "$openxr_active_runtime" ]; then
+      mkdir -p "$openxr_config_dir"
+      cat > "$openxr_active_runtime" <<EOF
+{
+  "file_format_version": "1.0.0",
+  "runtime": {
+    "name": "SteamVR",
+    "library_path": "$XR_RUNTIME_JSON"
+  }
+}
+EOF
+    fi
+
     exec ${pkgs.steam-run}/bin/steam-run \
       "${oyasumiBin}/share/oyasumi/Oyasumi/OyasumiVR" "$@"
   '';
