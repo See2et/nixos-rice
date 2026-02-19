@@ -128,6 +128,10 @@ EOF
       -modi "drun,run,window"
   '';
 
+  typstPreviewCompat = pkgs.writeShellScriptBin "typst-preview" ''
+    exec ${pkgs.tinymist}/bin/tinymist preview "$@"
+  '';
+
   desktopSessionAction = pkgs.writeShellScriptBin "desktop-session-action" ''
     action="''${1:-}"
 
@@ -573,6 +577,10 @@ in
     alacrittyCwd
     kitty
     wezterm
+    typst
+    tinymist
+    websocat
+    typstPreviewCompat
     rofi
     rofimoji
     cliphist
