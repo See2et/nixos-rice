@@ -22,11 +22,7 @@ in
         "Mod+V".action.spawn = "cliphist-picker";
         "Mod+E".action.spawn = "emoji-picker";
         "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
-        "Mod+Shift+N".action.spawn = [ "desktop-wallpaper-cycle" "next" ];
-        "Mod+Shift+P".action.spawn = [ "desktop-wallpaper-cycle" "prev" ];
-        "Mod+Shift+R".action.spawn = [ "desktop-wallpaper-cycle" "random" ];
-        "Mod+Shift+A".action.spawn = [ "desktop-wallpaper-auto" "toggle" ];
-        "Mod+Shift+X".action.spawn = [ "desktop-wallpaper-auto" "off" ];
+        "Mod+Shift+W".action.spawn = "desktop-wallpaper-menu";
         "XF86AudioRaiseVolume".action.spawn = [ "desktop-volume" "up" ];
         "XF86AudioLowerVolume".action.spawn = [ "desktop-volume" "down" ];
         "XF86AudioMute".action.spawn = [ "desktop-volume" "mute" ];
