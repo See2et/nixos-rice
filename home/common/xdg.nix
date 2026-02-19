@@ -4,12 +4,12 @@
 
   xdg.configFile = {
     "nvim" = {
-      source = ../../nvim;
+      source = ./dotfiles/nvim;
       recursive = true;
       force = true;
     };
     "zellij" = {
-      source = ../../zellij;
+      source = ./dotfiles/zellij;
       recursive = true;
       force = true;
     };
