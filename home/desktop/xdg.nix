@@ -160,7 +160,85 @@ PY
   '';
 
   xdg = {
+    mimeApps = {
+      enable = true;
+      associations.added = {
+        "application/xhtml+xml" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "text/html" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/about" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/http" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/https" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/unknown" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+      };
+      defaultApplications = {
+        "application/xhtml+xml" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "text/html" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/about" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/http" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/https" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+        "x-scheme-handler/unknown" = [
+          "zen-url.desktop"
+          "zen-beta.desktop"
+        ];
+      };
+    };
+
     desktopEntries = {
+      zen-url = {
+        name = "Zen Browser URL Handler";
+        genericName = "Web Browser";
+        exec = "/etc/profiles/per-user/${config.home.username}/bin/zen-beta --name zen-beta %U";
+        terminal = false;
+        type = "Application";
+        icon = "zen-browser";
+        categories = [
+          "Network"
+          "WebBrowser"
+        ];
+        mimeType = [
+          "application/xhtml+xml"
+          "text/html"
+          "x-scheme-handler/about"
+          "x-scheme-handler/http"
+          "x-scheme-handler/https"
+          "x-scheme-handler/unknown"
+        ];
+        startupNotify = true;
+      };
+
       steam = {
         name = "Steam";
         genericName = "Game platform";
