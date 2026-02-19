@@ -29,6 +29,19 @@ return {
     },
 
     {
+        'chomosuke/typst-preview.nvim',
+        ft = { 'typst' },
+        version = '1.*',
+        opts = {
+            dependencies_bin = {
+                ['tinymist'] = 'tinymist',
+                ['websocat'] = 'websocat',
+            },
+            invert_colors = 'never',
+        },
+    },
+
+    {
         'nvim-telescope/telescope.nvim',
         dependencies = {
             'nvim-lua/plenary.nvim',

@@ -1,4 +1,4 @@
-require('lazy').setup {
+require('lazy').setup({
   { "folke/lazy.nvim" },
   {
     "folke/tokyonight.nvim",
@@ -14,4 +14,6 @@ require('lazy').setup {
   require("plugins.lsp"),
   require("plugins.misc"),
   require("plugins.ts")
-}
+}, {
+  lockfile = vim.fn.stdpath('data') .. '/lazy/lazy-lock.json',
+})
