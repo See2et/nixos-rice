@@ -3,7 +3,8 @@ return {
     config = function()
         local mason = require("mason")
         local mason_lspconfig = require("mason-lspconfig")
-        local capabilities = require('cmp_nvim_lsp').default_capabilities()
+        local capabilities = vim.lsp.protocol.make_client_capabilities()
+        capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
         capabilities.workspace = capabilities.workspace or {}
         capabilities.workspace.didChangeConfiguration = capabilities.workspace.didChangeConfiguration or {}
@@ -11,6 +12,12 @@ return {
 
         vim.lsp.config('*', {
             capabilities = capabilities,
+        })
+
+        vim.lsp.config('tinymist', {
+            settings = {
+                formatterMode = 'typstyle',
+            },
         })
 
         local mason_servers = {
