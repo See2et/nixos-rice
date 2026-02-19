@@ -592,6 +592,7 @@ in
     discord
     discord-canary
     slack
+    figma-linux
     youtube-music
     yubioath-flutter
     obsidian
