@@ -6,6 +6,11 @@
 - `nixosConfigurations.wsl`（NixOS-WSL）
 - `homeConfigurations.darwin`（macOS向けHome Manager）
 
+## Screenshots
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5816cec8-05b5-4df4-ad27-e9ba25aa8df1" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f714e29a-9027-4477-9cdc-c30007c91637" />
+
+
 ## 1) 事前準備
 
 - Git と Nix がインストール済みであること
