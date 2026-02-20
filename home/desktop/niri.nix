@@ -53,6 +53,7 @@ in
         "Mod+Shift+I".action.move-column-to-workspace-up = [ ];
 
         "Mod+O".action.toggle-overview = [ ];
+        "Mod+Tab".action.switch-focus-between-floating-and-tiling = [ ];
 
         "Mod+C".action.center-column = [ ];
         "Mod+Ctrl+C".action.center-visible-columns = [ ];
@@ -111,7 +112,12 @@ in
         {
           matches = [
             { "app-id" = "^(org\\.pulseaudio\\.pavucontrol|pavucontrol|org\\.gnome\\.Calculator|gcolor3)$"; }
-            { title = "^Picture-in-Picture$"; }
+          ];
+          open-floating = true;
+        }
+        {
+          matches = [
+            { title = "^(Picture-in-Picture|Picture in Picture|Picture in picture)$"; }
           ];
           open-floating = true;
         }
