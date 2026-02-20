@@ -40,7 +40,13 @@ sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configur
    - `home.username`
    - `home.homeDirectory`
 
-3. 安全な順序で検証・反映します。
+3. 対象ユーザーのローカルパスワードを事前に設定します（未設定のままGDM再起動が発生するとログイン不能になる可能性があります）。
+
+```bash
+sudo passwd see2et
+```
+
+4. 安全な順序で検証・反映します。
 
 ```bash
 nix flake check --show-trace
@@ -57,7 +63,13 @@ sudo nixos-rebuild switch --flake /etc/nixos#desktop
    - `home.username`
    - `home.homeDirectory`
 
-3. 検証・反映を実行します。
+3. 対象ユーザーのローカルパスワードを事前に設定します（sudoやログイン復旧のため）。
+
+```bash
+sudo passwd nixos
+```
+
+4. 検証・反映を実行します。
 
 ```bash
 nix flake check --show-trace
