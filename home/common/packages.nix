@@ -39,6 +39,7 @@
       ffmpeg
       fzf
       markdownlint-cli2
+      nodePackages.textlint
       yubikey-manager
       wget
     ])

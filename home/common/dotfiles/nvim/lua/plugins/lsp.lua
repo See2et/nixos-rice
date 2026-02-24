@@ -48,12 +48,6 @@ return {
         { "williamboman/mason.nvim" },
         { "williamboman/mason-lspconfig.nvim" },
         {
-            "jay-babu/mason-null-ls.nvim",
-            dependencies = {
-                "jose-elias-alvarez/null-ls.nvim",
-            },
-        },
-        {
             "glepnir/lspsaga.nvim",
             cmd = "Lspsaga",
             config = function()

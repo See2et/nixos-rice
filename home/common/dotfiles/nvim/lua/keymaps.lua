@@ -30,7 +30,16 @@ wk.add({
 
     -- Format
     { "<leader>f",  group = "Format" },
-    { "<leader>fm", function() vim.lsp.buf.format({ async = true }) end, desc = "[F]or[m]at" },
+    {
+        "<leader>fm",
+        function()
+            require("conform").format({
+                async = true,
+                lsp_format = "fallback",
+            })
+        end,
+        desc = "[F]or[m]at"
+    },
 
     -- Open
     { "<leader>o",  group = "Open" },

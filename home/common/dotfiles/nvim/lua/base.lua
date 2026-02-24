@@ -27,11 +27,6 @@ opt.mouse = 'a'
 
 opt.cmdheight = 0
 
-vim.api.nvim_create_autocmd("BufWritePre", {
-    pattern = "*",
-    command = "lua vim.lsp.buf.format()"
-})
-
 vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = false, underline = false, bg = "#3b0000" })
 vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = false, underline = false, bg = "#3b2f00" })
 vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = false, underline = false, bg = "#003b3b" })
