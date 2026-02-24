@@ -36,6 +36,7 @@
       tree-sitter
       yt-dlp
       ripgrep
+      fd
       ffmpeg
       fzf
       markdownlint-cli2
