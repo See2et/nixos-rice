@@ -23,6 +23,8 @@
   # Home Manager configuration
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
+  home-manager.backupFileExtension = "hm-backup";
+  home-manager.overwriteBackup = true;
   home-manager.users.nixos = {
     imports = [
       ../../home/common
