@@ -7,6 +7,10 @@
 { lib, ... }:
 
 {
+  imports = [
+    ./nixos-repo-permissions.nix
+  ];
+
   # --- Nix daemon settings ---
   nix.settings.experimental-features = [
     "nix-command"
