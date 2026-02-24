@@ -8,6 +8,7 @@
   imports = [
     inputs.catppuccin.homeModules.catppuccin
     ./files/opencode.nix
+    ./programs/direnv.nix
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/gpg.nix
