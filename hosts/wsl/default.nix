@@ -17,6 +17,7 @@
 
   # WSL-specific configuration
   wsl.enable = true;
+  users.users.nixos.shell = pkgs.zsh;
   system.stateVersion = "25.11";
 
   # Home Manager configuration
