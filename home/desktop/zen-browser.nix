@@ -16,6 +16,7 @@
         "browser.aboutwelcome.enabled" = false;
         "browser.startup.firstrunSkipsHomepage" = true;
         "browser.startup.homepage_override.mstone" = "ignore";
+        "intl.accept_languages" = "ja,en-US,en";
         "trailhead.firstrun.didSeeAboutWelcome" = true;
         "zen.welcome-screen.seen" = true;
       };
