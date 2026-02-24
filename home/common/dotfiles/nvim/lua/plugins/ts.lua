@@ -7,12 +7,15 @@ return {
         ensure_installed = {
           "markdown",
           "markdown_inline",
-          "lua"
+          "lua",
+          "typescript",
+          "rust",
         },
         highlight = {
           enable = true,
           auto_install = true,
         },
+        sync_install = true,
         indent = {
           enable = true,
         },

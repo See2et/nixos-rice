@@ -15,6 +15,7 @@
       unzip
       cargo
       rust-analyzer
+      lua-language-server
       tre-command
       lsd
       nixfmt-rfc-style

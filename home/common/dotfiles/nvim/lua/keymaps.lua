@@ -4,25 +4,11 @@ local wk = require("which-key")
 local keymap = vim.keymap
 local kmap = keymap.set
 
-local nmap = function(key, map, ops)
-    kmap("n", key, map, ops)
-end
-
 local tmap = function(key, map, ops)
     kmap("t", key, map, ops)
 end
 
 tmap('<ESC>', '<C-\\><C-n>')
-
-nmap('sh', '<C-w>h')
-nmap('sj', '<C-w>j')
-nmap('sk', '<C-w>k')
-nmap('sl', '<C-w>l')
-
-nmap('<C-h>', '<C-w>>')
-nmap('<C-j>', '<C-w>+')
-nmap('<C-k>', '<C-w>-')
-nmap('<C-l>', '<C-w><')
 
 vim.keymap.set('n', 'x', '"_x')
 
@@ -77,11 +63,11 @@ wk.add({
     { "<leader>so", "<cmd>so<cr>",                                             desc = ":so" },
 
     -- GitHub
-    { "<leader>g",  group = "GitHub" },
-    { "<leader>gI", function() Snacks.picker.gh_issue() end,                   desc = "GitHub Issues (open)" },
-    { "<leader>gi", function() Snacks.picker.gh_issue({ state = "all" }) end,  desc = "GitHub Issues (all)" },
-    { "<leader>gP", function() Snacks.picker.gh_pr() end,                      desc = "GitHub Pull Requests (open)" },
-    { "<leader>gp", function() Snacks.picker.gh_pr({ state = "all" }) end,     desc = "GitHub Pull Requests (all)" },
+    { "<leader>G",  group = "GitHub" },
+    { "<leader>GI", function() Snacks.picker.gh_issue() end,                   desc = "GitHub Issues (open)" },
+    { "<leader>Gi", function() Snacks.picker.gh_issue({ state = "all" }) end,  desc = "GitHub Issues (all)" },
+    { "<leader>GP", function() Snacks.picker.gh_pr() end,                      desc = "GitHub Pull Requests (open)" },
+    { "<leader>Gp", function() Snacks.picker.gh_pr({ state = "all" }) end,     desc = "GitHub Pull Requests (all)" },
 
     { "<leader>x", "<cmd>NoiceDismiss<cr>"},
 
@@ -161,8 +147,6 @@ wk.add({
     { '<C-k>', '<C-w>-' },
     { '<C-[>', '<cmd>noh<cr>',                          desc = "No Highlight" },
 })
-
-wk.add({})
 
 vim.keymap.set({ 'n', 'v' }, 'J', '<C-d>')
 vim.keymap.set({ 'n', 'v' }, 'K', '<C-u>')
