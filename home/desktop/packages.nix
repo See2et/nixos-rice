@@ -132,6 +132,172 @@ EOF
     exec ${pkgs.tinymist}/bin/tinymist preview "$@"
   '';
 
+  mkAnkiAddonFromRelease =
+    {
+      addonName,
+      version,
+      url,
+      hash,
+    }:
+    pkgs.stdenvNoCC.mkDerivation {
+      pname = "anki-addon-${addonName}";
+      inherit version;
+      src = pkgs.fetchurl {
+        inherit url hash;
+      };
+      dontUnpack = true;
+      installPhase = ''
+        runHook preInstall
+
+        addonDir="$out/share/anki/addons/${addonName}"
+        mkdir -p "$addonDir"
+        ${pkgs.unzip}/bin/unzip -qq "$src" -d "$addonDir"
+        mkdir -p "$addonDir/user_files"
+
+        # Runtime compatibility patches for legacy add-ons on Anki 25 / Python 3.13 / Qt6.
+        # Keep this section surgical: only patch known crash points from real tracebacks.
+        case "${addonName}" in
+          anki-killstreaks)
+            # Python 2/old-Anki assumptions in upstream code.
+            if [ -f "$addonDir/consts.py" ]; then
+              substituteInPlace "$addonDir/consts.py" \
+                --replace-fail 'anki21 = version.startswith("2.1.")' 'anki21 = True' \
+                --replace-fail 'addon_path = os.path.dirname(__file__).decode(sys_encoding)' 'addon_path = os.path.dirname(__file__)'
+            fi
+
+            # Vendor missing compatibility modules that are no longer bundled by Anki runtime.
+            if [ -f "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" ]; then
+              cp "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" "$addonDir/six.py"
+              cp "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" "$addonDir/_vendor/six.py"
+            fi
+
+            # Ensure import six / six.moves resolve from vendored module inside the add-on package.
+            if [ -f "$addonDir/_vendor/__init__.py" ]; then
+              cat > "$addonDir/_vendor/__init__.py" <<'PY'
+import sys
+
+try:
+    import six as _six
+except ModuleNotFoundError:
+    from . import six as _six
+
+sys.modules.setdefault("six", _six)
+if hasattr(_six, "moves"):
+    sys.modules.setdefault("six.moves", _six.moves)
+PY
+            fi
+
+            # yoyo vendored code expects pkg_resources (setuptools); provide safe fallback.
+            if [ -f "$addonDir/_vendor/yoyo/migrations.py" ]; then
+              ${pkgs.python3}/bin/python - "$addonDir/_vendor/yoyo/migrations.py" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+needle = "import pkg_resources\n"
+replacement = (
+    "try:\n"
+    "    import pkg_resources\n"
+    "except ModuleNotFoundError:\n"
+    "    class _PkgResourcesStub:\n"
+    "        @staticmethod\n"
+    "        def resource_filename(*_args, **_kwargs):\n"
+    "            raise RuntimeError(\"pkg_resources unavailable\")\n"
+    "\n"
+    "        @staticmethod\n"
+    "        def resource_listdir(*_args, **_kwargs):\n"
+    "            return []\n"
+    "\n"
+    "    pkg_resources = _PkgResourcesStub()\n"
+)
+if needle in text:
+    path.write_text(text.replace(needle, replacement, 1))
+PY
+            fi
+
+            # Python 3.13 removed/changed SafeConfigParser access paths.
+            if [ -f "$addonDir/_vendor/iniherit/parser.py" ]; then
+              substituteInPlace "$addonDir/_vendor/iniherit/parser.py" \
+                --replace-fail '_real_SafeConfigParser = CP.SafeConfigParser' '_real_SafeConfigParser = getattr(CP, "SafeConfigParser", CP.ConfigParser)'
+            fi
+            if [ -f "$addonDir/_vendor/iniherit/mixin.py" ]; then
+              substituteInPlace "$addonDir/_vendor/iniherit/mixin.py" \
+                --replace-fail '(IniheritMixin, CP.SafeConfigParser, base_attrs),' '(IniheritMixin, getattr(CP, "SafeConfigParser", CP.ConfigParser), base_attrs),'
+            fi
+
+            # Generated UI and runtime files still import PyQt5; rewrite to PyQt6.
+            ${pkgs.python3}/bin/python - "$addonDir" <<'PY'
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+replacements = {
+    "from PyQt5 import QtCore, QtGui, QtWidgets": "from PyQt6 import QtCore, QtGui, QtWidgets",
+    "from PyQt5.QtCore import QTimer": "from PyQt6.QtCore import QTimer",
+    "from PyQt5.Qt import QObject, pyqtSignal": "from PyQt6.QtCore import QObject, pyqtSignal",
+}
+
+for path in root.rglob("*.py"):
+    text = path.read_text()
+    new_text = text
+    for src, dst in replacements.items():
+        new_text = new_text.replace(src, dst)
+    if new_text != text:
+        path.write_text(new_text)
+PY
+            ;;
+          awesome-tts)
+            # Avoid writes to /nix/store by redirecting runtime cache/log/config to user data dir.
+            if [ -f "$addonDir/awesometts/paths.py" ]; then
+              substituteInPlace "$addonDir/awesometts/paths.py" \
+                --replace-fail "USER_FILES = os.path.join(ROOT, 'user_files')" "USER_FILES = os.environ.get('AWESOMETTS_USER_FILES', os.path.join(os.path.expanduser('~'), '.local', 'share', 'Anki2', 'addons21', 'awesome-tts', 'user_files'))" \
+                --replace-fail "LOG = os.path.join(ADDON, 'addon.log')" "LOG = os.path.join(USER_FILES, 'addon.log')"
+            fi
+
+            # Guard against missing addon config metadata during first-run initialization.
+            if [ -f "$addonDir/awesometts/__init__.py" ]; then
+              substituteInPlace "$addonDir/awesometts/__init__.py" \
+                --replace-fail 'addon_config = aqt.mw.addonManager.getConfig(CONFIG_ADDON_NAME)' 'addon_config = aqt.mw.addonManager.getConfig(CONFIG_ADDON_NAME) or {}' \
+                --replace-fail 'aqt.mw.addonManager.writeConfig(CONFIG_ADDON_NAME, addon_config)' 'pass'
+            fi
+            ;;
+        esac
+
+        runHook postInstall
+      '';
+    };
+
+  ankiAddonAwesomeTTS = mkAnkiAddonFromRelease {
+    addonName = "awesome-tts";
+    version = "1.89.4";
+    url = "https://github.com/Vocab-Apps/anki-awesome-tts/releases/download/v1.89.4/anki-awesome-tts-1.89.4.ankiaddon";
+    hash = "sha256-IMxL6duwdMT0949fqLbX6bTN2NIwNsCMG5aaizlj0AM=";
+  };
+
+  ankiAddonKillstreaks = mkAnkiAddonFromRelease {
+    addonName = "anki-killstreaks";
+    version = "2.1.1";
+    url = "https://github.com/jac241/anki_killstreaks/releases/download/v2.1.1/anki_killstreaks_2_1_1.ankiaddon";
+    hash = "sha256-8JbTakh/f0ykKz9v4CbVxKN3o7gmk8h/JISx6odCu+Q=";
+  };
+
+  ankiAddonHitmarkers = mkAnkiAddonFromRelease {
+    addonName = "hitmarkers";
+    version = "0.2.0";
+    url = "https://github.com/glutanimate/hitmarkers/releases/download/v0.2.0/hitmarkers-v0.2.0-qt5+qt6.ankiaddon";
+    hash = "sha256-1jTsaPgjTeQfTxzz3H5axkpxT/ITggNxYfMy1hIOeE0=";
+  };
+
+  ankiAddonReviewHeatmap = pkgs.ankiAddons."review-heatmap";
+
+  ankiWithRequestedAddons = pkgs.anki.withAddons [
+    ankiAddonAwesomeTTS
+    ankiAddonKillstreaks
+    ankiAddonHitmarkers
+    ankiAddonReviewHeatmap
+  ];
+
   desktopSessionAction = pkgs.writeShellScriptBin "desktop-session-action" ''
     action="''${1:-}"
 
@@ -605,6 +771,7 @@ in
     figma-linux
     youtube-music
     yubioath-flutter
+    ankiWithRequestedAddons
     obsidian
     obs-studio
     xfce.thunar
