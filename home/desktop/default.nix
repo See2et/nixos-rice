@@ -10,6 +10,7 @@
     ./ui-tokens.nix
     ./surfaces.nix
     ./packages.nix
+    ./lazydocker.nix
     ./obs.nix
     ./alvr.nix
     ./zen-browser.nix

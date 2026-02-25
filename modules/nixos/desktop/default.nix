@@ -11,5 +11,6 @@
     ./audio.nix
     ./vr.nix
     ./firewall.nix
+    ./docker.nix
   ];
 }
