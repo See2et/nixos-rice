@@ -4,7 +4,7 @@
 # GUARDRAIL: This file must NOT contain boot.loader, hardware.nvidia,
 # services.displayManager, wsl.*, or any platform-specific options.
 
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
   imports = [
@@ -19,6 +19,11 @@
 
   # --- Nixpkgs ---
   nixpkgs.config.allowUnfree = true;
+
+  # --- Common CLI tools ---
+  environment.systemPackages = with pkgs; [
+    pnpm
+  ];
 
   # --- Shell ---
   programs.zsh.enable = true;
