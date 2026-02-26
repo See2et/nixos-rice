@@ -25,6 +25,7 @@ return {
             "ts_ls",
             "denols",
             "omnisharp",
+            "biome",
             "rust_analyzer",
             "taplo",
             "tinymist",

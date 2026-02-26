@@ -14,6 +14,7 @@
       gcc
       unzip
       cargo
+      biome
       rust-analyzer
       lua-language-server
       tre-command
