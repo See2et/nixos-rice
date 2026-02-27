@@ -5,15 +5,8 @@ let
     system = pkgs.stdenv.hostPlatform.system;
     config.allowUnfree = true;
   };
-  steamVulkanIcd =
-    "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json"
-    + ":"
-    + "/run/opengl-driver-32/share/vulkan/icd.d/nvidia_icd.i686.json";
-  steamExtraEnv = {
-    VK_DRIVER_FILES = steamVulkanIcd;
-    VK_ICD_FILENAMES = steamVulkanIcd;
-  };
 in
+
 {
   networking.networkmanager.enable = true;
 
@@ -21,6 +14,9 @@ in
 
   fonts.packages = with pkgs; [
     nerd-fonts.fira-code
+    texlivePackages.haranoaji
+    source-han-sans
+    source-han-serif
     noto-fonts-cjk-sans
     noto-fonts-color-emoji
   ];
@@ -29,11 +25,13 @@ in
     enable = true;
     defaultFonts = {
       serif = [
+        "Harano Aji Mincho"
         "Noto Serif CJK JP"
         "Noto Color Emoji"
         "serif"
       ];
       sansSerif = [
+        "Harano Aji Gothic"
         "FiraCode Nerd Font"
         "Noto Sans CJK JP"
         "Noto Sans CJK KR"
@@ -43,6 +41,7 @@ in
       ];
       monospace = [
         "FiraCode Nerd Font"
+        "Harano Aji Gothic"
         "Noto Sans CJK JP"
         "Noto Color Emoji"
         "monospace"
@@ -105,25 +104,10 @@ in
 
   programs.steam = {
     enable = true;
+    package = steamPkgs.steam;
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
     localNetworkGameTransfers.openFirewall = true;
-    package = steamPkgs.steam.override {
-      extraEnv = steamExtraEnv;
-      extraPkgs =
-        pkgs': with pkgs'; [
-          SDL2
-          openvr
-          libsForQt5.qt5.qtbase
-          libsForQt5.qt5.qtmultimedia
-          mpg123
-          pipewire
-          wireplumber
-          libpulseaudio
-          pavucontrol
-          helvum
-        ];
-    };
   };
 
   hardware.steam-hardware.enable = true;
@@ -150,22 +134,6 @@ in
     skkDictionaries.l
     skkDictionaries.jinmei
     skkDictionaries.geo
-    (steamPkgs.steam.override {
-      extraEnv = steamExtraEnv;
-      extraPkgs =
-        pkgs': with pkgs'; [
-          SDL2
-          openvr
-          libsForQt5.qt5.qtbase
-          libsForQt5.qt5.qtmultimedia
-          mpg123
-          pipewire
-          wireplumber
-          libpulseaudio
-          pavucontrol
-          helvum
-        ];
-    }).run
     (ffmpeg-full.override { withUnfree = true; })
     vulkan-tools
     libva-utils
