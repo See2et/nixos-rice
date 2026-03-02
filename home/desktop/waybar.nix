@@ -152,6 +152,7 @@ in
 
       #pulseaudio {
         color: ${t.colors.accent};
+        font-family: ${t.typography.iconFamily};
       }
 
       #custom-notifications {
@@ -401,8 +402,8 @@ in
           "format-muted" = " {volume}%";
           "format-icons" = {
             headphone = "";
-            "hands-free" = "";
-            headset = "";
+            "hands-free" = "";
+            headset = "";
             phone = "";
             portable = "";
             car = "";
