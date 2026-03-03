@@ -14,9 +14,15 @@ return {
             jsonc = { "deno_fmt" },
             markdown = { "deno_fmt" },
         },
-        format_on_save = {
-            timeout_ms = 500,
-            lsp_format = "fallback",
-        },
+        format_on_save = function(bufnr)
+            if vim.bo[bufnr].filetype == "markdown" then
+                return
+            end
+
+            return {
+                timeout_ms = 500,
+                lsp_format = "fallback",
+            }
+        end,
     },
 }
