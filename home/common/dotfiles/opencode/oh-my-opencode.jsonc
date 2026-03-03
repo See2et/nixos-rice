@@ -69,5 +69,8 @@
     "writing": {
       "model": "vercel/moonshotai/kimi-k2.5"
     }
+  },
+  "git_master": {
+    "include_co_authored_by": false
   }
 }
