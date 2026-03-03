@@ -44,6 +44,8 @@
       nodePackages.textlint
       yubikey-manager
       wget
+      openssl
+      pkg-config
     ])
     ++ [
       rustToolchain
