@@ -772,7 +772,7 @@ in
     youtube-music
     yubioath-flutter
     ankiWithRequestedAddons
-    obsidian
+    pkgsUnstable.obsidian
     obs-studio
     xfce.thunar
     xfce.thunar-archive-plugin
