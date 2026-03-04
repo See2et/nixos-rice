@@ -67,6 +67,43 @@
     '';
   };
 
+  home.file.".local/bin/thunar-zip-extract" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      for archive in "$@"; do
+        [ -f "$archive" ] || continue
+
+        archive_basename="$(${pkgs.coreutils}/bin/basename "$archive")"
+        archive_dir="$(${pkgs.coreutils}/bin/dirname "$archive")"
+        target_name="''${archive_basename%.zip}"
+        target_name="''${target_name%.ZIP}"
+
+        if [ -z "$target_name" ] || [ "$target_name" = "$archive_basename" ]; then
+          target_name="''${archive_basename%.*}"
+        fi
+
+        target_path="$archive_dir/$target_name"
+
+        if [ -e "$target_path" ]; then
+          suffix=1
+          while [ -e "$target_path ($suffix)" ]; do
+            suffix=$((suffix + 1))
+          done
+          target_path="$target_path ($suffix)"
+        fi
+
+        ${pkgs.coreutils}/bin/mkdir -p "$target_path"
+
+        if ! ${pkgs.unzip}/bin/unzip -qq "$archive" -d "$target_path"; then
+          ${pkgs.coreutils}/bin/rm -rf "$target_path"
+        fi
+      done
+    '';
+  };
+
   home.activation.steamVrLaunchOptions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     steamvr_launch_options="QT_QPA_PLATFORM=xcb %command%"
     userdata_root="${config.home.homeDirectory}/.local/share/Steam/userdata"
@@ -163,6 +200,10 @@ PY
     mimeApps = {
       enable = true;
       associations.added = {
+        "application/zip" = [ "thunar-zip-extract.desktop" ];
+        "application/x-zip" = [ "thunar-zip-extract.desktop" ];
+        "application/x-zip-compressed" = [ "thunar-zip-extract.desktop" ];
+        "multipart/x-zip" = [ "thunar-zip-extract.desktop" ];
         "image/avif" = [ "swayimg-visible.desktop" ];
         "image/gif" = [ "swayimg-visible.desktop" ];
         "image/jpeg" = [ "swayimg-visible.desktop" ];
@@ -201,6 +242,10 @@ PY
         ];
       };
       defaultApplications = {
+        "application/zip" = [ "thunar-zip-extract.desktop" ];
+        "application/x-zip" = [ "thunar-zip-extract.desktop" ];
+        "application/x-zip-compressed" = [ "thunar-zip-extract.desktop" ];
+        "multipart/x-zip" = [ "thunar-zip-extract.desktop" ];
         "image/avif" = [ "swayimg-visible.desktop" ];
         "image/gif" = [ "swayimg-visible.desktop" ];
         "image/jpeg" = [ "swayimg-visible.desktop" ];
@@ -241,6 +286,23 @@ PY
     };
 
     desktopEntries = {
+      thunar-zip-extract = {
+        name = "ZIP Extractor";
+        genericName = "Archive extractor";
+        comment = "Extract ZIP archives into a new folder";
+        exec = "${config.home.homeDirectory}/.local/bin/thunar-zip-extract %F";
+        terminal = false;
+        type = "Application";
+        categories = [ "Utility" ];
+        mimeType = [
+          "application/zip"
+          "application/x-zip"
+          "application/x-zip-compressed"
+          "multipart/x-zip"
+        ];
+        startupNotify = false;
+      };
+
       swayimg-visible = {
         name = "Swayimg";
         genericName = "Image viewer";
