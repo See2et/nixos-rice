@@ -148,6 +148,7 @@
           function fzf-git-worktree() {
             local main_repo worktree_repo_root repo_info
             local result query key selected branch wt_path
+            local main_target ghq_root repo_path remote_url
             local fzf_default_opts
 
             repo_info=$(__fzf_gwt_resolve_repo) || {
@@ -233,6 +234,34 @@
                 [[ -z "$branch" ]] && return
                 ;;
             esac
+
+            if [[ "$branch" == "main" ]]; then
+              main_target="$main_repo"
+              ghq_root=$(ghq root 2>/dev/null) || ghq_root=""
+
+              if [[ -n "$ghq_root" ]]; then
+                if [[ "$main_repo" == "$ghq_root/"* ]]; then
+                  main_target="$main_repo"
+                else
+                  remote_url=$(git -C "$main_repo" remote get-url origin 2>/dev/null) || remote_url=""
+                  if [[ -n "$remote_url" ]]; then
+                    repo_path=$(printf "%s" "$remote_url" | sed -E 's#(git@|https://)##; s#:#/#; s#\.git$##')
+                    if [[ -d "$ghq_root/$repo_path" ]]; then
+                      main_target="$ghq_root/$repo_path"
+                    fi
+                  fi
+                fi
+              fi
+
+              if git -C "$main_target" show-ref --verify --quiet "refs/heads/main"; then
+                git -C "$main_target" switch main || return
+              elif git -C "$main_target" show-ref --verify --quiet "refs/remotes/origin/main"; then
+                git -C "$main_target" switch -c main --track origin/main || return
+              fi
+
+              cd "$main_target"
+              return
+            fi
 
             wt_path="$worktree_repo_root/''${branch//\//-}"
 
