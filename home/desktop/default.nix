@@ -27,12 +27,13 @@
       enable = true;
       settings = {
         font = {
-          normal.family = "FiraCode Nerd Font";
-          bold.family = "FiraCode Nerd Font";
-          italic.family = "FiraCode Nerd Font";
-          bold_italic.family = "FiraCode Nerd Font";
+          normal.family = "FiraCode Nerd Font Mono";
+          bold.family = "FiraCode Nerd Font Mono";
+          italic.family = "FiraCode Nerd Font Mono";
+          bold_italic.family = "FiraCode Nerd Font Mono";
         };
         window.opacity = 0.9;
+        window.padding.x = 2;
         colors.transparent_background_colors = true;
         colors.draw_bold_text_with_bright_colors = false;
         colors.primary.foreground = "#bac2de";
