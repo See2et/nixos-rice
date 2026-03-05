@@ -48,6 +48,7 @@
 
   environment.sessionVariables = {
     LANGUAGE = "ja_JP:en_US";
+    ELECTRON_OZONE_PLATFORM_HINT = "auto";
   };
 
   # --- GPG agent (platform-neutral) ---
