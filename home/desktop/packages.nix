@@ -768,6 +768,7 @@ in
     discord
     discord-canary
     slack
+    zoom-us
     figma-linux
     youtube-music
     yubioath-flutter
