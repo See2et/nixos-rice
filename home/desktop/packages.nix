@@ -743,6 +743,8 @@ in
     alacrittyCwd
     kitty
     wezterm
+    btop
+    htop
     typst
     tinymist
     websocat
