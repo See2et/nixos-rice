@@ -25,7 +25,7 @@
       inputs.home-manager.follows = "home-manager";
     };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-    opencode.url = "github:albertov/opencode/dev";
+    opencode.url = "github:anomalyco/opencode/dev";
   };
 
   outputs = { self, nixpkgs, nixpkgs-steam, home-manager, niri, nixos-wsl, catppuccin, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
