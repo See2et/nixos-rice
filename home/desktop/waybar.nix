@@ -461,6 +461,7 @@ in
           exec = ''
             python3 - <<'PY'
             import json
+            from datetime import datetime
             from pathlib import Path
             from urllib import error, request
 
@@ -500,11 +501,25 @@ in
                         minutes = int(round(float(raw_minutes)))
 
                     if minutes == 300:
-                        five_hour = float(raw_pct)
+                        five_hour = {
+                            "used_percent": float(raw_pct),
+                            "reset_at": window.get("reset_at"),
+                        }
                     elif minutes == 10080:
-                        weekly = float(raw_pct)
+                        weekly = {
+                            "used_percent": float(raw_pct),
+                            "reset_at": window.get("reset_at"),
+                        }
 
                 return five_hour, weekly
+
+            def read_mode():
+                mode_path = Path.home() / ".cache" / "waybar-codex-mode"
+                try:
+                    mode = mode_path.read_text(encoding="utf-8").strip()
+                except OSError:
+                    return "usage"
+                return "reset" if mode == "reset" else "usage"
 
             def fetch_live_limits():
                 auth_path = Path.home() / ".codex" / "auth.json"
@@ -548,15 +563,25 @@ in
 
                 return five_hour, weekly, "live"
 
-            five_hour, weekly, status = fetch_live_limits()
-            if five_hour is None or weekly is None:
+            five_hour_limit, weekly_limit, status = fetch_live_limits()
+            if five_hour_limit is None or weekly_limit is None:
                 emit({"text": "󰚩 --/--", "tooltip": status})
                 raise SystemExit(0)
 
-            five_hour_used_pct = normalize_percent(five_hour)
-            weekly_used_pct = normalize_percent(weekly)
+            five_hour_used_pct = normalize_percent(five_hour_limit["used_percent"])
+            weekly_used_pct = normalize_percent(weekly_limit["used_percent"])
             five_hour_pct = max(0, 100 - five_hour_used_pct)
             weekly_pct = max(0, 100 - weekly_used_pct)
+
+            weekly_reset_at = weekly_limit.get("reset_at")
+            weekly_reset_text = "unknown"
+            if isinstance(weekly_reset_at, (int, float)):
+                weekly_reset_text = datetime.fromtimestamp(int(weekly_reset_at)).astimezone().strftime("%m/%d %H:%M")
+
+            mode = read_mode()
+            text = f"󰚩 {five_hour_pct}%/{weekly_pct}%"
+            if mode == "reset":
+                text = f"󰚩 {weekly_reset_text}"
 
             severity = ""
             lowest_remaining = min(five_hour_pct, weekly_pct)
@@ -567,12 +592,15 @@ in
 
             emit(
                 {
-                    "text": f"󰚩 {five_hour_pct}%/{weekly_pct}%",
-                    "tooltip": f"5h limit: {five_hour_pct}%\\nWeekly limit: {weekly_pct}%",
+                    "text": text,
+                    "tooltip": f"5h limit: {five_hour_pct}%\\nWeekly limit: {weekly_pct}%\\nWeekly reset: {weekly_reset_text}\\nClick: toggle usage/reset",
                     "class": severity,
                 }
             )
             PY
+          '';
+          "on-click" = ''
+            sh -c 'state="''${XDG_CACHE_HOME:-$HOME/.cache}/waybar-codex-mode"; mkdir -p "$(dirname "$state")"; if [ -f "$state" ] && [ "$(cat "$state")" = "reset" ]; then printf usage > "$state"; else printf reset > "$state"; fi'
           '';
           tooltip = true;
         };
