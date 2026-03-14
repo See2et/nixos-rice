@@ -49,7 +49,7 @@
     ])
     ++ [
       rustToolchain
-      inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex-node
+      inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex
       inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode
     ];
 }
