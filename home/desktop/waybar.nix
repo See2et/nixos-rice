@@ -130,6 +130,19 @@ in
         color: ${t.colors.info};
       }
 
+      #custom-codex {
+        color: ${t.colors.info};
+        font-family: ${t.typography.monoFamily};
+      }
+
+      #custom-codex.warning {
+        color: ${t.colors.warning};
+      }
+
+      #custom-codex.critical {
+        color: ${t.colors.danger};
+      }
+
       #battery {
         color: ${t.colors.success};
       }
@@ -244,6 +257,7 @@ in
             "backlight"
             "battery"
             "power-profiles-daemon"
+            "custom/codex"
           ];
         };
 
@@ -438,6 +452,129 @@ in
             balanced = " balance";
             "power-saver" = " save";
           };
+        };
+
+        "custom/codex" = {
+          "return-type" = "json";
+          interval = 30;
+          format = "{}";
+          exec = ''
+            python3 - <<'PY'
+            import json
+            from pathlib import Path
+            from urllib import error, request
+
+            def emit(payload):
+                print(json.dumps(payload))
+
+            def normalize_percent(value):
+                if 0.0 <= value <= 1.0:
+                    value *= 100.0
+                value = max(0.0, min(100.0, value))
+                return int(round(value))
+
+            def extract_windows(rate_limit):
+                if not isinstance(rate_limit, dict):
+                    return None, None
+
+                windows = []
+                for key in ("primary_window", "secondary_window", "primary", "secondary"):
+                    candidate = rate_limit.get(key)
+                    if isinstance(candidate, dict):
+                        windows.append(candidate)
+
+                five_hour = None
+                weekly = None
+                for window in windows:
+                    raw_pct = window.get("used_percent")
+                    raw_seconds = window.get("limit_window_seconds")
+                    raw_minutes = window.get("window_minutes")
+
+                    if not isinstance(raw_pct, (int, float)):
+                        continue
+
+                    minutes = None
+                    if isinstance(raw_seconds, (int, float)):
+                        minutes = int(round(float(raw_seconds) / 60.0))
+                    elif isinstance(raw_minutes, (int, float)):
+                        minutes = int(round(float(raw_minutes)))
+
+                    if minutes == 300:
+                        five_hour = float(raw_pct)
+                    elif minutes == 10080:
+                        weekly = float(raw_pct)
+
+                return five_hour, weekly
+
+            def fetch_live_limits():
+                auth_path = Path.home() / ".codex" / "auth.json"
+                try:
+                    auth = json.loads(auth_path.read_text(encoding="utf-8"))
+                except OSError:
+                    return None, None, "Codex auth not found"
+                except json.JSONDecodeError:
+                    return None, None, "Codex auth is invalid"
+
+                tokens = auth.get("tokens") if isinstance(auth, dict) else None
+                if not isinstance(tokens, dict):
+                    return None, None, "Codex tokens unavailable"
+
+                access_token = tokens.get("access_token")
+                account_id = tokens.get("account_id")
+                if not isinstance(access_token, str) or not access_token:
+                    return None, None, "Codex access token missing"
+
+                req = request.Request("https://chatgpt.com/backend-api/wham/usage")
+                req.add_header("Authorization", f"Bearer {access_token}")
+                req.add_header("User-Agent", "codex-cli")
+                req.add_header("Accept", "application/json")
+                if isinstance(account_id, str) and account_id:
+                    req.add_header("ChatGPT-Account-Id", account_id)
+
+                try:
+                    with request.urlopen(req, timeout=12) as response:
+                        payload = json.loads(response.read().decode("utf-8", "replace"))
+                except error.HTTPError as exc:
+                    return None, None, f"Codex API HTTP {exc.code}"
+                except error.URLError:
+                    return None, None, "Codex API unreachable"
+                except json.JSONDecodeError:
+                    return None, None, "Codex API returned invalid JSON"
+
+                rate_limit = payload.get("rate_limit") if isinstance(payload, dict) else None
+                five_hour, weekly = extract_windows(rate_limit)
+                if five_hour is None or weekly is None:
+                    return None, None, "Codex API missing rate limits"
+
+                return five_hour, weekly, "live"
+
+            five_hour, weekly, status = fetch_live_limits()
+            if five_hour is None or weekly is None:
+                emit({"text": "󰚩 --/--", "tooltip": status})
+                raise SystemExit(0)
+
+            five_hour_used_pct = normalize_percent(five_hour)
+            weekly_used_pct = normalize_percent(weekly)
+            five_hour_pct = max(0, 100 - five_hour_used_pct)
+            weekly_pct = max(0, 100 - weekly_used_pct)
+
+            severity = ""
+            lowest_remaining = min(five_hour_pct, weekly_pct)
+            if lowest_remaining <= 5:
+                severity = "critical"
+            elif lowest_remaining <= 20:
+                severity = "warning"
+
+            emit(
+                {
+                    "text": f"󰚩 {five_hour_pct}%/{weekly_pct}%",
+                    "tooltip": f"5h limit: {five_hour_pct}%\\nWeekly limit: {weekly_pct}%",
+                    "class": severity,
+                }
+            )
+            PY
+          '';
+          tooltip = true;
         };
 
         "custom/lock" = {
