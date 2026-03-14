@@ -13,7 +13,7 @@
       source = ../dotfiles/opencode/oh-my-opencode.jsonc;
       force = true;
     };
-    "opencode/agents/chiron.md" = {
+    "opencode/agents/chiron (deep tutor).md" = {
       source = ../dotfiles/opencode/agents/chiron.md;
       force = true;
     };
