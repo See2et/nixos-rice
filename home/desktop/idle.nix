@@ -6,7 +6,7 @@
 }:
 let
   lockCmd = pkgs.writeShellScriptBin "desktop-lock" ''
-    exec ${pkgs.swaylock}/bin/swaylock
+    exec ${config.programs.swaylock.package}/bin/swaylock
   '';
 
   dimCmd = pkgs.writeShellScriptBin "desktop-idle-dim" ''

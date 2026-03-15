@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -198,14 +199,16 @@ in
 
   programs.swaylock = {
     enable = true;
+    package = pkgs.swaylock-effects;
     settings = lib.mkForce {
       daemonize = true;
-      clock = true;
+      clock = false;
+      screenshots = true;
       effect-blur = "${toString t.blur.overlay}x${toString t.blur.overlay}";
-      effect-vignette = "0.25:0.25";
+      effect-vignette = "0.50:0.50";
       fade-in = 0.2;
 
-      color = stripHash t.colors.overlay;
+      color = "${stripHash t.colors.overlay}4d";
       text-color = stripHash t.colors.foreground;
       inside-color = stripHash t.colors.transparent;
       inside-clear-color = stripHash t.colors.transparent;
@@ -220,13 +223,14 @@ in
       key-hl-color = stripHash t.colors.accent;
       bs-hl-color = stripHash t.colors.warning;
 
-      indicator = true;
+      indicator = false;
       indicator-radius = t.sizes.lockIndicatorRadius;
       indicator-thickness = t.sizes.lockIndicatorThickness;
 
       font = t.typography.family;
       font-size = t.typography.size.lg;
       show-failed-attempts = true;
+      show-keyboard-layout = true;
       ignore-empty-password = true;
     };
   };

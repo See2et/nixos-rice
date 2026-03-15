@@ -761,7 +761,7 @@ in
     swayimg
     mpv
     wlogout
-    swaylock
+    swaylock-effects
     pavucontrol
     pulseaudio
     brightnessctl
