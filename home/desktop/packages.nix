@@ -783,6 +783,11 @@ in
     alvr
     vrcx
     sidequest
+    # VRChat World制作はUnity HubでUnity 2022.3.22f1を固定導入すること
+    unityhub
+    alcom
+    vrc-get
+    p7zip
     wlx-overlay-s
     oyasumiLaunch
     rofiLauncher
