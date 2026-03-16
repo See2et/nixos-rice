@@ -224,6 +224,39 @@ PY
     fi
   '';
 
+  home.activation.vrcGetRepoSync = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    repos_file="${config.xdg.configHome}/vrc-get/repositories.txt"
+
+    if [ -f "$repos_file" ]; then
+      sanitized_repos_file="$(${pkgs.coreutils}/bin/mktemp)"
+
+      if ${pkgs.python3}/bin/python - "$repos_file" "$sanitized_repos_file" <<'PY'
+import pathlib
+import sys
+
+source = pathlib.Path(sys.argv[1])
+target = pathlib.Path(sys.argv[2])
+
+lines = []
+for raw_line in source.read_text(encoding="utf-8", errors="ignore").splitlines():
+    line = raw_line.split("#", 1)[0].strip()
+    if line:
+        lines.append(line)
+
+output = "\n".join(lines)
+if output:
+    output += "\n"
+
+target.write_text(output, encoding="utf-8")
+PY
+      then
+        ${pkgs.vrc-get}/bin/vrc-get repo import --yes --no-update "$sanitized_repos_file" || true
+      fi
+
+      ${pkgs.coreutils}/bin/rm -f "$sanitized_repos_file"
+    fi
+  '';
+
   xdg = {
     mimeApps = {
       enable = true;
@@ -427,6 +460,7 @@ PY
     };
 
     configFile = {
+      "vrc-get/repositories.txt".source = ./vpm-repositories.txt;
       "wayvr/openxr_actions.json5".source = ./wayvr/openxr_actions.json5;
       "wlxoverlay/openxr_actions.json5".source = ./wayvr/openxr_actions.json5;
     };

@@ -1,0 +1,4 @@
+https://lilxyzw.github.io/vpm-repos/vpm.json
+https://poiyomi.github.io/vpm/index.json
+# YamaPlayer
+https://vpm.kwxxw.net/index.json
