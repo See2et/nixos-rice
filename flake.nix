@@ -33,6 +33,7 @@
   outputs = { self, nixpkgs, nixpkgs-steam, home-manager, niri, nixos-wsl, catppuccin, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
   let
     linuxSystem = "x86_64-linux";
+    laptopSystem = "aarch64-linux";
     darwinSystem = "aarch64-darwin";
 
     mkPkgs =
@@ -54,7 +55,7 @@
       };
 
       laptop = nixpkgs.lib.nixosSystem {
-        system = linuxSystem;
+        system = laptopSystem;
         specialArgs = { inherit inputs; };
         modules = [
           ./hosts/laptop

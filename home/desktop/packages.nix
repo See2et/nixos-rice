@@ -1,10 +1,12 @@
 {
+  lib,
   pkgs,
   inputs,
   config,
   ...
 }:
 let
+  isX86_64 = pkgs.stdenv.hostPlatform.isx86_64;
   pkgsUnstable = import inputs.nixpkgs-unstable {
     inherit (pkgs.stdenv.hostPlatform) system;
     config.allowUnfree = true;
@@ -729,7 +731,7 @@ in
     NIXOS_OZONE_WL = "1";
   };
 
-  xdg.desktopEntries.oyasumivr = {
+  xdg.desktopEntries.oyasumivr = lib.mkIf isX86_64 {
     name = "OyasumiVR";
     genericName = "VR Sleep Utilities";
     comment = "Launch OyasumiVR via steam-run";
@@ -738,66 +740,69 @@ in
     categories = [ "Utility" ];
   };
 
-  home.packages = with pkgs; [
-    alacritty
-    alacrittyCwd
-    kitty
-    wezterm
-    btop
-    htop
-    typst
-    tinymist
-    websocat
-    typstPreviewCompat
-    rofi
-    rofimoji
-    cliphist
-    grim
-    slurp
-    xwayland-satellite
-    wl-clipboard
-    waybar
-    playerctl
-    swayimg
-    mpv
-    wlogout
-    swaylock-effects
-    pavucontrol
-    pulseaudio
-    brightnessctl
-    gcolor3
-    pkgsUnstable.godot_4_6
-    discord
-    discord-canary
-    slack
-    zoom-us
-    figma-linux
-    youtube-music
-    yubioath-flutter
-    ankiWithRequestedAddons
-    pkgsUnstable.obsidian
-    obs-studio
-    xfce.thunar
-    xfce.thunar-archive-plugin
-    xfce.thunar-volman
-    alvr
-    vrcx
-    sidequest
-    # VRChat World制作はUnity HubでUnity 2022.3.22f1を固定導入すること
-    unityhub
-    alcom
-    vrc-get
-    p7zip
-    wlx-overlay-s
-    oyasumiLaunch
-    rofiLauncher
-    desktopSessionAction
-    desktopPowerMenu
-    cliphistPicker
-    emojiPicker
-    screenshotInstant
-    screenshotPicker
-    desktopVolume
-    desktopBrightness
-  ];
+  home.packages =
+    (with pkgs; [
+      alacritty
+      alacrittyCwd
+      kitty
+      wezterm
+      btop
+      htop
+      typst
+      tinymist
+      websocat
+      typstPreviewCompat
+      rofi
+      rofimoji
+      cliphist
+      grim
+      slurp
+      xwayland-satellite
+      wl-clipboard
+      waybar
+      playerctl
+      swayimg
+      mpv
+      wlogout
+      swaylock-effects
+      pavucontrol
+      pulseaudio
+      brightnessctl
+      gcolor3
+      pkgsUnstable.godot_4_6
+      discord
+      discord-canary
+      slack
+      zoom-us
+      figma-linux
+      youtube-music
+      yubioath-flutter
+      ankiWithRequestedAddons
+      pkgsUnstable.obsidian
+      obs-studio
+      xfce.thunar
+      xfce.thunar-archive-plugin
+      xfce.thunar-volman
+      p7zip
+      rofiLauncher
+      desktopSessionAction
+      desktopPowerMenu
+      cliphistPicker
+      emojiPicker
+      screenshotInstant
+      screenshotPicker
+      desktopVolume
+      desktopBrightness
+    ])
+    ++ lib.optionals isX86_64 (with pkgs; [
+      alvr
+      vrcx
+      sidequest
+      # VRChat World制作はUnity HubでUnity 2022.3.22f1を固定導入すること
+      unityhub
+      alcom
+      vrc-get
+      wlx-overlay-s
+      oyasumiLaunch
+    ]);
 }

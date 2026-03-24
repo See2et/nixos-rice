@@ -13,8 +13,17 @@
   imports = [
     # Shared baseline (nix.settings, shell, gpg)
     ../../modules/nixos/common
-    # Desktop-class system domains (boot/display/gpu/audio/vr/firewall)
-    ../../modules/nixos/desktop
+    # Desktop-class system domains (imported explicitly so laptop can skip nvidia)
+    ../../modules/nixos/desktop/system.nix
+    ../../modules/nixos/desktop/unity-runtime.nix
+    ../../modules/nixos/desktop/boot.nix
+    ../../modules/nixos/desktop/filesystems.nix
+    ../../modules/nixos/desktop/gdm.nix
+    ../../modules/nixos/desktop/niri.nix
+    ../../modules/nixos/desktop/audio.nix
+    ../../modules/nixos/desktop/vr.nix
+    ../../modules/nixos/desktop/firewall.nix
+    ../../modules/nixos/desktop/docker.nix
     # Laptop-specific hardware scan module
     ../../hardware-configuration-laptop.nix
     # Desktop-class modules

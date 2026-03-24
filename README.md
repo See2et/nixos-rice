@@ -3,7 +3,7 @@
 1つのリポジトリで、以下4ターゲットを管理する統合Nix flakeです。
 
 - `nixosConfigurations.desktop`（NixOSデスクトップ）
-- `nixosConfigurations.laptop`（NixOSラップトップ）
+- `nixosConfigurations.laptop`（Asahi Linux / aarch64-linux ラップトップ）
 - `nixosConfigurations.wsl`（NixOS-WSL）
 - `homeConfigurations.darwin`（macOS向けHome Manager）
 
@@ -36,11 +36,13 @@ cd /etc/nixos
 sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configuration.nix
 ```
 
-Laptop用に導入する場合は、以下を使います。
+Laptop（Asahi Linux / M1 MacBook）用に導入する場合は、以下を使います。
 
 ```bash
 sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configuration-laptop.nix
 ```
+
+注: `laptop` は `aarch64-linux` 固定です。`hardware-configuration-laptop.nix` は実機で必ず生成し直してください。
 
 2. 必要に応じて `hosts/desktop/default.nix` のユーザー情報を変更します。
    - `home-manager.users.see2et`
