@@ -1,8 +1,9 @@
 # nixos-rice
 
-1つのリポジトリで、以下3ターゲットを管理する統合Nix flakeです。
+1つのリポジトリで、以下4ターゲットを管理する統合Nix flakeです。
 
 - `nixosConfigurations.desktop`（NixOSデスクトップ）
+- `nixosConfigurations.laptop`（NixOSラップトップ）
 - `nixosConfigurations.wsl`（NixOS-WSL）
 - `homeConfigurations.darwin`（macOS向けHome Manager）
 
@@ -27,12 +28,18 @@ cd /etc/nixos
 
 ## 3) ターゲット別の導入手順
 
-### Desktop（NixOS）
+### Desktop / Laptop（NixOS）
 
-1. 別マシンへ導入する場合は、ハードウェア設定を更新します。
+1. ハードウェア設定を更新します。
 
 ```bash
 sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configuration.nix
+```
+
+Laptop用に導入する場合は、以下を使います。
+
+```bash
+sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configuration-laptop.nix
 ```
 
 2. 必要に応じて `hosts/desktop/default.nix` のユーザー情報を変更します。
@@ -46,13 +53,13 @@ sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configur
 sudo passwd see2et
 ```
 
-4. 安全な順序で検証・反映します。
+4. 安全な順序で検証・反映します（`#desktop` または `#laptop` を選択）。
 
 ```bash
 nix flake check --show-trace
-sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop
-sudo nixos-rebuild test --flake /etc/nixos#desktop
-sudo nixos-rebuild switch --flake /etc/nixos#desktop
+sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop  # or #laptop
+sudo nixos-rebuild test --flake /etc/nixos#desktop          # or #laptop
+sudo nixos-rebuild switch --flake /etc/nixos#desktop        # or #laptop
 ```
 
 ### WSL（NixOS-WSL）
@@ -103,6 +110,7 @@ nix run github:nix-community/home-manager -- switch --flake .#darwin
 ```bash
 cd /etc/nixos
 nix build .#nixosConfigurations.desktop.config.system.build.toplevel
+nix build .#nixosConfigurations.laptop.config.system.build.toplevel
 nix build .#nixosConfigurations.wsl.config.system.build.toplevel
 ```
 

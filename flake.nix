@@ -53,6 +53,14 @@
         ];
       };
 
+      laptop = nixpkgs.lib.nixosSystem {
+        system = linuxSystem;
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./hosts/laptop
+        ];
+      };
+
       wsl = nixpkgs.lib.nixosSystem {
         system = linuxSystem;
         specialArgs = { inherit inputs; };
