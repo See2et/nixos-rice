@@ -7,7 +7,7 @@
 # - MUST NOT set wsl.* options
 # - MUST NOT reintroduce a root-level home.nix monolith
 
-{ inputs, pkgs, ... }:
+{ inputs, pkgs, lib, ... }:
 
 {
   imports = [
@@ -55,4 +55,9 @@
     hostId = "laptop";
     rustToolchain = pkgs.rustc;
   };
+
+  # Fallback safety when hardware-configuration-laptop.nix is not yet regenerated on Asahi.
+  # Prevent x86_64 desktop remnants (AMD/NVIDIA) from being pulled into aarch64 evaluation.
+  hardware.cpu.amd.updateMicrocode = lib.mkForce false;
+  hardware.nvidia.modesetting.enable = lib.mkForce false;
 }
