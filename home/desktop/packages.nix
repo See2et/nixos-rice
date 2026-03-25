@@ -770,13 +770,6 @@ in
       brightnessctl
       gcolor3
       pkgsUnstable.godot_4_6
-      discord
-      discord-canary
-      slack
-      zoom-us
-      figma-linux
-      youtube-music
-      yubioath-flutter
       ankiWithRequestedAddons
       pkgsUnstable.obsidian
       obs-studio
@@ -795,6 +788,13 @@ in
       desktopBrightness
     ])
     ++ lib.optionals isX86_64 (with pkgs; [
+      discord
+      discord-canary
+      slack
+      zoom-us
+      figma-linux
+      youtube-music
+      yubioath-flutter
       alvr
       vrcx
       sidequest
