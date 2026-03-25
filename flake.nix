@@ -19,7 +19,6 @@
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    catppuccin.url = "github:catppuccin/nix";
     nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -30,7 +29,7 @@
     opencode.url = "github:anomalyco/opencode/dev";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-steam, home-manager, niri, nixos-wsl, catppuccin, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
+  outputs = { self, nixpkgs, nixpkgs-steam, home-manager, niri, nixos-wsl, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
   let
     linuxSystem = "x86_64-linux";
     laptopSystem = "aarch64-linux";

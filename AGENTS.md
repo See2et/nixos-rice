@@ -19,7 +19,7 @@ flake.nix                         # Single entry point — all outputs defined h
 │   ├── desktop/                  # Desktop-only system: system, boot, gdm, nvidia, audio, vr, firewall, niri, filesystems
 │   └── wsl/default.nix           # WSL-only system: nix-ld, usbip, allowUnsupportedSystem
 ├── home/
-│   ├── common/                   # Shared HM: git, gh, gpg, zsh, packages, session, catppuccin
+│   ├── common/                   # Shared HM: git, gh, gpg, zsh, packages, session
 │   ├── linux/default.nix         # Linux-only HM packages (wl-clipboard, xclip, libnotify)
 │   ├── desktop/                  # Desktop HM: niri, waybar, xdg, desktop packages
 │   ├── wsl/                      # WSL HM: /mnt/c PATH, notifier files

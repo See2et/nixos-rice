@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 let
   inherit (lib) mkForce;
-  gtkTheme = "catppuccin-frappe-blue-standard";
+  gtkTheme = "adw-gtk3-dark";
   iconTheme = "Papirus-Dark";
   cursorTheme = "Bibata-Modern-Ice";
   cursorSize = 24;
@@ -15,7 +15,7 @@ in
     enable = true;
     theme = {
       name = mkForce gtkTheme;
-      package = mkForce pkgs.catppuccin-gtk;
+      package = mkForce pkgs.adw-gtk3;
     };
     iconTheme = {
       name = mkForce iconTheme;
@@ -41,18 +41,13 @@ in
     enable = true;
     platformTheme.name = "gtk3";
     style = {
-      name = "kvantum";
-      package = pkgs.libsForQt5.qtstyleplugin-kvantum;
+      name = "adwaita-dark";
+      package = pkgs.adwaita-qt;
     };
   };
 
   home.packages = [
-    pkgs.catppuccin-kvantum
-    pkgs.qt6Packages.qtstyleplugin-kvantum
+    pkgs.adwaita-qt
+    pkgs.adwaita-qt6
   ];
-
-  xdg.configFile."Kvantum/kvantum.kvconfig".text = ''
-    [General]
-    theme=catppuccin-frappe-blue
-  '';
 }

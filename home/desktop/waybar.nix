@@ -620,6 +620,4 @@ in
       }
     ];
   };
-
-  catppuccin.waybar.enable = false;
 }
