@@ -60,4 +60,12 @@
   # Prevent x86_64 desktop remnants (AMD/NVIDIA) from being pulled into aarch64 evaluation.
   hardware.cpu.amd.updateMicrocode = lib.mkForce false;
   hardware.nvidia.modesetting.enable = lib.mkForce false;
+
+  # Asahi laptop boot flow is not desktop GRUB-on-/boot/efi.
+  # Keep desktop defaults for desktop host, but override on laptop.
+  boot.loader.grub.enable = lib.mkForce false;
+  boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.loader.generic-extlinux-compatible.enable = lib.mkForce true;
+  boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
+  boot.loader.efi.efiSysMountPoint = lib.mkForce "/boot";
 }
