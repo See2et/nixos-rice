@@ -4,6 +4,7 @@
   imports = [
     ./system.nix
     ./unity-runtime.nix
+    ./bluetooth.nix
     ./boot.nix
     ./filesystems.nix
     ./gdm.nix

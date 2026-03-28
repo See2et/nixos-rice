@@ -16,6 +16,7 @@
     # Desktop-class system domains (imported explicitly so laptop can skip nvidia)
     ../../modules/nixos/desktop/system.nix
     ../../modules/nixos/desktop/unity-runtime.nix
+    ../../modules/nixos/desktop/bluetooth.nix
     ../../modules/nixos/desktop/boot.nix
     ../../modules/nixos/desktop/filesystems.nix
     ../../modules/nixos/desktop/gdm.nix

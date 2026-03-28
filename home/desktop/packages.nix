@@ -84,44 +84,44 @@ let
   };
 
   oyasumiLaunch = pkgs.writeShellScriptBin "oyasumivr" ''
-    set -euo pipefail
+        set -euo pipefail
 
-    export XDG_CONFIG_HOME="''${XDG_CONFIG_HOME:-$HOME/.config}"
-    export XDG_DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}"
-    export XDG_CACHE_HOME="''${XDG_CACHE_HOME:-$HOME/.cache}"
-    export __NV_DISABLE_EXPLICIT_SYNC="''${__NV_DISABLE_EXPLICIT_SYNC:-1}"
-    export PATH="${oyasumiRuntimeBinPath}:''${PATH}"
-    export LD_LIBRARY_PATH="${oyasumiRuntimeLibraryPath}:''${LD_LIBRARY_PATH:-}"
-    export GIO_MODULE_DIR="${pkgs.glib-networking}/lib/gio/modules"
-    export GSETTINGS_SCHEMA_DIR="${oyasumiGSettingsPath}"
+        export XDG_CONFIG_HOME="''${XDG_CONFIG_HOME:-$HOME/.config}"
+        export XDG_DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}"
+        export XDG_CACHE_HOME="''${XDG_CACHE_HOME:-$HOME/.cache}"
+        export __NV_DISABLE_EXPLICIT_SYNC="''${__NV_DISABLE_EXPLICIT_SYNC:-1}"
+        export PATH="${oyasumiRuntimeBinPath}:''${PATH}"
+        export LD_LIBRARY_PATH="${oyasumiRuntimeLibraryPath}:''${LD_LIBRARY_PATH:-}"
+        export GIO_MODULE_DIR="${pkgs.glib-networking}/lib/gio/modules"
+        export GSETTINGS_SCHEMA_DIR="${oyasumiGSettingsPath}"
 
-    steamvr_openxr_manifest="$HOME/.local/share/Steam/steamapps/common/SteamVR/steamxr_linux64.json"
-    openxr_config_dir="$XDG_CONFIG_HOME/openxr/1"
-    openxr_active_runtime="$openxr_config_dir/active_runtime.json"
+        steamvr_openxr_manifest="$HOME/.local/share/Steam/steamapps/common/SteamVR/steamxr_linux64.json"
+        openxr_config_dir="$XDG_CONFIG_HOME/openxr/1"
+        openxr_active_runtime="$openxr_config_dir/active_runtime.json"
 
-    if [ -z "''${XR_RUNTIME_JSON:-}" ] && [ -f "$steamvr_openxr_manifest" ]; then
-      export XR_RUNTIME_JSON="$steamvr_openxr_manifest"
-    fi
+        if [ -z "''${XR_RUNTIME_JSON:-}" ] && [ -f "$steamvr_openxr_manifest" ]; then
+          export XR_RUNTIME_JSON="$steamvr_openxr_manifest"
+        fi
 
-    if [ -z "''${OPENXR_RUNTIME_JSON:-}" ] && [ -n "''${XR_RUNTIME_JSON:-}" ]; then
-      export OPENXR_RUNTIME_JSON="$XR_RUNTIME_JSON"
-    fi
+        if [ -z "''${OPENXR_RUNTIME_JSON:-}" ] && [ -n "''${XR_RUNTIME_JSON:-}" ]; then
+          export OPENXR_RUNTIME_JSON="$XR_RUNTIME_JSON"
+        fi
 
-    if [ -n "''${XR_RUNTIME_JSON:-}" ] && [ ! -f "$openxr_active_runtime" ]; then
-      mkdir -p "$openxr_config_dir"
-      cat > "$openxr_active_runtime" <<EOF
-{
-  "file_format_version": "1.0.0",
-  "runtime": {
-    "name": "SteamVR",
-    "library_path": "$XR_RUNTIME_JSON"
-  }
-}
-EOF
-    fi
+        if [ -n "''${XR_RUNTIME_JSON:-}" ] && [ ! -f "$openxr_active_runtime" ]; then
+          mkdir -p "$openxr_config_dir"
+          cat > "$openxr_active_runtime" <<EOF
+    {
+      "file_format_version": "1.0.0",
+      "runtime": {
+        "name": "SteamVR",
+        "library_path": "$XR_RUNTIME_JSON"
+      }
+    }
+    EOF
+        fi
 
-    exec ${pkgs.steam-run}/bin/steam-run \
-      "${oyasumiBin}/share/oyasumi/Oyasumi/OyasumiVR" "$@"
+        exec ${pkgs.steam-run}/bin/steam-run \
+          "${oyasumiBin}/share/oyasumi/Oyasumi/OyasumiVR" "$@"
   '';
 
   rofiLauncher = pkgs.writeShellScriptBin "rofi-launcher" ''
@@ -149,124 +149,124 @@ EOF
       };
       dontUnpack = true;
       installPhase = ''
-        runHook preInstall
+                runHook preInstall
 
-        addonDir="$out/share/anki/addons/${addonName}"
-        mkdir -p "$addonDir"
-        ${pkgs.unzip}/bin/unzip -qq "$src" -d "$addonDir"
-        mkdir -p "$addonDir/user_files"
+                addonDir="$out/share/anki/addons/${addonName}"
+                mkdir -p "$addonDir"
+                ${pkgs.unzip}/bin/unzip -qq "$src" -d "$addonDir"
+                mkdir -p "$addonDir/user_files"
 
-        # Runtime compatibility patches for legacy add-ons on Anki 25 / Python 3.13 / Qt6.
-        # Keep this section surgical: only patch known crash points from real tracebacks.
-        case "${addonName}" in
-          anki-killstreaks)
-            # Python 2/old-Anki assumptions in upstream code.
-            if [ -f "$addonDir/consts.py" ]; then
-              substituteInPlace "$addonDir/consts.py" \
-                --replace-fail 'anki21 = version.startswith("2.1.")' 'anki21 = True' \
-                --replace-fail 'addon_path = os.path.dirname(__file__).decode(sys_encoding)' 'addon_path = os.path.dirname(__file__)'
-            fi
+                # Runtime compatibility patches for legacy add-ons on Anki 25 / Python 3.13 / Qt6.
+                # Keep this section surgical: only patch known crash points from real tracebacks.
+                case "${addonName}" in
+                  anki-killstreaks)
+                    # Python 2/old-Anki assumptions in upstream code.
+                    if [ -f "$addonDir/consts.py" ]; then
+                      substituteInPlace "$addonDir/consts.py" \
+                        --replace-fail 'anki21 = version.startswith("2.1.")' 'anki21 = True' \
+                        --replace-fail 'addon_path = os.path.dirname(__file__).decode(sys_encoding)' 'addon_path = os.path.dirname(__file__)'
+                    fi
 
-            # Vendor missing compatibility modules that are no longer bundled by Anki runtime.
-            if [ -f "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" ]; then
-              cp "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" "$addonDir/six.py"
-              cp "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" "$addonDir/_vendor/six.py"
-            fi
+                    # Vendor missing compatibility modules that are no longer bundled by Anki runtime.
+                    if [ -f "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" ]; then
+                      cp "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" "$addonDir/six.py"
+                      cp "${pkgs.python3Packages.six}/${pkgs.python3.sitePackages}/six.py" "$addonDir/_vendor/six.py"
+                    fi
 
-            # Ensure import six / six.moves resolve from vendored module inside the add-on package.
-            if [ -f "$addonDir/_vendor/__init__.py" ]; then
-              cat > "$addonDir/_vendor/__init__.py" <<'PY'
-import sys
+                    # Ensure import six / six.moves resolve from vendored module inside the add-on package.
+                    if [ -f "$addonDir/_vendor/__init__.py" ]; then
+                      cat > "$addonDir/_vendor/__init__.py" <<'PY'
+        import sys
 
-try:
-    import six as _six
-except ModuleNotFoundError:
-    from . import six as _six
+        try:
+            import six as _six
+        except ModuleNotFoundError:
+            from . import six as _six
 
-sys.modules.setdefault("six", _six)
-if hasattr(_six, "moves"):
-    sys.modules.setdefault("six.moves", _six.moves)
-PY
-            fi
+        sys.modules.setdefault("six", _six)
+        if hasattr(_six, "moves"):
+            sys.modules.setdefault("six.moves", _six.moves)
+        PY
+                    fi
 
-            # yoyo vendored code expects pkg_resources (setuptools); provide safe fallback.
-            if [ -f "$addonDir/_vendor/yoyo/migrations.py" ]; then
-              ${pkgs.python3}/bin/python - "$addonDir/_vendor/yoyo/migrations.py" <<'PY'
-import pathlib
-import sys
+                    # yoyo vendored code expects pkg_resources (setuptools); provide safe fallback.
+                    if [ -f "$addonDir/_vendor/yoyo/migrations.py" ]; then
+                      ${pkgs.python3}/bin/python - "$addonDir/_vendor/yoyo/migrations.py" <<'PY'
+        import pathlib
+        import sys
 
-path = pathlib.Path(sys.argv[1])
-text = path.read_text()
-needle = "import pkg_resources\n"
-replacement = (
-    "try:\n"
-    "    import pkg_resources\n"
-    "except ModuleNotFoundError:\n"
-    "    class _PkgResourcesStub:\n"
-    "        @staticmethod\n"
-    "        def resource_filename(*_args, **_kwargs):\n"
-    "            raise RuntimeError(\"pkg_resources unavailable\")\n"
-    "\n"
-    "        @staticmethod\n"
-    "        def resource_listdir(*_args, **_kwargs):\n"
-    "            return []\n"
-    "\n"
-    "    pkg_resources = _PkgResourcesStub()\n"
-)
-if needle in text:
-    path.write_text(text.replace(needle, replacement, 1))
-PY
-            fi
+        path = pathlib.Path(sys.argv[1])
+        text = path.read_text()
+        needle = "import pkg_resources\n"
+        replacement = (
+            "try:\n"
+            "    import pkg_resources\n"
+            "except ModuleNotFoundError:\n"
+            "    class _PkgResourcesStub:\n"
+            "        @staticmethod\n"
+            "        def resource_filename(*_args, **_kwargs):\n"
+            "            raise RuntimeError(\"pkg_resources unavailable\")\n"
+            "\n"
+            "        @staticmethod\n"
+            "        def resource_listdir(*_args, **_kwargs):\n"
+            "            return []\n"
+            "\n"
+            "    pkg_resources = _PkgResourcesStub()\n"
+        )
+        if needle in text:
+            path.write_text(text.replace(needle, replacement, 1))
+        PY
+                    fi
 
-            # Python 3.13 removed/changed SafeConfigParser access paths.
-            if [ -f "$addonDir/_vendor/iniherit/parser.py" ]; then
-              substituteInPlace "$addonDir/_vendor/iniherit/parser.py" \
-                --replace-fail '_real_SafeConfigParser = CP.SafeConfigParser' '_real_SafeConfigParser = getattr(CP, "SafeConfigParser", CP.ConfigParser)'
-            fi
-            if [ -f "$addonDir/_vendor/iniherit/mixin.py" ]; then
-              substituteInPlace "$addonDir/_vendor/iniherit/mixin.py" \
-                --replace-fail '(IniheritMixin, CP.SafeConfigParser, base_attrs),' '(IniheritMixin, getattr(CP, "SafeConfigParser", CP.ConfigParser), base_attrs),'
-            fi
+                    # Python 3.13 removed/changed SafeConfigParser access paths.
+                    if [ -f "$addonDir/_vendor/iniherit/parser.py" ]; then
+                      substituteInPlace "$addonDir/_vendor/iniherit/parser.py" \
+                        --replace-fail '_real_SafeConfigParser = CP.SafeConfigParser' '_real_SafeConfigParser = getattr(CP, "SafeConfigParser", CP.ConfigParser)'
+                    fi
+                    if [ -f "$addonDir/_vendor/iniherit/mixin.py" ]; then
+                      substituteInPlace "$addonDir/_vendor/iniherit/mixin.py" \
+                        --replace-fail '(IniheritMixin, CP.SafeConfigParser, base_attrs),' '(IniheritMixin, getattr(CP, "SafeConfigParser", CP.ConfigParser), base_attrs),'
+                    fi
 
-            # Generated UI and runtime files still import PyQt5; rewrite to PyQt6.
-            ${pkgs.python3}/bin/python - "$addonDir" <<'PY'
-import pathlib
-import sys
+                    # Generated UI and runtime files still import PyQt5; rewrite to PyQt6.
+                    ${pkgs.python3}/bin/python - "$addonDir" <<'PY'
+        import pathlib
+        import sys
 
-root = pathlib.Path(sys.argv[1])
-replacements = {
-    "from PyQt5 import QtCore, QtGui, QtWidgets": "from PyQt6 import QtCore, QtGui, QtWidgets",
-    "from PyQt5.QtCore import QTimer": "from PyQt6.QtCore import QTimer",
-    "from PyQt5.Qt import QObject, pyqtSignal": "from PyQt6.QtCore import QObject, pyqtSignal",
-}
+        root = pathlib.Path(sys.argv[1])
+        replacements = {
+            "from PyQt5 import QtCore, QtGui, QtWidgets": "from PyQt6 import QtCore, QtGui, QtWidgets",
+            "from PyQt5.QtCore import QTimer": "from PyQt6.QtCore import QTimer",
+            "from PyQt5.Qt import QObject, pyqtSignal": "from PyQt6.QtCore import QObject, pyqtSignal",
+        }
 
-for path in root.rglob("*.py"):
-    text = path.read_text()
-    new_text = text
-    for src, dst in replacements.items():
-        new_text = new_text.replace(src, dst)
-    if new_text != text:
-        path.write_text(new_text)
-PY
-            ;;
-          awesome-tts)
-            # Avoid writes to /nix/store by redirecting runtime cache/log/config to user data dir.
-            if [ -f "$addonDir/awesometts/paths.py" ]; then
-              substituteInPlace "$addonDir/awesometts/paths.py" \
-                --replace-fail "USER_FILES = os.path.join(ROOT, 'user_files')" "USER_FILES = os.environ.get('AWESOMETTS_USER_FILES', os.path.join(os.path.expanduser('~'), '.local', 'share', 'Anki2', 'addons21', 'awesome-tts', 'user_files'))" \
-                --replace-fail "LOG = os.path.join(ADDON, 'addon.log')" "LOG = os.path.join(USER_FILES, 'addon.log')"
-            fi
+        for path in root.rglob("*.py"):
+            text = path.read_text()
+            new_text = text
+            for src, dst in replacements.items():
+                new_text = new_text.replace(src, dst)
+            if new_text != text:
+                path.write_text(new_text)
+        PY
+                    ;;
+                  awesome-tts)
+                    # Avoid writes to /nix/store by redirecting runtime cache/log/config to user data dir.
+                    if [ -f "$addonDir/awesometts/paths.py" ]; then
+                      substituteInPlace "$addonDir/awesometts/paths.py" \
+                        --replace-fail "USER_FILES = os.path.join(ROOT, 'user_files')" "USER_FILES = os.environ.get('AWESOMETTS_USER_FILES', os.path.join(os.path.expanduser('~'), '.local', 'share', 'Anki2', 'addons21', 'awesome-tts', 'user_files'))" \
+                        --replace-fail "LOG = os.path.join(ADDON, 'addon.log')" "LOG = os.path.join(USER_FILES, 'addon.log')"
+                    fi
 
-            # Guard against missing addon config metadata during first-run initialization.
-            if [ -f "$addonDir/awesometts/__init__.py" ]; then
-              substituteInPlace "$addonDir/awesometts/__init__.py" \
-                --replace-fail 'addon_config = aqt.mw.addonManager.getConfig(CONFIG_ADDON_NAME)' 'addon_config = aqt.mw.addonManager.getConfig(CONFIG_ADDON_NAME) or {}' \
-                --replace-fail 'aqt.mw.addonManager.writeConfig(CONFIG_ADDON_NAME, addon_config)' 'pass'
-            fi
-            ;;
-        esac
+                    # Guard against missing addon config metadata during first-run initialization.
+                    if [ -f "$addonDir/awesometts/__init__.py" ]; then
+                      substituteInPlace "$addonDir/awesometts/__init__.py" \
+                        --replace-fail 'addon_config = aqt.mw.addonManager.getConfig(CONFIG_ADDON_NAME)' 'addon_config = aqt.mw.addonManager.getConfig(CONFIG_ADDON_NAME) or {}' \
+                        --replace-fail 'aqt.mw.addonManager.writeConfig(CONFIG_ADDON_NAME, addon_config)' 'pass'
+                    fi
+                    ;;
+                esac
 
-        runHook postInstall
+                runHook postInstall
       '';
     };
 
@@ -682,48 +682,48 @@ PY
   '';
 
   desktopBrightness = pkgs.writeShellScriptBin "desktop-brightness" ''
-    action="''${1:-up}"
+        action="''${1:-up}"
 
-    case "$action" in
-      up)
-        ${pkgs.brightnessctl}/bin/brightnessctl -q set +5%
-        ;;
-      down)
-        ${pkgs.brightnessctl}/bin/brightnessctl -q set 5%-
-        ;;
-      *)
-        exit 1
-        ;;
-    esac
+        case "$action" in
+          up)
+            ${pkgs.brightnessctl}/bin/brightnessctl -q set +5%
+            ;;
+          down)
+            ${pkgs.brightnessctl}/bin/brightnessctl -q set 5%-
+            ;;
+          *)
+            exit 1
+            ;;
+        esac
 
-    brightnessLine="$(${pkgs.brightnessctl}/bin/brightnessctl -m 2>/dev/null || true)"
-    [ -n "$brightnessLine" ] || exit 0
+        brightnessLine="$(${pkgs.brightnessctl}/bin/brightnessctl -m 2>/dev/null || true)"
+        [ -n "$brightnessLine" ] || exit 0
 
-    IFS=',' read -r _ _ _ _ brightnessRaw <<EOF
-$brightnessLine
-EOF
+        IFS=',' read -r _ _ _ _ brightnessRaw <<EOF
+    $brightnessLine
+    EOF
 
-    percent="''${brightnessRaw%%%}"
-    case "$percent" in
-      ""|*[!0-9]*) exit 0 ;;
-    esac
+        percent="''${brightnessRaw%%%}"
+        case "$percent" in
+          ""|*[!0-9]*) exit 0 ;;
+        esac
 
-    if [ "$percent" -lt 25 ]; then
-      icon="display-brightness-low-symbolic"
-    elif [ "$percent" -lt 65 ]; then
-      icon="display-brightness-medium-symbolic"
-    else
-      icon="display-brightness-high-symbolic"
-    fi
+        if [ "$percent" -lt 25 ]; then
+          icon="display-brightness-low-symbolic"
+        elif [ "$percent" -lt 65 ]; then
+          icon="display-brightness-medium-symbolic"
+        else
+          icon="display-brightness-high-symbolic"
+        fi
 
-    ${pkgs.libnotify}/bin/notify-send \
-      -a "desktop-osd" \
-      -u low \
-      -t 1200 \
-      -h string:x-canonical-private-synchronous:desktop-brightness \
-      -h int:value:"$percent" \
-      -i "$icon" \
-      "Brightness" "$percent%"
+        ${pkgs.libnotify}/bin/notify-send \
+          -a "desktop-osd" \
+          -u low \
+          -t 1200 \
+          -h string:x-canonical-private-synchronous:desktop-brightness \
+          -h int:value:"$percent" \
+          -i "$icon" \
+          "Brightness" "$percent%"
   '';
 in
 {
@@ -787,22 +787,26 @@ in
       desktopVolume
       desktopBrightness
     ])
-    ++ lib.optionals isX86_64 (with pkgs; [
-      discord
-      discord-canary
-      slack
-      zoom-us
-      figma-linux
-      youtube-music
-      yubioath-flutter
-      alvr
-      vrcx
-      sidequest
-      # VRChat World制作はUnity HubでUnity 2022.3.22f1を固定導入すること
-      unityhub
-      alcom
-      vrc-get
-      wlx-overlay-s
-      oyasumiLaunch
-    ]);
+    ++ lib.optionals isX86_64 (
+      with pkgs;
+      [
+        google-chrome
+        discord
+        discord-canary
+        slack
+        zoom-us
+        figma-linux
+        youtube-music
+        yubioath-flutter
+        alvr
+        vrcx
+        sidequest
+        # VRChat World制作はUnity HubでUnity 2022.3.22f1を固定導入すること
+        unityhub
+        alcom
+        vrc-get
+        wlx-overlay-s
+        oyasumiLaunch
+      ]
+    );
 }
