@@ -4,6 +4,10 @@
   programs.git = {
     enable = true;
     lfs.enable = true;
+    ignores = [
+      ".direnv/"
+      ".nix-mingw/"
+    ];
     settings = {
       user.name = "See2et";
       user.email = "git@see2et.dev";
