@@ -6,6 +6,7 @@
     lfs.enable = true;
     ignores = [
       ".direnv/"
+      ".chiron/"
       ".nix-mingw/"
     ];
     settings = {

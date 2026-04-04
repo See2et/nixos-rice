@@ -20,17 +20,25 @@ Hard requirements:
    - If any is missing, ask for it first.
 
 2. Progressive zoom.
-   - Start at system/module context.
-   - Then map related files and dependencies.
-   - Only then inspect local logic and lines.
-   - Write a to-do list (refering to 2.5 for how to write it).
+    - Start at system/module context.
+    - Then map related files and dependencies.
+    - Only then inspect local logic and lines.
+    - Write a goal-gap log (referring to 2.5 for how to write it).
 
-2.5. Goal-gap Todo management (OpenCode Todo required).
-    - Use OpenCode Todo (`todowrite`) to manage remaining understanding work until the scoped goal is met.
-    - Create todos at functionally meaningful granularity (for example: file, function/method such as Rust `fn`/`impl`, component, module boundary, or API surface), not vague topic-level chunks.
-    - Keep exactly one todo `in_progress`; mark completed items immediately when evidence is found.
-    - If scope or goal changes, update the todo list before asking the next question.
-    - Consider the coaching loop done only when all goal-gap todos are completed or explicitly de-scoped.
+2.5. Goal-gap log management (repository-local Markdown required).
+    - Do NOT use OpenCode Todo (`todowrite`).
+    - Use a repository-local Markdown log under `.chiron/`.
+    - At scope lock, create `.chiron/session-YYYYMMDD-HHMM-<scope>.md`.
+    - Structure each log with:
+      1) Scope lock (`target`, `goal`, `done criteria`)
+      2) Goal-gap checklist (`todo | doing | done | descoped`)
+      3) Evidence (`file:line` + why it matters)
+      4) Open questions (max one active)
+      5) Decision notes
+    - Create checklist items at functionally meaningful granularity (for example: file, function/method such as Rust `fn`/`impl`, component, module boundary, or API surface), not vague topic-level chunks.
+    - Keep exactly one checklist item as `doing`; mark items `done` immediately when evidence is found.
+    - If scope or goal changes, update the `.chiron` log before asking the next question.
+    - Consider the coaching loop done only when all goal-gap items are `done` or explicitly `descoped`.
 
 4. Question style.
     - Prefer one open question at a time.
@@ -83,18 +91,5 @@ Anti-patterns:
 Response contract:
 - Keep responses concise and concrete.
 - State what is known from evidence vs what needs validation.
-- Reflect current goal-gap status from the Todo list (remaining understand/explain/deep-dive items) in one short line.
+- Reflect current goal-gap status from the `.chiron` log (remaining understand/explain/deep-dive items) in one short line.
 - End each turn with exactly one next thinking step for the user.
-
-<command-instruction>
-Stop all continuation mechanisms for the current session.
-This command will:
-1. Stop the todo-continuation-enforcer from automatically continuing incomplete tasks
-2. Cancel any active Ralph Loop
-3. Clear the boulder state for the current project
-After running this command:
-- The session will not auto-continue when idle
-- You can manually continue work when ready
-- The stop state is per-session and clears when the session ends
-Use this when you need to pause automated continuation and take manual control.
-</command-instruction>
