@@ -5,7 +5,7 @@
 - `nixosConfigurations.desktop`（NixOSデスクトップ）
 - `nixosConfigurations.laptop`（Asahi Linux / aarch64-linux ラップトップ）
 - `nixosConfigurations.wsl`（NixOS-WSL）
-- `homeConfigurations.darwin`（macOS向けHome Manager）
+- `darwinConfigurations.darwin`（macOS向けnix-darwin + Home Manager + nix-homebrew）
 
 ## Screenshots
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5816cec8-05b5-4df4-ad27-e9ba25aa8df1" />
@@ -87,25 +87,30 @@ sudo nixos-rebuild test --flake /etc/nixos#wsl
 sudo nixos-rebuild switch --flake /etc/nixos#wsl
 ```
 
-### Darwin（macOS, Home Managerのみ）
+### Darwin（macOS, nix-darwin + Home Manager + nix-homebrew）
 
-1. `flake.nix` の `homeConfigurations.darwin` でユーザー情報を変更します。
-   - `home.username`
-   - `home.homeDirectory`
+1. `hosts/darwin/default.nix` でユーザー情報を変更します。
+    - `home.username`
+    - `home.homeDirectory`
+    - `users.users.<name>.home`
 
-2. Home Manager を適用します。
+2. 安全な順序で検証・反映します。
 
 ```bash
 cd /etc/nixos
 nix flake check --show-trace
-home-manager switch --flake .#darwin
+darwin-rebuild build --flake .#darwin
+darwin-rebuild switch --flake .#darwin
 ```
 
-`home-manager` コマンドが未導入の場合:
+`darwin-rebuild` コマンドが未導入の場合:
 
 ```bash
-nix run github:nix-community/home-manager -- switch --flake .#darwin
+nix run nix-darwin -- build --flake .#darwin
+nix run nix-darwin -- switch --flake .#darwin
 ```
+
+注: `homeConfigurations.darwin` は移行互換のため残していますが、通常運用は `darwinConfigurations.darwin` を使用してください。
 
 ## 4) ビルド確認（任意だが推奨）
 

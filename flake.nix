@@ -10,6 +10,25 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-homebrew = {
+      url = "github:zhaofengli-wip/nix-homebrew";
+    };
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
+    };
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -29,67 +48,91 @@
     opencode.url = "github:anomalyco/opencode/dev";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-steam, home-manager, niri, nixos-wsl, nixpkgs-xr, codex-cli-nix, opencode, ... }@inputs :
-  let
-    linuxSystem = "x86_64-linux";
-    laptopSystem = "aarch64-linux";
-    darwinSystem = "aarch64-darwin";
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-steam,
+      home-manager,
+      nix-darwin,
+      niri,
+      nixos-wsl,
+      nixpkgs-xr,
+      codex-cli-nix,
+      opencode,
+      ...
+    }@inputs:
+    let
+      linuxSystem = "x86_64-linux";
+      laptopSystem = "aarch64-linux";
+      darwinSystem = "aarch64-darwin";
 
-    mkPkgs =
-      system:
-      import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
+      mkPkgs =
+        system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+
+      pkgsDarwin = mkPkgs darwinSystem;
+    in
+    {
+      nixosConfigurations = {
+        desktop = nixpkgs.lib.nixosSystem {
+          system = linuxSystem;
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/desktop
+          ];
+        };
+
+        laptop = nixpkgs.lib.nixosSystem {
+          system = laptopSystem;
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/laptop
+          ];
+        };
+
+        wsl = nixpkgs.lib.nixosSystem {
+          system = linuxSystem;
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/wsl
+          ];
+        };
       };
 
-    pkgsDarwin = mkPkgs darwinSystem;
-  in {
-    nixosConfigurations = {
-      desktop = nixpkgs.lib.nixosSystem {
-        system = linuxSystem;
-        specialArgs = { inherit inputs; };
-        modules = [
-          ./hosts/desktop
-        ];
+      darwinConfigurations = {
+        darwin = nix-darwin.lib.darwinSystem {
+          system = darwinSystem;
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/darwin
+          ];
+        };
       };
 
-      laptop = nixpkgs.lib.nixosSystem {
-        system = laptopSystem;
-        specialArgs = { inherit inputs; };
-        modules = [
-          ./hosts/laptop
-        ];
-      };
-
-      wsl = nixpkgs.lib.nixosSystem {
-        system = linuxSystem;
-        specialArgs = { inherit inputs; };
-        modules = [
-          ./hosts/wsl
-        ];
-      };
-    };
-
-    homeConfigurations = {
-      darwin = home-manager.lib.homeManagerConfiguration {
-        pkgs = pkgsDarwin;
-        modules = [
-          ./home/common
-          ./home/darwin
-          {
-            home.username = "see2et";
-            home.homeDirectory = "/Users/see2et";
-            home.stateVersion = "25.11";
-            programs.home-manager.enable = true;
-          }
-        ];
-        extraSpecialArgs = {
-          inherit inputs;
-          isDarwin = true;
-          hostId = "darwin";
-          rustToolchain = pkgsDarwin.rustc;
+      homeConfigurations = {
+        darwin = home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgsDarwin;
+          modules = [
+            ./home/common
+            ./home/darwin
+            {
+              home.username = "see2et";
+              home.homeDirectory = "/Users/see2et";
+              home.stateVersion = "25.11";
+              programs.home-manager.enable = true;
+            }
+          ];
+          extraSpecialArgs = {
+            inherit inputs;
+            isDarwin = true;
+            hostId = "darwin";
+            rustToolchain = pkgsDarwin.rustc;
+          };
         };
       };
     };
-  };
 }

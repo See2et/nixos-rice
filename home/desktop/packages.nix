@@ -744,6 +744,7 @@ in
     (with pkgs; [
       alacritty
       alacrittyCwd
+      ghostty
       kitty
       wezterm
       btop

@@ -2,10 +2,11 @@
 
 ## Overview
 
-This is a unified NixOS flake repo managing three targets from a single source of truth:
+This is a unified NixOS flake repo managing four targets from a single source of truth:
 - **Desktop** (`nixosConfigurations.desktop`) — NixOS x86_64-linux workstation
+- **Laptop** (`nixosConfigurations.laptop`) — NixOS aarch64-linux laptop
 - **WSL** (`nixosConfigurations.wsl`) — NixOS-WSL under Windows
-- **Darwin** (`homeConfigurations.darwin`) — Home Manager only on aarch64-darwin (no nix-darwin)
+- **Darwin** (`darwinConfigurations.darwin`) — nix-darwin + Home Manager + nix-homebrew on aarch64-darwin
 
 ## Architecture
 
@@ -13,7 +14,13 @@ This is a unified NixOS flake repo managing three targets from a single source o
 flake.nix                         # Single entry point — all outputs defined here
 ├── hosts/
 │   ├── desktop/default.nix       # Desktop host wiring (imports hw, desktop modules, niri, nvidia, HM)
+│   ├── laptop/default.nix        # Laptop host wiring (imports laptop hw, desktop-class modules, HM)
+│   ├── darwin/default.nix        # Darwin host wiring (imports darwin modules, HM, nix-homebrew)
 │   └── wsl/default.nix           # WSL host wiring (imports nixos-wsl, HM)
+├── modules/darwin/
+│   ├── default.nix               # Darwin module entrypoint
+│   ├── system.nix                # Darwin baseline system settings
+│   └── homebrew.nix              # nix-homebrew + declarative Homebrew policy
 ├── modules/nixos/
 │   ├── common/default.nix        # Shared NixOS baseline (nix settings, zsh, gpg)
 │   ├── desktop/                  # Desktop-only system: system, boot, gdm, nvidia, audio, vr, firewall, niri, filesystems
@@ -77,7 +84,7 @@ The most important architectural invariant: **hosts must not leak into each othe
 | WSL must NOT import `modules/nixos/desktop`, `home/desktop`, or `hardware-configuration.nix` | `hosts/wsl/default.nix` import list |
 | `/mnt/c` paths must NOT appear in `home/common/` or `modules/nixos/common/` | WSL PATH is in `home/wsl/session.nix` only |
 | `hardware-configuration.nix` must NOT be in `modules/nixos/common/` | Imported only by `hosts/desktop/default.nix` |
-| Darwin remains HM-only — no `darwinConfigurations` or `nix-darwin` | `flake.nix` exposes only `homeConfigurations.darwin` |
+| Darwin must NOT import Linux host modules (`modules/nixos/*`, `home/linux`, `home/desktop`, `home/wsl`) | `hosts/darwin/default.nix` import list |
 
 **Verification command:**
 ```bash
@@ -93,9 +100,11 @@ grep -rn 'modules/nixos/wsl\|home/wsl\|nixos-wsl\|/mnt/c' hosts/desktop/ home/co
 ```bash
 nix flake check --show-trace                                          # Validate all outputs
 nix build .#nixosConfigurations.desktop.config.system.build.toplevel  # Build desktop (no activation)
+nix build .#nixosConfigurations.laptop.config.system.build.toplevel   # Build laptop
 nix build .#nixosConfigurations.wsl.config.system.build.toplevel      # Build WSL
 nix eval .#nixosConfigurations.desktop.config.services.pipewire.enable # Inspect any option
-nix eval .#homeConfigurations.darwin.activationPackage.drvPath         # Darwin eval (build requires aarch64)
+nix build .#darwinConfigurations.darwin.system                         # Darwin build (requires aarch64-darwin)
+nix eval .#darwinConfigurations.darwin.system.stateVersion             # Darwin option check
 ```
 
 ### Module development workflow
@@ -188,4 +197,4 @@ All HM modules receive these via `extraSpecialArgs`:
 
 - [ ] Execute rollout gate interactively on host: `sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop`, then user `test` → `switch` (blocked here: non-interactive sudo/systemd auth)
 - [ ] Add `hashedPasswordFile` for `users.users.see2et` once a secure secret path/mechanism is provided
-- [ ] Darwin HM build verification on an actual aarch64-darwin machine
+- [ ] Darwin nix-darwin build/switch verification on an actual aarch64-darwin machine
