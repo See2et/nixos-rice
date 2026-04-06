@@ -53,5 +53,17 @@
     "AGENTS.md"
   ],
   "default_agent": "sisyphus",
+<<<<<<< Updated upstream
   "plugin": []
+=======
+  "plugin": [
+    "oh-my-opencode"
+  ],
+  "mcp": {
+    "miloa": {
+      "type": "remote",
+      "url": "http://localhost:3001"
+    }
+  }
+>>>>>>> Stashed changes
 }

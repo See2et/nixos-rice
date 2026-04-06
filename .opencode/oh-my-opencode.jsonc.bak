@@ -1,0 +1,6 @@
+{
+  "model_fallback": true,
+  "runtime_fallback": {
+    "enabled": true
+  }
+}
