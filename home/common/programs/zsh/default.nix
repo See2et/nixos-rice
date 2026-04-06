@@ -65,6 +65,12 @@
                     zle -N fzf-ghq-widget
                     bindkey "^[r" fzf-ghq-widget
 
+                    function skk-ctrl-j-noop() {
+                      zle redisplay
+                    }
+                    zle -N skk-ctrl-j-noop
+                    bindkey '^J' skk-ctrl-j-noop
+
                     function peco-git-switch() {
                       local sel branch
                       sel=$(

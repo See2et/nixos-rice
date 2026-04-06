@@ -37,6 +37,7 @@
       "godot"
       "google-chrome"
       "kitty"
+      "karabiner-elements"
       "mpv"
       "obs"
       "obsidian"

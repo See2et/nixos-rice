@@ -30,5 +30,9 @@
       recursive = true;
       force = true;
     };
+    "ghostty/config" = {
+      source = ./dotfiles/ghostty/config;
+      force = true;
+    };
   };
 }

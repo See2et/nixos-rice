@@ -5,6 +5,10 @@
       source = ../dotfiles/opencode/opencode.jsonc;
       force = true;
     };
+    "opencode/tui.json" = {
+      source = ../dotfiles/opencode/tui.jsonc;
+      force = true;
+    };
     "opencode/AGENTS.md" = {
       source = ../dotfiles/opencode/AGENTS.md;
       force = true;

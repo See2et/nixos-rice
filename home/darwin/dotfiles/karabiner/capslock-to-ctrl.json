@@ -1,0 +1,21 @@
+{
+  "title": "Global modifiers",
+  "rules": [
+    {
+      "description": "Map Caps Lock to Left Control",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "caps_lock"
+          },
+          "to": [
+            {
+              "key_code": "left_control"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

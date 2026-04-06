@@ -150,10 +150,10 @@ wk.add({
     { "U",     '<C-r>',                                 desc = "Reset" },
     { "[d",    '<cmd>Lspsaga diagnostic_jump_next<cr>', desc = "Jump Next [D]iagnostics" },
     { "]d",    '<cmd>Lspsaga diagnostic_jump_prev<cr>', desc = "Jump Prev [D]iagnostics" },
-    { '<C-l>', '<C-w><' },
-    { '<C-h>', '<C-w>>' },
-    { '<C-j>', '<C-w>+' },
-    { '<C-k>', '<C-w>-' },
+    { '<M-l>', '<C-w><' },
+    { '<M-h>', '<C-w>>' },
+    { '<M-j>', '<C-w>+' },
+    { '<M-k>', '<C-w>-' },
     { '<C-[>', '<cmd>noh<cr>',                          desc = "No Highlight" },
 })
 
