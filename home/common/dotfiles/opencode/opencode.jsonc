@@ -53,9 +53,6 @@
     "AGENTS.md"
   ],
   "default_agent": "sisyphus",
-<<<<<<< Updated upstream
-  "plugin": []
-=======
   "plugin": [
     "oh-my-opencode"
   ],
@@ -65,5 +62,4 @@
       "url": "http://localhost:3001"
     }
   }
->>>>>>> Stashed changes
 }
