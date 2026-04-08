@@ -47,6 +47,8 @@
       "zen"
       "zoom"
       "raycast"
+      "notion"
+      "notion-calendar"
     ];
     masApps = { };
   };
