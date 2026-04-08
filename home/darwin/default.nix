@@ -46,4 +46,8 @@
     source = ./dotfiles/AquaSKK/BlacklistApps.plist;
     force = true;
   };
+
+  imports = [
+    ./omniwm.nix
+  ];
 }

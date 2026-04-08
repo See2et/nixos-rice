@@ -174,6 +174,22 @@
         "type": "github"
       }
     },
+    "homebrew-tap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775249972,
+        "narHash": "sha256-n6P19X1wgmefEwPk7HfU4R+B8I3+9r7MXl1J+c1DKXM=",
+        "owner": "BarutSRB",
+        "repo": "homebrew-tap",
+        "rev": "aae0ce518de67f5be36759307fdbb37cad513c6b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "BarutSRB",
+        "repo": "homebrew-tap",
+        "type": "github"
+      }
+    },
     "niri": {
       "inputs": {
         "niri-stable": "niri-stable",
@@ -558,6 +574,7 @@
         "homebrew-bundle": "homebrew-bundle",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
+        "homebrew-tap": "homebrew-tap",
         "niri": "niri",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
