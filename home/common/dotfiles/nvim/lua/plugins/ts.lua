@@ -24,6 +24,6 @@ return {
         }
       }
     end,
-    dependencies = { "windwp/nvim-ts-autotag", "nvim-treesitter/playground" },
+    dependencies = { "windwp/nvim-ts-autotag" },
   },
 }
