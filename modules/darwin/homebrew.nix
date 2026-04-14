@@ -25,6 +25,7 @@
       cleanup = "zap";
     };
     brews = [
+      "mas"
       "p7zip"
     ];
     casks = [
@@ -50,6 +51,8 @@
       "notion"
       "notion-calendar"
     ];
-    masApps = { };
+    masApps = {
+      Kindle = 302584613;
+    };
   };
 }
