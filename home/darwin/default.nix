@@ -42,6 +42,15 @@
     force = true;
   };
 
+  home.file.".docker/config.json" = {
+    text = builtins.toJSON {
+      cliPluginsExtraDirs = [
+        "/Applications/Docker.app/Contents/Resources/cli-plugins"
+      ];
+    };
+    force = true;
+  };
+
   home.file."Library/Application Support/AquaSKK/BlacklistApps.plist" = {
     source = ./dotfiles/AquaSKK/BlacklistApps.plist;
     force = true;

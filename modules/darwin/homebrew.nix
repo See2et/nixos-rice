@@ -33,6 +33,9 @@
       "anki"
       "discord"
       "discord@canary"
+      # Docker Desktop provides the Compose v2 plugin on darwin.
+      # Docker CLI discovery is configured via home/darwin/default.nix.
+      "docker"
       "figma"
       "ghostty"
       "godot"
@@ -42,6 +45,7 @@
       "mpv"
       "obs"
       "obsidian"
+      "rowboat"
       "slack"
       "wezterm"
       "yubico-authenticator"
@@ -50,6 +54,8 @@
       "raycast"
       "notion"
       "notion-calendar"
+      "balenaetcher"
+      "chatgpt"
     ];
     masApps = {
       Kindle = 302584613;
