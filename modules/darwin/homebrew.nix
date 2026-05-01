@@ -27,6 +27,7 @@
     brews = [
       "mas"
       "p7zip"
+      "colima"
     ];
     casks = [
       "alacritty"
@@ -56,6 +57,10 @@
       "notion-calendar"
       "balenaetcher"
       "chatgpt"
+      "opencloud"
+      "parsec"
+      "yt-music"
+      "prismlauncher"
     ];
     masApps = {
       Kindle = 302584613;
