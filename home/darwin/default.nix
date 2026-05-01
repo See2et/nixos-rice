@@ -42,14 +42,28 @@
     force = true;
   };
 
-  home.file.".docker/config.json" = {
-    text = builtins.toJSON {
-      cliPluginsExtraDirs = [
-        "/Applications/Docker.app/Contents/Resources/cli-plugins"
-      ];
-    };
-    force = true;
-  };
+  # Docker/Colima mutate ~/.docker/config.json via temp-file + rename. Managing
+  # that path as a Nix store symlink causes cross-device link failures, so keep
+  # it as a normal writable file instead.
+  home.activation.ensureWritableDockerConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        dockerDir="${config.home.homeDirectory}/.docker"
+        configFile="$dockerDir/config.json"
+
+        mkdir -p "$dockerDir"
+
+        if [ -L "$configFile" ]; then
+          tmpFile="$(mktemp)"
+          cp "$configFile" "$tmpFile"
+          rm -f "$configFile"
+          mv "$tmpFile" "$configFile"
+        fi
+
+        if [ ! -e "$configFile" ]; then
+          cat > "$configFile" <<'EOF'
+    {"cliPluginsExtraDirs":["/Applications/Docker.app/Contents/Resources/cli-plugins"]}
+    EOF
+        fi
+  '';
 
   home.file."Library/Application Support/AquaSKK/BlacklistApps.plist" = {
     source = ./dotfiles/AquaSKK/BlacklistApps.plist;
