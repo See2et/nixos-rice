@@ -39,6 +39,7 @@
       ripgrep
       fd
       ffmpeg
+      typst
       fzf
       markdownlint-cli2
       nodePackages.textlint
