@@ -8,6 +8,7 @@
 
 {
   imports = [
+    ./fonts.nix
     ./nixos-repo-permissions.nix
   ];
 
