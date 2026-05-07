@@ -39,7 +39,9 @@
       ripgrep
       fd
       ffmpeg
+      tinymist
       typst
+      websocat
       fzf
       markdownlint-cli2
       nodePackages.textlint

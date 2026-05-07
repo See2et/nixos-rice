@@ -26,9 +26,6 @@
   # Darwin-specific environment variables (if needed in future)
   # home.sessionVariables = { };
 
-  # Darwin-specific packages (if needed in future)
-  # home.packages = with pkgs; [ ];
-
   # Darwin-specific program configurations can be added here
   # Example: macOS-specific shell settings, tools, etc.
 
