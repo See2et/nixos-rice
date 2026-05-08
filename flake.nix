@@ -71,14 +71,32 @@
       laptopSystem = "aarch64-linux";
       darwinSystem = "aarch64-darwin";
 
+      darwinUser = {
+        name = "see2et";
+        home = "/Users/see2et";
+      };
+
       mkPkgs =
         system:
         import nixpkgs {
           inherit system;
           config.allowUnfree = true;
+          overlays = nixpkgs.lib.optionals (system == darwinSystem) [
+            (import ./overlays/darwin/direnv.nix)
+          ];
         };
 
       pkgsDarwin = mkPkgs darwinSystem;
+
+      darwinHomeProfile = ./home/darwin/profile.nix;
+
+      darwinHomeExtraSpecialArgs = {
+        inherit inputs;
+        inherit darwinUser;
+        isDarwin = true;
+        hostId = "darwin";
+        rustToolchain = pkgsDarwin.rustc;
+      };
     in
     {
       nixosConfigurations = {
@@ -110,7 +128,9 @@
       darwinConfigurations = {
         darwin = nix-darwin.lib.darwinSystem {
           system = darwinSystem;
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs darwinUser;
+          };
           modules = [
             ./hosts/darwin
           ];
@@ -121,21 +141,9 @@
         darwin = home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsDarwin;
           modules = [
-            ./home/common
-            ./home/darwin
-            {
-              home.username = "see2et";
-              home.homeDirectory = "/Users/see2et";
-              home.stateVersion = "25.11";
-              programs.home-manager.enable = true;
-            }
+            darwinHomeProfile
           ];
-          extraSpecialArgs = {
-            inherit inputs;
-            isDarwin = true;
-            hostId = "darwin";
-            rustToolchain = pkgsDarwin.rustc;
-          };
+          extraSpecialArgs = darwinHomeExtraSpecialArgs;
         };
       };
     };

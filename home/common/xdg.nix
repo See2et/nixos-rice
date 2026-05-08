@@ -1,14 +1,16 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 {
   xdg.enable = true;
 
   home.activation.migrateRecursiveConfigDirs = lib.hm.dag.entryBefore [ "linkGeneration" ] ''
+    readlink_bin="${pkgs.coreutils}/bin/readlink"
+
     migrate_recursive_dir() {
       local path="$1"
 
       if [ -L "$path" ]; then
         local resolved
-        resolved="$(readlink -f "$path" || true)"
+        resolved="$($readlink_bin -f "$path" || true)"
         if [ -n "$resolved" ] && [ "''${resolved#/nix/store/}" != "$resolved" ]; then
           run mv "$path" "''${path}.hm-pre-recursive.$(date +%Y%m%d-%H%M%S)"
         fi

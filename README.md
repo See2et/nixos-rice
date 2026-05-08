@@ -89,12 +89,24 @@ sudo nixos-rebuild switch --flake /etc/nixos#wsl
 
 ### Darwin（macOS, nix-darwin + Home Manager + nix-homebrew）
 
-1. `hosts/darwin/default.nix` でユーザー情報を変更します。
+1. `flake.nix` の `darwinUser` を実機に合わせて変更します。
+    - `name`
+    - `home`
+
+   これが Darwin 側の single source of truth で、以下に反映されます。
+    - `users.users.<name>.home`
+    - `system.primaryUser`
     - `home.username`
     - `home.homeDirectory`
-    - `users.users.<name>.home`
+    - `nix-homebrew.user`
+    - OmniWM LaunchAgent の app path
 
-2. 安全な順序で検証・反映します。
+2. Home Manager の共通化方針:
+   - `home/common/` には platform-agnostic な設定のみを置きます。
+   - Linux固有の session/path は `home/linux/`、WSL固有は `home/wsl/`、Darwin固有は `home/darwin/` に置きます。
+   - Darwin の正規導線は `darwinConfigurations.darwin` です。
+
+3. 安全な順序で検証・反映します。
 
 ```bash
 cd /etc/nixos
@@ -106,11 +118,11 @@ darwin-rebuild switch --flake .#darwin
 `darwin-rebuild` コマンドが未導入の場合:
 
 ```bash
-nix run nix-darwin -- build --flake .#darwin
-nix run nix-darwin -- switch --flake .#darwin
+nix run github:LnL7/nix-darwin/nix-darwin-25.11#darwin-rebuild -- build --flake .#darwin
+nix run github:LnL7/nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake .#darwin
 ```
 
-注: `homeConfigurations.darwin` は移行互換のため残していますが、通常運用は `darwinConfigurations.darwin` を使用してください。
+注: `homeConfigurations.darwin` は評価互換のため残していますが、通常運用は `darwinConfigurations.darwin` を使用してください。
 
 ## 4) ビルド確認（任意だが推奨）
 

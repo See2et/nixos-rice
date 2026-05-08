@@ -4,6 +4,11 @@
 
 { pkgs, ... }:
 {
+  imports = [
+    ./rebuild.nix
+    ./session.nix
+  ];
+
   home.packages = with pkgs; [
     wl-clipboard
     xclip

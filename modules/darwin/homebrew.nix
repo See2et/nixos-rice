@@ -1,12 +1,12 @@
 # Declarative Homebrew via nix-homebrew + nix-darwin
 
-{ config, inputs, ... }:
+{ config, inputs, darwinUser, ... }:
 
 {
   nix-homebrew = {
     enable = true;
     enableRosetta = true;
-    user = "see2et";
+    user = darwinUser.name;
     autoMigrate = true;
     taps = {
       "homebrew/homebrew-core" = inputs.homebrew-core;

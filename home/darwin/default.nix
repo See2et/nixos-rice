@@ -3,14 +3,7 @@
 # CRITICAL: No Linux-specific paths or tools
 # Task 12: Darwin Home Manager Preservation
 
-{
-  config,
-  pkgs,
-  inputs,
-  isDarwin ? false,
-  lib,
-  ...
-}:
+{ config, isDarwin ? false, lib, ... }:
 {
   # Darwin-specific overrides and settings
   # These settings are applied ONLY when isDarwin = true
@@ -68,6 +61,8 @@
   };
 
   imports = [
+    ./rebuild.nix
+    ./session.nix
     ./omniwm.nix
   ];
 }

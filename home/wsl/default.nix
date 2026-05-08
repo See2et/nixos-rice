@@ -5,6 +5,7 @@
 { config, pkgs, inputs, ... }:
 {
   imports = [
+    ./rebuild.nix
     ./session.nix
     ./files.nix
   ];

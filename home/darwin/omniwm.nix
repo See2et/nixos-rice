@@ -169,7 +169,7 @@ in
       <string>com.barut.omniwm</string>
       <key>ProgramArguments</key>
       <array>
-        <string>/Users/see2et/Applications/Nix Apps/OmniWM.app/Contents/MacOS/OmniWM</string>
+        <string>${config.home.homeDirectory}/Applications/Nix Apps/OmniWM.app/Contents/MacOS/OmniWM</string>
       </array>
       <key>RunAtLoad</key>
       <true/>
