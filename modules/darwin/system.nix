@@ -58,8 +58,8 @@
     };
 
     menuExtraClock = {
-      ShowAMPM = true;
-      ShowDate = 0;
+      ShowAMPM = false;
+      ShowDate = 1;
       ShowDayOfWeek = true;
     };
 
