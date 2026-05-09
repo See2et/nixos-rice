@@ -61,6 +61,7 @@
     isDarwin = false;
     hostId = "laptop";
     rustToolchain = pkgs.rustc;
+    opencodePackage = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
   };
 
   # Fallback safety when hardware-configuration-laptop.nix is not yet regenerated on Asahi.

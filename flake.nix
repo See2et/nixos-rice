@@ -49,7 +49,10 @@
       inputs.home-manager.follows = "home-manager";
     };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
-    opencode.url = "github:anomalyco/opencode/dev";
+    opencode.url = "github:anomalyco/opencode";
+    # Newer OpenCode revisions currently segfault on this WSL2 kernel.
+    # Keep WSL on a known-good revision and let native hosts track stable.
+    opencode-wsl.url = "github:anomalyco/opencode/500dcfc";
   };
 
   outputs =
@@ -96,6 +99,7 @@
         isDarwin = true;
         hostId = "darwin";
         rustToolchain = pkgsDarwin.rustc;
+        opencodePackage = inputs.opencode.packages.${darwinSystem}.opencode;
       };
     in
     {

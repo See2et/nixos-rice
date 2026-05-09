@@ -41,5 +41,6 @@
     isDarwin = false;
     hostId = "wsl";
     rustToolchain = pkgs.rustc;
+    opencodePackage = inputs."opencode-wsl".packages.${pkgs.stdenv.hostPlatform.system}.opencode;
   };
 }

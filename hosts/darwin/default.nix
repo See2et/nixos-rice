@@ -26,6 +26,7 @@
     isDarwin = true;
     hostId = "darwin";
     rustToolchain = pkgs.rustc;
+    opencodePackage = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
   };
 
   system.stateVersion = 6;

@@ -45,5 +45,6 @@
     isDarwin = false;
     hostId = "desktop";
     rustToolchain = pkgs.rustc;
+    opencodePackage = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
   };
 }
