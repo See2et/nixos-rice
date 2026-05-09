@@ -14,6 +14,30 @@ return {
     },
 
     {
+        'WilliamHsieh/overlook.nvim',
+        init = function()
+            vim.api.nvim_create_autocmd("BufWinEnter", {
+                group = vim.api.nvim_create_augroup("overlook_enter_mapping", { clear = true }),
+                pattern = "*",
+                callback = function()
+                    vim.schedule(function()
+                        if vim.w.is_overlook_popup then
+                            vim.keymap.set("n", "<CR>", function()
+                                require("overlook.api").open_in_original_window()
+                            end, { buffer = true, desc = "Overlook: Open in original window" })
+
+                            vim.keymap.set("n", "<C-CR>", function()
+                                require("overlook.api").open_in_vsplit()
+                            end, { buffer = true, desc = "Overlook: Open in vsplit" })
+                        end
+                    end)
+                end,
+            })
+        end,
+        opts = {},
+    },
+
+    {
         'akinsho/toggleterm.nvim',
         cmd = { "ToggleTerm" },
         version = "*",
