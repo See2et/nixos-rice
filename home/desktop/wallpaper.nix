@@ -206,55 +206,55 @@ let
   '';
 
   desktopWallpaperMenu = pkgs.writeShellScriptBin "desktop-wallpaper-menu" ''
-    set -euo pipefail
+        set -euo pipefail
 
-    sleep 0.12
+        sleep 0.12
 
-    autoState="$(${desktopWallpaperAuto}/bin/desktop-wallpaper-auto status 2>/dev/null || printf 'off')"
-    if [ "$autoState" = "on" ]; then
-      autoLabel="Auto rotation: ON"
-    else
-      autoLabel="Auto rotation: OFF"
-    fi
+        autoState="$(${desktopWallpaperAuto}/bin/desktop-wallpaper-auto status 2>/dev/null || printf 'off')"
+        if [ "$autoState" = "on" ]; then
+          autoLabel="Auto rotation: ON"
+        else
+          autoLabel="Auto rotation: OFF"
+        fi
 
-    choice="$(${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Wallpaper" <<EOF
-N Next wallpaper
-P Previous wallpaper
-R Random wallpaper
-T Toggle auto rotation
-O Turn auto rotation off
-S Show auto rotation status
-EOF
-    )"
-    rofiStatus=$?
-    [ "$rofiStatus" -eq 0 ] || exit 0
-    [ -n "$choice" ] || exit 0
+        choice="$(${pkgs.rofi}/bin/rofi -dmenu -no-custom -i -p "Wallpaper" <<EOF
+    N Next wallpaper
+    P Previous wallpaper
+    R Random wallpaper
+    T Toggle auto rotation
+    O Turn auto rotation off
+    S Show auto rotation status
+    EOF
+        )"
+        rofiStatus=$?
+        [ "$rofiStatus" -eq 0 ] || exit 0
+        [ -n "$choice" ] || exit 0
 
-    actionKey="''${choice%% *}"
+        actionKey="''${choice%% *}"
 
-    case "$actionKey" in
-      N)
-        exec ${desktopWallpaperCycle}/bin/desktop-wallpaper-cycle next
-        ;;
-      P)
-        exec ${desktopWallpaperCycle}/bin/desktop-wallpaper-cycle prev
-        ;;
-      R)
-        exec ${desktopWallpaperCycle}/bin/desktop-wallpaper-cycle random
-        ;;
-      T)
-        exec ${desktopWallpaperAuto}/bin/desktop-wallpaper-auto toggle
-        ;;
-      O)
-        exec ${desktopWallpaperAuto}/bin/desktop-wallpaper-auto off
-        ;;
-      S)
-        ${pkgs.libnotify}/bin/notify-send "Wallpaper" "$autoLabel"
-        ;;
-      *)
-        exit 0
-        ;;
-    esac
+        case "$actionKey" in
+          N)
+            exec ${desktopWallpaperCycle}/bin/desktop-wallpaper-cycle next
+            ;;
+          P)
+            exec ${desktopWallpaperCycle}/bin/desktop-wallpaper-cycle prev
+            ;;
+          R)
+            exec ${desktopWallpaperCycle}/bin/desktop-wallpaper-cycle random
+            ;;
+          T)
+            exec ${desktopWallpaperAuto}/bin/desktop-wallpaper-auto toggle
+            ;;
+          O)
+            exec ${desktopWallpaperAuto}/bin/desktop-wallpaper-auto off
+            ;;
+          S)
+            ${pkgs.libnotify}/bin/notify-send "Wallpaper" "$autoLabel"
+            ;;
+          *)
+            exit 0
+            ;;
+        esac
   '';
 in
 {

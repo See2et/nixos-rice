@@ -3,7 +3,12 @@
 # - Host file should only wire modules and identity
 # - Darwin-specific logic belongs in modules/darwin/
 
-{ inputs, pkgs, darwinUser, ... }:
+{
+  inputs,
+  pkgs,
+  darwinUser,
+  ...
+}:
 
 {
   imports = [

@@ -1,21 +1,21 @@
-require('lazy').setup({
-  { "folke/lazy.nvim" },
-  {
-    "folke/tokyonight.nvim",
-    config = function()
-      require('tokyonight').setup {
-        transparent = true,
-        styles = {
-          floats = 'transparent',
-        }
-      }
-    end
-  },
-  require("plugins.lsp"),
-  require("plugins.format"),
-  require("plugins.lint"),
-  require("plugins.misc"),
-  require("plugins.ts")
+require("lazy").setup({
+	{ "folke/lazy.nvim" },
+	{
+		"folke/tokyonight.nvim",
+		config = function()
+			require("tokyonight").setup({
+				transparent = true,
+				styles = {
+					floats = "transparent",
+				},
+			})
+		end,
+	},
+	require("plugins.lsp"),
+	require("plugins.format"),
+	require("plugins.lint"),
+	require("plugins.misc"),
+	require("plugins.ts"),
 }, {
-  lockfile = vim.fn.stdpath('data') .. '/lazy/lazy-lock.json',
+	lockfile = vim.fn.stdpath("data") .. "/lazy/lazy-lock.json",
 })

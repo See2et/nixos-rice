@@ -23,11 +23,26 @@ in
         "Mod+E".action.spawn = "emoji-picker";
         "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
         "Mod+Shift+W".action.spawn = "desktop-wallpaper-menu";
-        "XF86AudioRaiseVolume".action.spawn = [ "desktop-volume" "up" ];
-        "XF86AudioLowerVolume".action.spawn = [ "desktop-volume" "down" ];
-        "XF86AudioMute".action.spawn = [ "desktop-volume" "mute" ];
-        "XF86MonBrightnessUp".action.spawn = [ "desktop-brightness" "up" ];
-        "XF86MonBrightnessDown".action.spawn = [ "desktop-brightness" "down" ];
+        "XF86AudioRaiseVolume".action.spawn = [
+          "desktop-volume"
+          "up"
+        ];
+        "XF86AudioLowerVolume".action.spawn = [
+          "desktop-volume"
+          "down"
+        ];
+        "XF86AudioMute".action.spawn = [
+          "desktop-volume"
+          "mute"
+        ];
+        "XF86MonBrightnessUp".action.spawn = [
+          "desktop-brightness"
+          "up"
+        ];
+        "XF86MonBrightnessDown".action.spawn = [
+          "desktop-brightness"
+          "down"
+        ];
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };
 

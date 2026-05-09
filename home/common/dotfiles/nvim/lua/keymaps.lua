@@ -5,223 +5,353 @@ local keymap = vim.keymap
 local kmap = keymap.set
 
 local open_location_in_overlook = function(location)
-    if not location then
-        vim.notify("No location selected", vim.log.levels.WARN)
-        return
-    end
+	if not location then
+		vim.notify("No location selected", vim.log.levels.WARN)
+		return
+	end
 
-    local filename = location.filename or location.path
-    local bufnr = location.bufnr
+	local filename = location.filename or location.path
+	local bufnr = location.bufnr
 
-    if (not bufnr or bufnr == 0) and filename then
-        bufnr = vim.fn.bufadd(filename)
-        vim.fn.bufload(bufnr)
-    end
+	if (not bufnr or bufnr == 0) and filename then
+		bufnr = vim.fn.bufadd(filename)
+		vim.fn.bufload(bufnr)
+	end
 
-    if not bufnr or bufnr == 0 then
-        vim.notify("Failed to resolve buffer for selected location", vim.log.levels.ERROR)
-        return
-    end
+	if not bufnr or bufnr == 0 then
+		vim.notify("Failed to resolve buffer for selected location", vim.log.levels.ERROR)
+		return
+	end
 
-    local display_path = filename or vim.api.nvim_buf_get_name(bufnr)
+	local display_path = filename or vim.api.nvim_buf_get_name(bufnr)
 
-    require("overlook.ui").create_popup({
-        target_bufnr = bufnr,
-        lnum = location.lnum or location.row or 1,
-        col = location.col or location.colnr or 1,
-        title = vim.fn.fnamemodify(display_path, ":~:."),
-    })
+	require("overlook.ui").create_popup({
+		target_bufnr = bufnr,
+		lnum = location.lnum or location.row or 1,
+		col = location.col or location.colnr or 1,
+		title = vim.fn.fnamemodify(display_path, ":~:."),
+	})
 end
 
 local telescope_lsp_overlook = function(picker_name, opts)
-    return function()
-        local builtin = require("telescope.builtin")
-        local actions = require("telescope.actions")
-        local action_state = require("telescope.actions.state")
-        local themes = require("telescope.themes")
+	return function()
+		local builtin = require("telescope.builtin")
+		local actions = require("telescope.actions")
+		local action_state = require("telescope.actions.state")
+		local themes = require("telescope.themes")
 
-        local picker_opts = themes.get_cursor(vim.tbl_extend("force", {
-            previewer = true,
-            path_display = { "tail" },
-        }, opts or {}))
-        picker_opts.attach_mappings = function(prompt_bufnr)
-            actions.select_default:replace(function()
-                local entry = action_state.get_selected_entry()
-                actions.close(prompt_bufnr)
-                open_location_in_overlook(entry)
-            end)
-            return true
-        end
+		local picker_opts = themes.get_cursor(vim.tbl_extend("force", {
+			previewer = true,
+			path_display = { "tail" },
+		}, opts or {}))
+		picker_opts.attach_mappings = function(prompt_bufnr)
+			actions.select_default:replace(function()
+				local entry = action_state.get_selected_entry()
+				actions.close(prompt_bufnr)
+				open_location_in_overlook(entry)
+			end)
+			return true
+		end
 
-        builtin[picker_name](picker_opts)
-    end
+		builtin[picker_name](picker_opts)
+	end
 end
 
 local tmap = function(key, map, ops)
-    kmap("t", key, map, ops)
+	kmap("t", key, map, ops)
 end
 
-tmap('<ESC>', '<C-\\><C-n>')
+tmap("<ESC>", "<C-\\><C-n>")
 
-vim.keymap.set('n', 'x', '"_x')
+vim.keymap.set("n", "x", '"_x')
 
 wk.add({
-    -- Code
-    { "<leader>c",  group = "Code" },
-    { "<leader>ca", "<cmd>Lspsaga code_action<cr>",                desc = "[C]ode [A]ction" },
+	-- Code
+	{ "<leader>c", group = "Code" },
+	{ "<leader>ca", "<cmd>Lspsaga code_action<cr>", desc = "[C]ode [A]ction" },
 
-    -- Docs / Hover
-    { "<leader>d",  "<cmd>Lspsaga hover_doc<cr>",                  desc = "Show [D]ocumentation" },
+	-- Docs / Hover
+	{ "<leader>d", "<cmd>Lspsaga hover_doc<cr>", desc = "Show [D]ocumentation" },
 
-    -- Goto
-    { "<leader>g",  group = "Goto" },
-    { "<leader>gd", "<cmd>Lspsaga goto_definition<cr>",            desc = "[G]oto [D]efinition" },
+	-- Goto
+	{ "<leader>g", group = "Goto" },
+	{ "<leader>gd", "<cmd>Lspsaga goto_definition<cr>", desc = "[G]oto [D]efinition" },
 
-    -- LSP
-    { "<leader>l",  group = "LSP" },
-    { "<leader>lf", "<cmd>Lspsaga finder<cr>",                     desc = "[L]sp [F]inder" },
-    { "<leader>lr", telescope_lsp_overlook("lsp_references"),      desc = "[L]sp [R]eferences" },
-    { "<leader>li", telescope_lsp_overlook("lsp_implementations"), desc = "[L]sp [I]mplementations" },
+	-- LSP
+	{ "<leader>l", group = "LSP" },
+	{ "<leader>lf", "<cmd>Lspsaga finder<cr>", desc = "[L]sp [F]inder" },
+	{ "<leader>lr", telescope_lsp_overlook("lsp_references"), desc = "[L]sp [R]eferences" },
+	{ "<leader>li", telescope_lsp_overlook("lsp_implementations"), desc = "[L]sp [I]mplementations" },
 
-    -- Format
-    { "<leader>f",  group = "Format" },
-    {
-        "<leader>fm",
-        function()
-            require("conform").format({
-                async = true,
-                lsp_format = "fallback",
-            })
-        end,
-        desc = "[F]or[m]at"
-    },
+	-- Format
+	{ "<leader>f", group = "Format" },
+	{
+		"<leader>fm",
+		function()
+			require("conform").format({
+				async = true,
+				lsp_format = "fallback",
+			})
+		end,
+		desc = "[F]or[m]at",
+	},
 
-    -- Open
-    { "<leader>o",  group = "Open" },
-    { "<leader>ot", "<cmd>Lspsaga term_toggle<cr>",       desc = "[O]pen [T]erminal" },
-    { "<leader>og", function() Snacks.lazygit.open() end, desc = "[O]pen [G]it" },
-    { "<leader>oc", "<cmd>Lspsaga term_toggle codex<cr>", desc = "[O]pen [C]odex" },
-    {
-        "<leader>of",
-        function()
-            require("oil").open_float()
-        end,
-        desc = "[O]pen [F]ile Browser"
-    },
+	-- Open
+	{ "<leader>o", group = "Open" },
+	{ "<leader>ot", "<cmd>Lspsaga term_toggle<cr>", desc = "[O]pen [T]erminal" },
+	{
+		"<leader>og",
+		function()
+			Snacks.lazygit.open()
+		end,
+		desc = "[O]pen [G]it",
+	},
+	{ "<leader>oc", "<cmd>Lspsaga term_toggle codex<cr>", desc = "[O]pen [C]odex" },
+	{
+		"<leader>of",
+		function()
+			require("oil").open_float()
+		end,
+		desc = "[O]pen [F]ile Browser",
+	},
 
-    -- Peek
-    { "<leader>p",  group = "Peek" },
-    { "<leader>pd", function() require("overlook.api").peek_definition() end,         desc = "[P]eek [D]efinition" },
-    { "<leader>pp", function() require("overlook.api").peek_cursor() end,             desc = "[P]eek [P]osition" },
-    { "<leader>pu", function() require("overlook.api").restore_popup() end,           desc = "[P]eek [U]ndo Close" },
-    { "<leader>pc", function() require("overlook.api").close_all() end,               desc = "[P]eek [C]lose All" },
-    { "<leader>pf", function() require("overlook.api").switch_focus() end,            desc = "[P]eek Switch [F]ocus" },
-    { "<leader>ps", function() require("overlook.api").open_in_split() end,           desc = "[P]eek Open in [S]plit" },
-    { "<leader>pv", function() require("overlook.api").open_in_vsplit() end,          desc = "[P]eek Open in [V]split" },
-    { "<leader>pt", function() require("overlook.api").open_in_tab() end,             desc = "[P]eek Open in [T]ab" },
-    { "<leader>po", function() require("overlook.api").open_in_original_window() end, desc = "[P]eek [O]pen Here" },
+	-- Peek
+	{ "<leader>p", group = "Peek" },
+	{
+		"<leader>pd",
+		function()
+			require("overlook.api").peek_definition()
+		end,
+		desc = "[P]eek [D]efinition",
+	},
+	{
+		"<leader>pp",
+		function()
+			require("overlook.api").peek_cursor()
+		end,
+		desc = "[P]eek [P]osition",
+	},
+	{
+		"<leader>pu",
+		function()
+			require("overlook.api").restore_popup()
+		end,
+		desc = "[P]eek [U]ndo Close",
+	},
+	{
+		"<leader>pc",
+		function()
+			require("overlook.api").close_all()
+		end,
+		desc = "[P]eek [C]lose All",
+	},
+	{
+		"<leader>pf",
+		function()
+			require("overlook.api").switch_focus()
+		end,
+		desc = "[P]eek Switch [F]ocus",
+	},
+	{
+		"<leader>ps",
+		function()
+			require("overlook.api").open_in_split()
+		end,
+		desc = "[P]eek Open in [S]plit",
+	},
+	{
+		"<leader>pv",
+		function()
+			require("overlook.api").open_in_vsplit()
+		end,
+		desc = "[P]eek Open in [V]split",
+	},
+	{
+		"<leader>pt",
+		function()
+			require("overlook.api").open_in_tab()
+		end,
+		desc = "[P]eek Open in [T]ab",
+	},
+	{
+		"<leader>po",
+		function()
+			require("overlook.api").open_in_original_window()
+		end,
+		desc = "[P]eek [O]pen Here",
+	},
 
-    -- Quit / Write
-    { "<leader>q",  "<cmd>q!<cr>",                                                    desc = "[Q]uit" },
-    { "<leader>w",  "<cmd>w<cr>",                                                     desc = ":[w]" },
+	-- Quit / Write
+	{ "<leader>q", "<cmd>q!<cr>", desc = "[Q]uit" },
+	{ "<leader>w", "<cmd>w<cr>", desc = ":[w]" },
 
-    -- Rename
-    { "<leader>r",  group = "Rename" },
-    { "<leader>rn", "<cmd>Lspsaga rename<cr>",                                        desc = "[R]e[n]ame" },
+	-- Rename
+	{ "<leader>r", group = "Rename" },
+	{ "<leader>rn", "<cmd>Lspsaga rename<cr>", desc = "[R]e[n]ame" },
 
-    -- Show / Source
-    { "<leader>s",  group = "Show/Source" },
-    { "<leader>sd", "<cmd>Lspsaga show_line_diagnostics<cr>",                         desc = "[S]how Line [D]iagnostics" },
-    { "<leader>so", "<cmd>so<cr>",                                                    desc = ":so" },
+	-- Show / Source
+	{ "<leader>s", group = "Show/Source" },
+	{
+		"<leader>sd",
+		"<cmd>Lspsaga show_line_diagnostics<cr>",
+		desc = "[S]how Line [D]iagnostics",
+	},
+	{ "<leader>so", "<cmd>so<cr>", desc = ":so" },
 
-    -- GitHub
-    { "<leader>G",  group = "GitHub" },
-    { "<leader>GI", function() Snacks.picker.gh_issue() end,                          desc = "GitHub Issues (open)" },
-    { "<leader>Gi", function() Snacks.picker.gh_issue({ state = "all" }) end,         desc = "GitHub Issues (all)" },
-    { "<leader>GP", function() Snacks.picker.gh_pr() end,                             desc = "GitHub Pull Requests (open)" },
-    { "<leader>Gp", function() Snacks.picker.gh_pr({ state = "all" }) end,            desc = "GitHub Pull Requests (all)" },
+	-- GitHub
+	{ "<leader>G", group = "GitHub" },
+	{
+		"<leader>GI",
+		function()
+			Snacks.picker.gh_issue()
+		end,
+		desc = "GitHub Issues (open)",
+	},
+	{
+		"<leader>Gi",
+		function()
+			Snacks.picker.gh_issue({ state = "all" })
+		end,
+		desc = "GitHub Issues (all)",
+	},
+	{
+		"<leader>GP",
+		function()
+			Snacks.picker.gh_pr()
+		end,
+		desc = "GitHub Pull Requests (open)",
+	},
+	{
+		"<leader>Gp",
+		function()
+			Snacks.picker.gh_pr({ state = "all" })
+		end,
+		desc = "GitHub Pull Requests (all)",
+	},
 
-    { "<leader>x",  "<cmd>NoiceDismiss<cr>" },
+	{ "<leader>x", "<cmd>NoiceDismiss<cr>" },
 
-    -- グループ見出し
-    { ";",          group = "Fuzzy / Tools" },
+	-- グループ見出し
+	{ ";", group = "Fuzzy / Tools" },
 
-    -- もともと [";"] = "/" だったやつは ";;" になる
-    { ";;",         "/",                                                              desc = "[;] Search" },
+	-- もともと [";"] = "/" だったやつは ";;" になる
+	{ ";;", "/", desc = "[;] Search" },
 
-    -- Telescope 系
-    { ";d",         function() require("telescope.builtin").diagnostics() end,        desc = "[;] Fuzzy [D]iagnostics" },
-    { ";f",         function() require("telescope.builtin").find_files() end,         desc = "[;] Fuzzy [F]iles" },
-    { ";g",         function() require("telescope.builtin").live_grep() end,          desc = "[;] Fuzzy by [G]rep" },
-    { ";h",         function() require("telescope.builtin").help_tags() end,          desc = "[;] Fuzzy [H]elp" },
-    { ";s",         function() require("telescope.builtin").grep_string() end,        desc = "[;] Fuzzy [S]tring" },
-    { ";b",         function() require("telescope.builtin").buffers() end,            desc = "[;] Fuzzy [B]uffers" },
-    { ";r",         function() require("telescope.builtin").oldfiles() end,           desc = "[;] Fuzzy [R]ecently" },
-    {
-        ";e",
-        function()
-            require("telescope").extensions.file_browser.file_browser({
-                path = "%:p:h",
-                cwd = vim.fn.expand("%:p:h"),
-                respect_gitignore = false,
-                hidden = true,
-                grouped = true,
-                initial_mode = "normal",
-                layout_config = { height = 40 },
-            })
-        end,
-        desc = "[;] Fuzzy [E]xplorer"
-    },
-    {
-        ";c",
-        function()
-            require("telescope.builtin").current_buffer_fuzzy_find(
-                require("telescope.themes").get_dropdown({ previewer = false })
-            )
-        end,
-        desc = "[;] Fuzzy [C]urrent"
-    },
+	-- Telescope 系
+	{
+		";d",
+		function()
+			require("telescope.builtin").diagnostics()
+		end,
+		desc = "[;] Fuzzy [D]iagnostics",
+	},
+	{
+		";f",
+		function()
+			require("telescope.builtin").find_files()
+		end,
+		desc = "[;] Fuzzy [F]iles",
+	},
+	{
+		";g",
+		function()
+			require("telescope.builtin").live_grep()
+		end,
+		desc = "[;] Fuzzy by [G]rep",
+	},
+	{
+		";h",
+		function()
+			require("telescope.builtin").help_tags()
+		end,
+		desc = "[;] Fuzzy [H]elp",
+	},
+	{
+		";s",
+		function()
+			require("telescope.builtin").grep_string()
+		end,
+		desc = "[;] Fuzzy [S]tring",
+	},
+	{
+		";b",
+		function()
+			require("telescope.builtin").buffers()
+		end,
+		desc = "[;] Fuzzy [B]uffers",
+	},
+	{
+		";r",
+		function()
+			require("telescope.builtin").oldfiles()
+		end,
+		desc = "[;] Fuzzy [R]ecently",
+	},
+	{
+		";e",
+		function()
+			require("telescope").extensions.file_browser.file_browser({
+				path = "%:p:h",
+				cwd = vim.fn.expand("%:p:h"),
+				respect_gitignore = false,
+				hidden = true,
+				grouped = true,
+				initial_mode = "normal",
+				layout_config = { height = 40 },
+			})
+		end,
+		desc = "[;] Fuzzy [E]xplorer",
+	},
+	{
+		";c",
+		function()
+			require("telescope.builtin").current_buffer_fuzzy_find(
+				require("telescope.themes").get_dropdown({ previewer = false })
+			)
+		end,
+		desc = "[;] Fuzzy [C]urrent",
+	},
 
-    -- その他トグル系
-    { ";n", "<cmd>Telescope noice<cr>",     desc = "[;] Fuzzy [N]oice" },
-    { ";t", "<cmd>Lspsaga term_toggle<cr>", desc = "[;] Toggle [T]erm" },
-    { ";z", "<cmd>ZenMode<cr>",             desc = "[;] Toggle [Z]enMode" },
+	-- その他トグル系
+	{ ";n", "<cmd>Telescope noice<cr>", desc = "[;] Fuzzy [N]oice" },
+	{ ";t", "<cmd>Lspsaga term_toggle<cr>", desc = "[;] Toggle [T]erm" },
+	{ ";z", "<cmd>ZenMode<cr>", desc = "[;] Toggle [Z]enMode" },
 })
 
 wk.add({
-    { "m",     group = "Move" },
-    { "mw",    '<cmd>HopWord<cr>',                      desc = "[M]ove to [W]ord" },
-    { "ms",    '<cmd>HopLineStart<cr>',                 desc = "[M]ove to Line [S]tart" },
-    { "ml",    '<cmd>HopLine<cr>',                      desc = "[M]ove to [L]ine" },
-    { "mc",    '<cmd>HopChar2<cr>',                     desc = "[M]ove to [C]hars" },
-    { "ma",    '<cmd>HopAnywhere<cr>',                  desc = "[M]ove to [A]nywhere" },
+	{ "m", group = "Move" },
+	{ "mw", "<cmd>HopWord<cr>", desc = "[M]ove to [W]ord" },
+	{ "ms", "<cmd>HopLineStart<cr>", desc = "[M]ove to Line [S]tart" },
+	{ "ml", "<cmd>HopLine<cr>", desc = "[M]ove to [L]ine" },
+	{ "mc", "<cmd>HopChar2<cr>", desc = "[M]ove to [C]hars" },
+	{ "ma", "<cmd>HopAnywhere<cr>", desc = "[M]ove to [A]nywhere" },
 
-    { "s",     group = "Window" },
-    { "ss",    '<cmd>split<cr><C-w>w',                  desc = "[S]plit",                silent = true },
-    { "sv",    '<cmd>vsplit<cr><C-w>w',                 desc = "[S]plit [V]ertical",     silent = true },
-    { "sh",    '<C-w>h' },
-    { "sj",    '<C-w>j' },
-    { "sk",    '<C-w>k' },
-    { "sl",    '<C-w>l' },
+	{ "s", group = "Window" },
+	{ "ss", "<cmd>split<cr><C-w>w", desc = "[S]plit", silent = true },
+	{ "sv", "<cmd>vsplit<cr><C-w>w", desc = "[S]plit [V]ertical", silent = true },
+	{ "sh", "<C-w>h" },
+	{ "sj", "<C-w>j" },
+	{ "sk", "<C-w>k" },
+	{ "sl", "<C-w>l" },
 
-    { "t",     group = "Tab" },
-    { "te",    '<cmd>tabedit<cr>',                      desc = "[T]ab [E]dit",           silent = true },
-    { "td",    '<cmd>tabclose<cr>',                     desc = "[T]ab [D]elete",         silent = true },
-    { "tl",    '<cmd>BufferLineCycleNext<cr>',          desc = "Go Prev [T]ab" },
-    { "th",    '<cmd>BufferLineCyclePrev<cr>',          desc = "Go Next [T]ab" },
+	{ "t", group = "Tab" },
+	{ "te", "<cmd>tabedit<cr>", desc = "[T]ab [E]dit", silent = true },
+	{ "td", "<cmd>tabclose<cr>", desc = "[T]ab [D]elete", silent = true },
+	{ "tl", "<cmd>BufferLineCycleNext<cr>", desc = "Go Prev [T]ab" },
+	{ "th", "<cmd>BufferLineCyclePrev<cr>", desc = "Go Next [T]ab" },
 
-    { "U",     '<C-r>',                                 desc = "Reset" },
-    { "[d",    '<cmd>Lspsaga diagnostic_jump_next<cr>', desc = "Jump Next [D]iagnostics" },
-    { "]d",    '<cmd>Lspsaga diagnostic_jump_prev<cr>', desc = "Jump Prev [D]iagnostics" },
-    { '<M-l>', '<C-w><' },
-    { '<M-h>', '<C-w>>' },
-    { '<M-j>', '<C-w>+' },
-    { '<M-k>', '<C-w>-' },
-    { '<C-[>', '<cmd>noh<cr>',                          desc = "No Highlight" },
+	{ "U", "<C-r>", desc = "Reset" },
+	{ "[d", "<cmd>Lspsaga diagnostic_jump_next<cr>", desc = "Jump Next [D]iagnostics" },
+	{ "]d", "<cmd>Lspsaga diagnostic_jump_prev<cr>", desc = "Jump Prev [D]iagnostics" },
+	{ "<M-l>", "<C-w><" },
+	{ "<M-h>", "<C-w>>" },
+	{ "<M-j>", "<C-w>+" },
+	{ "<M-k>", "<C-w>-" },
+	{ "<C-[>", "<cmd>noh<cr>", desc = "No Highlight" },
 })
 
-vim.keymap.set({ 'n', 'v' }, 'J', '<C-d>')
-vim.keymap.set({ 'n', 'v' }, 'K', '<C-u>')
-vim.keymap.set({ 'n', 'v' }, 'L', '$')
-vim.keymap.set({ 'n', 'v' }, 'H', '^')
-vim.keymap.set({ 'n', 'v' }, 'mm', '%')
+vim.keymap.set({ "n", "v" }, "J", "<C-d>")
+vim.keymap.set({ "n", "v" }, "K", "<C-u>")
+vim.keymap.set({ "n", "v" }, "L", "$")
+vim.keymap.set({ "n", "v" }, "H", "^")
+vim.keymap.set({ "n", "v" }, "mm", "%")

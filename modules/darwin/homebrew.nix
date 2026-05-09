@@ -1,6 +1,11 @@
 # Declarative Homebrew via nix-homebrew + nix-darwin
 
-{ config, inputs, darwinUser, ... }:
+{
+  config,
+  inputs,
+  darwinUser,
+  ...
+}:
 
 {
   nix-homebrew = {

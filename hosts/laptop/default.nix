@@ -7,7 +7,12 @@
 # - MUST NOT set wsl.* options
 # - MUST NOT reintroduce a root-level home.nix monolith
 
-{ inputs, pkgs, lib, ... }:
+{
+  inputs,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [

@@ -73,6 +73,13 @@
       linuxSystem = "x86_64-linux";
       laptopSystem = "aarch64-linux";
       darwinSystem = "aarch64-darwin";
+      systems = [
+        linuxSystem
+        laptopSystem
+        darwinSystem
+      ];
+
+      forAllSystems = nixpkgs.lib.genAttrs systems;
 
       darwinUser = {
         name = "see2et";
@@ -88,6 +95,54 @@
             (import ./overlays/darwin/direnv.nix)
           ];
         };
+
+      mkTreefmtConfig =
+        pkgs:
+        pkgs.writeText "treefmt.toml" ''
+          [formatter.nix]
+          command = "nixfmt"
+          includes = ["*.nix"]
+
+          [formatter.lua]
+          command = "stylua"
+          includes = ["*.lua"]
+
+          [formatter.json]
+          command = "jq"
+          options = ["--indent", "2", "."]
+          includes = ["*.json"]
+        '';
+
+      mkFormatter =
+        system:
+        let
+          pkgs = mkPkgs system;
+          treefmtConfig = mkTreefmtConfig pkgs;
+        in
+        pkgs.writeShellApplication {
+          name = "treefmt-wrapper";
+          runtimeInputs = with pkgs; [
+            jq
+            nixfmt-rfc-style
+            stylua
+            treefmt
+          ];
+          text = ''
+            exec treefmt --config-file ${treefmtConfig} "$@"
+          '';
+        };
+
+      mkFormattingCheck =
+        system:
+        let
+          pkgs = mkPkgs system;
+        in
+        pkgs.runCommand "formatting-check" { nativeBuildInputs = [ (mkFormatter system) ]; } ''
+          export HOME="$TMPDIR"
+          cd ${self}
+          treefmt-wrapper --ci
+          touch "$out"
+        '';
 
       pkgsDarwin = mkPkgs darwinSystem;
 
@@ -150,5 +205,11 @@
           extraSpecialArgs = darwinHomeExtraSpecialArgs;
         };
       };
+
+      checks = forAllSystems (system: {
+        formatting = mkFormattingCheck system;
+      });
+
+      formatter = forAllSystems mkFormatter;
     };
 }

@@ -77,184 +77,184 @@
   };
 
   home.activation.steamVrLaunchOptions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    steamvr_launch_options="QT_QPA_PLATFORM=xcb %command%"
-    userdata_root="${config.home.homeDirectory}/.local/share/Steam/userdata"
+        steamvr_launch_options="QT_QPA_PLATFORM=xcb %command%"
+        userdata_root="${config.home.homeDirectory}/.local/share/Steam/userdata"
 
-    if [ -d "$userdata_root" ]; then
-      for localconfig in "$userdata_root"/*/config/localconfig.vdf; do
-        [ -f "$localconfig" ] || continue
-        tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
+        if [ -d "$userdata_root" ]; then
+          for localconfig in "$userdata_root"/*/config/localconfig.vdf; do
+            [ -f "$localconfig" ] || continue
+            tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
 
-        if ${pkgs.python3}/bin/python - "$localconfig" "$tmp_file" "$steamvr_launch_options" <<'PY'
-import pathlib
-import re
-import sys
+            if ${pkgs.python3}/bin/python - "$localconfig" "$tmp_file" "$steamvr_launch_options" <<'PY'
+    import pathlib
+    import re
+    import sys
 
-source = pathlib.Path(sys.argv[1])
-target = pathlib.Path(sys.argv[2])
-desired = sys.argv[3]
+    source = pathlib.Path(sys.argv[1])
+    target = pathlib.Path(sys.argv[2])
+    desired = sys.argv[3]
 
-text = source.read_text(encoding="utf-8", errors="ignore")
-pattern = re.compile(r'("250820"\s*\{)(.*?)(\n([ \t]*)\})', re.S)
-match = pattern.search(text)
+    text = source.read_text(encoding="utf-8", errors="ignore")
+    pattern = re.compile(r'("250820"\s*\{)(.*?)(\n([ \t]*)\})', re.S)
+    match = pattern.search(text)
 
-if not match:
-    target.write_text(text, encoding="utf-8")
-    raise SystemExit(0)
+    if not match:
+        target.write_text(text, encoding="utf-8")
+        raise SystemExit(0)
 
-block_start, block_body, block_end, close_indent = match.groups()
+    block_start, block_body, block_end, close_indent = match.groups()
 
-launch_re = re.compile(r'(\n[ \t]*"LaunchOptions"[ \t]*"[^"]*")')
-new_launch_line = f'\n{close_indent}\t"LaunchOptions"\t\t"{desired}"'
+    launch_re = re.compile(r'(\n[ \t]*"LaunchOptions"[ \t]*"[^"]*")')
+    new_launch_line = f'\n{close_indent}\t"LaunchOptions"\t\t"{desired}"'
 
-launch_matches = list(launch_re.finditer(block_body))
-if launch_matches:
-    target_match = launch_matches[-1]
-    new_block_body = (
-        f"{block_body[:target_match.start()]}"
-        f"{new_launch_line}"
-        f"{block_body[target_match.end():]}"
-    )
-else:
-    new_block_body = f"{block_body}{new_launch_line}"
+    launch_matches = list(launch_re.finditer(block_body))
+    if launch_matches:
+        target_match = launch_matches[-1]
+        new_block_body = (
+            f"{block_body[:target_match.start()]}"
+            f"{new_launch_line}"
+            f"{block_body[target_match.end():]}"
+        )
+    else:
+        new_block_body = f"{block_body}{new_launch_line}"
 
-updated = f"{text[:match.start()]}{block_start}{new_block_body}{block_end}{text[match.end():]}"
-target.write_text(updated, encoding="utf-8")
-PY
-        then
-          ${pkgs.coreutils}/bin/mv "$tmp_file" "$localconfig"
-        else
-          ${pkgs.coreutils}/bin/rm -f "$tmp_file"
+    updated = f"{text[:match.start()]}{block_start}{new_block_body}{block_end}{text[match.end():]}"
+    target.write_text(updated, encoding="utf-8")
+    PY
+            then
+              ${pkgs.coreutils}/bin/mv "$tmp_file" "$localconfig"
+            else
+              ${pkgs.coreutils}/bin/rm -f "$tmp_file"
+            fi
+          done
         fi
-      done
-    fi
   '';
 
   home.activation.vrchatLaunchOptions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    vrchat_launch_options="env GTK_IM_MODULE= QT_IM_MODULE= SDL_IM_MODULE= XMODIFIERS= %command%"
-    userdata_root="${config.home.homeDirectory}/.local/share/Steam/userdata"
+        vrchat_launch_options="env GTK_IM_MODULE= QT_IM_MODULE= SDL_IM_MODULE= XMODIFIERS= %command%"
+        userdata_root="${config.home.homeDirectory}/.local/share/Steam/userdata"
 
-    if [ -d "$userdata_root" ]; then
-      for localconfig in "$userdata_root"/*/config/localconfig.vdf; do
-        [ -f "$localconfig" ] || continue
-        tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
+        if [ -d "$userdata_root" ]; then
+          for localconfig in "$userdata_root"/*/config/localconfig.vdf; do
+            [ -f "$localconfig" ] || continue
+            tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
 
-        if ${pkgs.python3}/bin/python - "$localconfig" "$tmp_file" "$vrchat_launch_options" <<'PY'
-import pathlib
-import re
-import sys
+            if ${pkgs.python3}/bin/python - "$localconfig" "$tmp_file" "$vrchat_launch_options" <<'PY'
+    import pathlib
+    import re
+    import sys
 
-source = pathlib.Path(sys.argv[1])
-target = pathlib.Path(sys.argv[2])
-desired = sys.argv[3]
-app_id = "438100"
+    source = pathlib.Path(sys.argv[1])
+    target = pathlib.Path(sys.argv[2])
+    desired = sys.argv[3]
+    app_id = "438100"
 
-text = source.read_text(encoding="utf-8", errors="ignore")
-pattern = re.compile(rf'("{re.escape(app_id)}"\s*\{{)(.*?)(\n([ \t]*)\}})', re.S)
-match = pattern.search(text)
+    text = source.read_text(encoding="utf-8", errors="ignore")
+    pattern = re.compile(rf'("{re.escape(app_id)}"\s*\{{)(.*?)(\n([ \t]*)\}})', re.S)
+    match = pattern.search(text)
 
-if not match:
-    target.write_text(text, encoding="utf-8")
-    raise SystemExit(0)
+    if not match:
+        target.write_text(text, encoding="utf-8")
+        raise SystemExit(0)
 
-block_start, block_body, block_end, close_indent = match.groups()
+    block_start, block_body, block_end, close_indent = match.groups()
 
-launch_re = re.compile(r'(\n[ \t]*"LaunchOptions"[ \t]*"[^"]*")')
-new_launch_line = f'\n{close_indent}\t"LaunchOptions"\t\t"{desired}"'
+    launch_re = re.compile(r'(\n[ \t]*"LaunchOptions"[ \t]*"[^"]*")')
+    new_launch_line = f'\n{close_indent}\t"LaunchOptions"\t\t"{desired}"'
 
-launch_matches = list(launch_re.finditer(block_body))
-if launch_matches:
-    target_match = launch_matches[-1]
-    new_block_body = (
-        f"{block_body[:target_match.start()]}"
-        f"{new_launch_line}"
-        f"{block_body[target_match.end():]}"
-    )
-else:
-    new_block_body = f"{block_body}{new_launch_line}"
+    launch_matches = list(launch_re.finditer(block_body))
+    if launch_matches:
+        target_match = launch_matches[-1]
+        new_block_body = (
+            f"{block_body[:target_match.start()]}"
+            f"{new_launch_line}"
+            f"{block_body[target_match.end():]}"
+        )
+    else:
+        new_block_body = f"{block_body}{new_launch_line}"
 
-updated = f"{text[:match.start()]}{block_start}{new_block_body}{block_end}{text[match.end():]}"
-target.write_text(updated, encoding="utf-8")
-PY
-        then
-          ${pkgs.coreutils}/bin/mv "$tmp_file" "$localconfig"
-        else
-          ${pkgs.coreutils}/bin/rm -f "$tmp_file"
+    updated = f"{text[:match.start()]}{block_start}{new_block_body}{block_end}{text[match.end():]}"
+    target.write_text(updated, encoding="utf-8")
+    PY
+            then
+              ${pkgs.coreutils}/bin/mv "$tmp_file" "$localconfig"
+            else
+              ${pkgs.coreutils}/bin/rm -f "$tmp_file"
+            fi
+          done
         fi
-      done
-    fi
   '';
 
   # NOTE: VRChat IME workaround is applied by wrapper + Steam LaunchOptions.
   home.activation.oyasumiOverlayDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    overlay_config="${config.home.homeDirectory}/.config/oyasumi/overlay_config.toml"
+        overlay_config="${config.home.homeDirectory}/.config/oyasumi/overlay_config.toml"
 
-    if [ -f "$overlay_config" ]; then
-      tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
+        if [ -f "$overlay_config" ]; then
+          tmp_file="$(${pkgs.coreutils}/bin/mktemp)"
 
-      if ${pkgs.python3}/bin/python - "$overlay_config" "$tmp_file" <<'PY'
-import pathlib
-import re
-import sys
+          if ${pkgs.python3}/bin/python - "$overlay_config" "$tmp_file" <<'PY'
+    import pathlib
+    import re
+    import sys
 
-source = pathlib.Path(sys.argv[1])
-target = pathlib.Path(sys.argv[2])
-text = source.read_text(encoding="utf-8", errors="ignore")
+    source = pathlib.Path(sys.argv[1])
+    target = pathlib.Path(sys.argv[2])
+    text = source.read_text(encoding="utf-8", errors="ignore")
 
-text = re.sub(
-    r"^\s*draw_only_when_on_overlay\s*=\s*true\s*$",
-    "draw_only_when_on_overlay = false",
-    text,
-    flags=re.M,
-)
-text = re.sub(
-    r'^\s*show_mode\s*=\s*"last_controller"\s*$',
-    'show_mode="hmd"',
-    text,
-    flags=re.M,
-)
+    text = re.sub(
+        r"^\s*draw_only_when_on_overlay\s*=\s*true\s*$",
+        "draw_only_when_on_overlay = false",
+        text,
+        flags=re.M,
+    )
+    text = re.sub(
+        r'^\s*show_mode\s*=\s*"last_controller"\s*$',
+        'show_mode="hmd"',
+        text,
+        flags=re.M,
+    )
 
-target.write_text(text, encoding="utf-8")
-PY
-      then
-        ${pkgs.coreutils}/bin/mv "$tmp_file" "$overlay_config"
-      else
-        ${pkgs.coreutils}/bin/rm -f "$tmp_file"
-      fi
-    fi
+    target.write_text(text, encoding="utf-8")
+    PY
+          then
+            ${pkgs.coreutils}/bin/mv "$tmp_file" "$overlay_config"
+          else
+            ${pkgs.coreutils}/bin/rm -f "$tmp_file"
+          fi
+        fi
   '';
 
   home.activation.vrcGetRepoSync = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    repos_file="${config.xdg.configHome}/vrc-get/repositories.txt"
+        repos_file="${config.xdg.configHome}/vrc-get/repositories.txt"
 
-    if [ -f "$repos_file" ]; then
-      sanitized_repos_file="$(${pkgs.coreutils}/bin/mktemp)"
+        if [ -f "$repos_file" ]; then
+          sanitized_repos_file="$(${pkgs.coreutils}/bin/mktemp)"
 
-      if ${pkgs.python3}/bin/python - "$repos_file" "$sanitized_repos_file" <<'PY'
-import pathlib
-import sys
+          if ${pkgs.python3}/bin/python - "$repos_file" "$sanitized_repos_file" <<'PY'
+    import pathlib
+    import sys
 
-source = pathlib.Path(sys.argv[1])
-target = pathlib.Path(sys.argv[2])
+    source = pathlib.Path(sys.argv[1])
+    target = pathlib.Path(sys.argv[2])
 
-lines = []
-for raw_line in source.read_text(encoding="utf-8", errors="ignore").splitlines():
-    line = raw_line.split("#", 1)[0].strip()
-    if line:
-        lines.append(line)
+    lines = []
+    for raw_line in source.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if line:
+            lines.append(line)
 
-output = "\n".join(lines)
-if output:
-    output += "\n"
+    output = "\n".join(lines)
+    if output:
+        output += "\n"
 
-target.write_text(output, encoding="utf-8")
-PY
-      then
-        ${pkgs.vrc-get}/bin/vrc-get repo import --yes --no-update "$sanitized_repos_file" || true
-      fi
+    target.write_text(output, encoding="utf-8")
+    PY
+          then
+            ${pkgs.vrc-get}/bin/vrc-get repo import --yes --no-update "$sanitized_repos_file" || true
+          fi
 
-      ${pkgs.coreutils}/bin/rm -f "$sanitized_repos_file"
-    fi
+          ${pkgs.coreutils}/bin/rm -f "$sanitized_repos_file"
+        fi
   '';
 
   xdg = {
