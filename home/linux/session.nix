@@ -1,11 +1,13 @@
 # Linux-specific session variables
 { config, lib, ... }:
 let
-  typstFontPaths = lib.concatStringsSep ":" [
-    "${config.xdg.dataHome}/fonts"
-    "/run/current-system/sw/share/X11/fonts"
-    "/usr/share/fonts"
-  ];
+  typstFontPaths = import ../../shared/typst-font-paths.nix {
+    inherit lib config;
+    extraPaths = [
+      "/run/current-system/sw/share/X11/fonts"
+      "/usr/share/fonts"
+    ];
+  };
 in
 {
   home.sessionVariables = {

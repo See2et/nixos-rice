@@ -4,12 +4,14 @@
 { config, lib, ... }:
 {
   home.sessionVariables = {
-    TYPST_FONT_PATHS = lib.concatStringsSep ":" [
-      "${config.xdg.dataHome}/fonts"
-      "/run/current-system/sw/share/X11/fonts"
-      "/usr/share/fonts"
-      "/mnt/c/Windows/Fonts"
-    ];
+    TYPST_FONT_PATHS = import ../../shared/typst-font-paths.nix {
+      inherit lib config;
+      extraPaths = [
+        "/run/current-system/sw/share/X11/fonts"
+        "/usr/share/fonts"
+        "/mnt/c/Windows/Fonts"
+      ];
+    };
   };
 
   home.sessionPath = [
