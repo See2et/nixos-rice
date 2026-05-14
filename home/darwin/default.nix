@@ -62,7 +62,7 @@
 
   home.file."Library/Application Support/AquaSKK/BlacklistApps.plist" = {
     source = ./dotfiles/AquaSKK/BlacklistApps.plist;
-    force = true;
+    force = false;
   };
 
   imports = [
