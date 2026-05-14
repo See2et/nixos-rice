@@ -4,6 +4,7 @@
 { ... }:
 {
   imports = [
+    ./fonts.nix
     ./files/opencode.nix
     ./programs/direnv.nix
     ./programs/git.nix
