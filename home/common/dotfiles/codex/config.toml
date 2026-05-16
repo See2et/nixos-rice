@@ -1,5 +1,5 @@
 #:schema https://developers.openai.com/codex/config-schema.json
-
+model = "gpt-5.4"
 mcp_oauth_credentials_store = "file"
 
 [mcp_servers.miloa]
