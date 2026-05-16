@@ -39,6 +39,7 @@
       "anki"
       "discord"
       "discord@canary"
+      "codex-app"
       # Docker Desktop provides the Compose v2 plugin on darwin.
       # Docker CLI discovery is configured via home/darwin/default.nix.
       "docker"
