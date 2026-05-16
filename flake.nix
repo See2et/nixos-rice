@@ -139,8 +139,11 @@
         in
         pkgs.runCommand "formatting-check" { nativeBuildInputs = [ (mkFormatter system) ]; } ''
           export HOME="$TMPDIR"
-          cd ${self}
-          treefmt-wrapper --ci
+          worktree="$TMPDIR/flake-src"
+          cp -R ${self} "$worktree"
+          chmod -R u+w "$worktree"
+          cd "$worktree"
+          treefmt-wrapper --tree-root "$worktree" --ci
           touch "$out"
         '';
 
