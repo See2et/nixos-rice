@@ -1,4 +1,8 @@
-{ lib, config, extraPaths ? [ ] }:
+{
+  lib,
+  config,
+  extraPaths ? [ ],
+}:
 lib.concatStringsSep ":" (
   [
     "${config.xdg.dataHome}/fonts"
