@@ -59,7 +59,10 @@
   "mcp": {
     "miloa": {
       "type": "remote",
-      "url": "http://localhost:3001"
+      "url": "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp",
+      "headers": {
+        "Authorization": "Bearer dummy"
+      }
     }
   }
 }
