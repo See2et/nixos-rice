@@ -1,2 +1,8 @@
+font-family = ""
+font-family = "FiraCode Nerd Font Mono"
+font-family = "BIZ UDGothic"
+font-family = "Symbols Nerd Font Mono"
+font-family = "Noto Color Emoji"
+
 keybind = ctrl+j=unbind
 keybind = ctrl+l=unbind
