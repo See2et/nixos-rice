@@ -1,0 +1,8 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+mcp_oauth_credentials_store = "file"
+
+[mcp_servers.miloa]
+url = "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp"
+enabled = true
+oauth_resource = "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp"
