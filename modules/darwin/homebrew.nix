@@ -37,6 +37,7 @@
     casks = [
       "alacritty"
       "anki"
+      "adobe-acrobat-reader"
       "discord"
       "discord@canary"
       "codex-app"
