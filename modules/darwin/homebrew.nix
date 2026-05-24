@@ -33,6 +33,7 @@
       "mas"
       "p7zip"
       "colima"
+      "ollama"
     ];
     casks = [
       "alacritty"
