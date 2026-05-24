@@ -1,6 +1,6 @@
 interface:
   display_name: "miloa GTD"
-  short_description: "miloaのGTDタスクと日次計画を整える"
-  default_prompt: "Use $miloa-gtd to organize my miloa tasks into trustworthy Next actions and a realistic daily plan."
+  short_description: "miloaのGTD整理・停滞レビュー・日次計画を行う"
+  default_prompt: "Use $miloa-gtd to review my miloa projects and tasks for GTD hygiene, keep Next and Await trustworthy, and build a realistic daily plan when needed."
 policy:
   allow_implicit_invocation: true
