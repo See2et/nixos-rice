@@ -27,6 +27,10 @@
       "com.apple.finder" = {
         ShowSidebar = true;
       };
+
+      "com.apple.screencapture" = {
+        location = "/Users/see2et/Pictures/Screenshots";
+      };
     };
 
     NSGlobalDomain = {
