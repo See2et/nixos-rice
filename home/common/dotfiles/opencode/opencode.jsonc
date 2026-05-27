@@ -63,6 +63,17 @@
       "headers": {
         "Authorization": "Bearer dummy"
       }
+    },
+    "godot": {
+      "type": "local",
+      "command": ["npx", "@coding-solo/godot-mcp"],
+      "enabled": true,
+      "timeout": 30000
+      // GODOT_PATH is intentionally omitted — godot-mcp auto-detects.
+      // Platform reference:
+      //   Darwin: /opt/homebrew/bin/godot (Homebrew cask)
+      //   NixOS Desktop: godot in PATH via pkgsUnstable.godot_4_6
+      //   WSL/Laptop: Godot not installed; disable if needed
     }
   }
 }
