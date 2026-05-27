@@ -149,6 +149,37 @@
 
       pkgsDarwin = mkPkgs darwinSystem;
 
+      bun114Overlay = final: prev: {
+        bun = prev.bun.overrideAttrs (
+          finalAttrs: prevAttrs: {
+            version = "1.3.14";
+            passthru = (prevAttrs.passthru or { }) // {
+              sources = (prevAttrs.passthru.sources or { }) // {
+                "aarch64-darwin" = prev.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-darwin-aarch64.zip";
+                  hash = "sha256-2LliIYKK1vl6x6wKt+lYcjQa92MAHogD6CZ2UsJlJiA=";
+                };
+              };
+            };
+            src =
+              finalAttrs.passthru.sources.${prev.stdenvNoCC.hostPlatform.system}
+                or (throw "Unsupported system: ${prev.stdenvNoCC.hostPlatform.system}");
+          }
+        );
+      };
+
+      opencodePkgsDarwin = import nixpkgs {
+        system = darwinSystem;
+        config.allowUnfree = true;
+        overlays = [
+          (import ./overlays/darwin/direnv.nix)
+          bun114Overlay
+          inputs.opencode.overlays.default
+        ];
+      };
+
+      opencodePackageDarwin = opencodePkgsDarwin.opencode;
+
       darwinHomeProfile = ./home/darwin/profile.nix;
 
       darwinHomeExtraSpecialArgs = {
@@ -157,7 +188,7 @@
         isDarwin = true;
         hostId = "darwin";
         rustToolchain = pkgsDarwin.rustc;
-        opencodePackage = inputs.opencode.packages.${darwinSystem}.opencode;
+        opencodePackage = opencodePackageDarwin;
       };
     in
     {
@@ -191,7 +222,7 @@
         darwin = nix-darwin.lib.darwinSystem {
           system = darwinSystem;
           specialArgs = {
-            inherit inputs darwinUser;
+            inherit inputs darwinUser opencodePackageDarwin;
           };
           modules = [
             ./hosts/darwin

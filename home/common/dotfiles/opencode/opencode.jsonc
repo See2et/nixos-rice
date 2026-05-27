@@ -4,13 +4,13 @@
   "model": "vercel/moonshotai/kimi-k2.5",
   "agent": {
     "sisyphus": {
-      "description": "Default coding agent with kimi-k2.5",
-      "model": "vercel/moonshotai/kimi-k2.5",
+      "description": "Default coding agent with OpenCode Go Kimi K2.6",
+      "model": "opencode-go/kimi-k2.6",
       "mode": "primary"
     },
     "hephaestus": {
       "description": "Implementation-focused coding agent",
-      "model": "openai/gpt-5.3-codex",
+      "model": "openai/gpt-5.5",
       "mode": "primary"
     },
     "oracle": {
@@ -20,22 +20,22 @@
     },
     "librarian": {
       "description": "Research and reference-heavy tasks",
-      "model": "vercel/zai/glm-4.7",
+      "model": "opencode-go/qwen3.5-plus",
       "mode": "primary"
     },
     "multimodal-looker": {
       "description": "Multimodal inspection tasks",
-      "model": "vercel/google/gemini-3-flash",
+      "model": "opencode-go/kimi-k2.6",
       "mode": "primary"
     },
     "prometheus": {
       "description": "Maximum-depth reasoning",
-      "model": "vercel/anthropic/claude-opus-4.6",
+      "model": "opencode-go/kimi-k2.6",
       "mode": "primary"
     },
     "metis": {
       "description": "Analytical strategy and planning",
-      "model": "vercel/anthropic/claude-opus-4.6",
+      "model": "opencode-go/glm-5.1",
       "mode": "primary"
     },
     "momus": {
@@ -45,7 +45,7 @@
     },
     "atlas": {
       "description": "General high-quality execution",
-      "model": "vercel/anthropic/claude-sonnet-4.5",
+      "model": "opencode-go/kimi-k2.6",
       "mode": "primary"
     }
   },
@@ -54,7 +54,7 @@
   ],
   "default_agent": "sisyphus",
   "plugin": [
-    "oh-my-opencode"
+    "oh-my-openagent"
   ],
   "mcp": {
     "miloa": {
