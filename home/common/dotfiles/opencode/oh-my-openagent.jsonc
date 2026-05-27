@@ -45,6 +45,7 @@
       "model": "opencode-go/qwen3.5-plus",
       "fallback_models": [
         "opencode-go/minimax-m2.7",
+        "opencode-go/qwen3.5-plus",
         "vercel/alibaba/qwen3.5-plus",
         "vercel/minimax/minimax-m2.7-highspeed",
         "openai/gpt-5.4-mini-fast"
@@ -54,19 +55,22 @@
       "model": "opencode-go/qwen3.5-plus",
       "fallback_models": [
         "opencode-go/minimax-m2.7",
+        "opencode-go/qwen3.5-plus",
         "vercel/alibaba/qwen3.5-plus",
         "vercel/minimax/minimax-m2.7-highspeed",
         "openai/gpt-5.4-mini-fast"
       ]
     },
     "multimodal-looker": {
-      "model": "opencode-go/kimi-k2.6",
-      "variant": "medium",
+      "model": "opencode-go/qwen3.6-plus",
+      "variant": "high",
       "fallback_models": [
         {
           "model": "openai/gpt-5.4",
           "variant": "medium"
         },
+        "opencode-go/qwen3.5-plus",
+        "vercel/alibaba/qwen3.6-plus",
         "vercel/moonshotai/kimi-k2.6",
         "vercel/zai/glm-4.6v"
       ]
@@ -104,15 +108,18 @@
       ]
     },
     "atlas": {
-      "model": "opencode-go/kimi-k2.6",
+      "model": "opencode-go/qwen3.6-plus",
+      "variant": "high",
       "fallback_models": [
         {
           "model": "openai/gpt-5.4",
           "variant": "medium"
         },
+        "opencode-go/qwen3.5-plus",
         "opencode-go/minimax-m2.7",
-        "vercel/moonshotai/kimi-k2.6",
-        "vercel/minimax/minimax-m2.7"
+        "vercel/alibaba/qwen3.6-plus",
+        "vercel/minimax/minimax-m2.7",
+        "vercel/moonshotai/kimi-k2.6"
       ]
     }
   },
@@ -169,18 +176,20 @@
       "model": "openai/gpt-5.4-mini",
       "fallback_models": [
         "opencode-go/minimax-m2.7",
+        "opencode-go/qwen3.5-plus",
         "vercel/minimax/minimax-m2.7-highspeed",
         "openai/gpt-5.4-mini-fast"
       ]
     },
     "unspecified-low": {
-      "model": "opencode-go/kimi-k2.6",
+      "model": "opencode-go/qwen3.5-plus",
       "fallback_models": [
-        "opencode-go/glm-5.1",
         "opencode-go/minimax-m2.7",
         "openai/gpt-5.4-mini",
-        "vercel/moonshotai/kimi-k2.6",
-        "vercel/minimax/minimax-m2.7"
+        "vercel/alibaba/qwen3.5-plus",
+        "vercel/minimax/minimax-m2.7",
+        "opencode-go/glm-5.1",
+        "vercel/moonshotai/kimi-k2.6"
       ]
     },
     "unspecified-high": {
@@ -196,9 +205,11 @@
       ]
     },
     "writing": {
-      "model": "opencode-go/kimi-k2.6",
+      "model": "opencode-go/qwen3.5-plus",
       "fallback_models": [
-        "opencode-go/qwen3.5-plus",
+        "opencode-go/minimax-m2.7",
+        "vercel/alibaba/qwen3.5-plus",
+        "vercel/minimax/minimax-m2.7-highspeed",
         "vercel/moonshotai/kimi-k2.6",
         "vercel/google/gemini-3-flash"
       ]
