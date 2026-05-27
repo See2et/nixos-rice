@@ -206,9 +206,9 @@
   },
   "background_task": {
     "providerConcurrency": {
-      "openai": 3,
+      "openai": 5,
       "opencode-go": 10,
-      "vercel": 1
+      "vercel": 5
     }
   },
   "git_master": {
