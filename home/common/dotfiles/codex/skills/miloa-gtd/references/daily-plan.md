@@ -277,6 +277,8 @@ Cal Newport の区別に従ってタスクを分類する。
 
 簡潔なチャット要約を返し、同じ計画を今日の `DailyNote` に書き込む。今日の DailyNote が存在する場合は、適切なセクションに追記または更新する。存在しない場合は、`DailyNote::Date` を今日に設定して作成する。
 
+Task / Project / Organization を参照するときは、原則として `:entry{#...}` を添える。スケジュール表の可読性を優先しつつ、plain text 名だけで参照を済ませない。
+
 推奨 DailyNote 形式：
 
 ```md
