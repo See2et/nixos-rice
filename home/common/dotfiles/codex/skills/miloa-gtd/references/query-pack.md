@@ -11,16 +11,18 @@
 
 ## 週次レビューの必須取得順
 
-1. `Organization::WeeklyReview = true`
-2. `Organization::StrategicBlock = true`
-3. `Project::Status = Active`
-4. 今週内 `DueDate` の未完了 Task
-5. 今週内 `ScheduledDate` の未完了 Task
-6. 古い `Next`
-7. 古い `Await`
-8. 先週の `DailyNote`
-9. 必要なら直近の `WeeklyNote`
-10. Google Calendar の今週予定
+1. `WeeklyReviewTarget`
+2. 当日レビュー対象の `Organization`
+3. `DailyFloorCommitment`
+4. `WeeklyQuotaCommitment`
+5. `Project::Status = Active`
+6. 今週内 `DueDate` の未完了 Task
+7. 今週内 `ScheduledDate` の未完了 Task
+8. 古い `Next`
+9. 古い `Await`
+10. 先週の `DailyNote`
+11. 必要なら直近の `WeeklyNote`
+12. Google Calendar の今週予定
 
 ## 日次計画の必須取得順
 
@@ -31,9 +33,10 @@
 5. `ScheduledDate <= today` の未完了 Task
 6. 古い `Next`
 7. 古い `Await`
-8. `Organization::StrategicBlock = true`
-9. 必要な Active Project
-10. Google Calendar の今日予定
+8. 今日に関係する `DailyFloorCommitment`
+9. 直近 `WeeklyNote` の今日配分
+10. 必要な Active Project
+11. Google Calendar の今日予定
 
 ## GTD 健全性レビューの必須取得順
 
@@ -44,6 +47,9 @@
 5. `DueDate < today` の未完了 Task
 6. `ScheduledDate < today` の未完了 Task
 7. `EstimatedMinutes = 240` の Task
+8. `WeeklyReviewTarget`
+9. `DailyFloorCommitment`
+10. `WeeklyQuotaCommitment`
 
 ## 停止条件
 
@@ -52,4 +58,5 @@
 - Google Calendar を見るべきモードなのに、まだ取得していない
 - Active Project との関係が見えていない
 - `ScheduledDate` / `DueDate` を変更したいのに、理由の記録先が決まっていない
+- `WeeklyQuotaCommitment` があるのに、WeeklyNote 側の週内配分が見えていない
 - `Bucket` を変更したくなったが、その変更自体が依頼されていない
