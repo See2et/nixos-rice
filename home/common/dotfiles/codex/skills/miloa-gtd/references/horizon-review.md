@@ -17,7 +17,7 @@ GTD の Horizons of Focus を miloa に落とし込んだもの。
 | H4 Vision | `Vision` | 3〜5年先の成功像。「どうなっているか」 | `Vision::ParentPurposes` → `Purpose` |
 | H3 Goal | `Goal` | 12〜24ヶ月での達成目標。「何を達成するか」 | `Goal::ParentVisions` → `Vision` |
 | H2 Area | `Area` | 継続的な責務領域 | `Area::Goals` → `Goal` |
-| H1 Project | `Project` | 完了可能な成果 | `Project::Area` → `Area` |
+| H1 Project | `Project` | 完了可能な成果。必要なら `Project::DueDate` を持つ | `Project::Area` → `Area` |
 
 ## 接続構造
 
@@ -48,7 +48,7 @@ Task (Ground)
 3. `Vision` エントリを取得（`ParentPurposes` 付き）
 4. `Goal` エントリを取得（`ParentVisions`, `TargetDate` 付き）
 5. `Area` エントリを取得（`Goals` 付き）
-6. `Project` エントリを取得（`Status = Active`, `Area`, `Organization` 付き）
+6. `Project` エントリを取得（`Status = Active`, `Area`, `Organization`, 必要なら `DueDate` 付き）
 
 ### ステップ2: 整合性マトリクス構築
 
