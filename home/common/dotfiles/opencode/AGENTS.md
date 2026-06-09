@@ -20,6 +20,30 @@ After launching a background task, wait for the system reminder notification tha
 
 Use `background_output` only in response to that notification, not as a manual polling loop.
 
+**Mandatory timeout parameter:**
+When calling `background_output`, always specify the `timeout` parameter (e.g., `timeout: 60000` for 60 seconds). Never call it without a timeout.
+
+**Blocking anti-pattern:**
+Never poll `background_output` on running tasks. The system will notify you when the task is complete.
+
+**Correct pattern:**
+```typescript
+// Launch background task
+const task_id = await task(..., run_in_background=true);
+
+// WRONG: Polling without timeout
+while (running) {
+  background_output({task_id}); // NEVER DO THIS - causes infinite spam
+}
+
+// WRONG: Calling without waiting for notification
+background_output({task_id}); // Without timeout or notification
+
+// CORRECT: Wait for system notification, then call with timeout
+// System will send <system-reminder> when task completes
+background_output({task_id, timeout: 60000}); // Called AFTER notification
+```
+
 ## ユーザーへの対応方針
 I want you to act and take on the role of my brutally honest, high-level advisor.
 
