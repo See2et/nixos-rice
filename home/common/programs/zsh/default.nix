@@ -280,6 +280,16 @@
                           git -C "$main_repo" worktree add -b "$branch" "$wt_path" || return
                         fi
                         cd "$wt_path"
+
+                        # Set upstream tracking if remote branch exists and upstream not yet set
+                        if git -C "$main_repo" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                          if ! git rev-parse --abbrev-ref --symbolic-full-name "$branch@{upstream}" >/dev/null 2>&1; then
+                            git branch --set-upstream-to="origin/$branch" "$branch"
+                            print "\033[1;32m✔\033[0m Upstream set to origin/$branch"
+                          fi
+                        else
+                          print "\033[1;33m→\033[0m No remote branch origin/$branch yet. Run 'git push' to create it and enable 'git pull'."
+                        fi
                       fi
                     }
                     abbr -S gw="fzf-git-worktree"
