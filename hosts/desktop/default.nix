@@ -7,7 +7,12 @@
 # - MUST NOT set wsl.* options
 # - MUST NOT reintroduce a root-level home.nix monolith
 
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  pkgs,
+  opencodePackage,
+  ...
+}:
 
 {
   imports = [
@@ -45,6 +50,6 @@
     isDarwin = false;
     hostId = "desktop";
     rustToolchain = pkgs.rustc;
-    opencodePackage = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+    inherit opencodePackage;
   };
 }

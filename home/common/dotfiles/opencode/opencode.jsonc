@@ -10,7 +10,7 @@
     "oh-my-openagent",
     "opencode-skill-creator"
   ],
-  "lsp": true,
+  "lsp": {},
   "mcp": {
     "miloa": {
       "type": "remote",

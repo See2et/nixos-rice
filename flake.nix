@@ -159,6 +159,18 @@
                   url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-darwin-aarch64.zip";
                   hash = "sha256-2LliIYKK1vl6x6wKt+lYcjQa92MAHogD6CZ2UsJlJiA=";
                 };
+                "x86_64-darwin" = prev.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-darwin-x64-baseline.zip";
+                  hash = "sha256-PjWtb1OXGpg0v55nhuKt9ytfGSHMmpxf3gc9KXKUQHY=";
+                };
+                "x86_64-linux" = prev.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-x64.zip";
+                  hash = "sha256-lR7iruhV8IWVruxiJSJqKY0/6oOj3NZGXAnLzN9+hI8=";
+                };
+                "aarch64-linux" = prev.fetchurl {
+                  url = "https://github.com/oven-sh/bun/releases/download/bun-v1.3.14/bun-linux-aarch64.zip";
+                  hash = "sha256-on/7Y6gxA3WDbg1vZorhf6jY0YuIw3yCHGUzGXOhmjs=";
+                };
               };
             };
             src =
@@ -167,6 +179,40 @@
           }
         );
       };
+
+      mkOpencodeReleasePackage =
+        system:
+        let
+          pkgs = mkPkgs system;
+          release =
+            {
+              x86_64-linux = {
+                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.0/opencode-linux-x64-baseline.tar.gz";
+                hash = "sha256-sT3TnOOAcVP6FfcpAepQPLcaJUh4nbl5lkuWJ3u3HhY=";
+              };
+              aarch64-linux = {
+                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.0/opencode-linux-arm64.tar.gz";
+                hash = "sha256-ahritE0VtTG34KocYjnxb4oV7J+SFFe/qKKxLiI1jtM=";
+              };
+            }
+            .${system} or (throw "Unsupported opencode release system: ${system}");
+          opencodeBinary = pkgs.fetchzip {
+            inherit (release) url hash;
+            stripRoot = false;
+          };
+        in
+        pkgs.writeShellScriptBin "opencode" ''
+          export PATH="${
+            pkgs.lib.makeBinPath [
+              pkgs.ripgrep
+              pkgs.gitMinimal
+            ]
+          }:$PATH"
+          exec ${opencodeBinary}/opencode "$@"
+        '';
+
+      opencodePackageLinux = mkOpencodeReleasePackage linuxSystem;
+      opencodePackageLaptop = mkOpencodeReleasePackage laptopSystem;
 
       opencodePkgsDarwin = import nixpkgs {
         system = darwinSystem;
@@ -195,7 +241,10 @@
       nixosConfigurations = {
         desktop = nixpkgs.lib.nixosSystem {
           system = linuxSystem;
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+            opencodePackage = opencodePackageLinux;
+          };
           modules = [
             ./hosts/desktop
           ];
@@ -203,7 +252,10 @@
 
         laptop = nixpkgs.lib.nixosSystem {
           system = laptopSystem;
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+            opencodePackage = opencodePackageLaptop;
+          };
           modules = [
             ./hosts/laptop
           ];
