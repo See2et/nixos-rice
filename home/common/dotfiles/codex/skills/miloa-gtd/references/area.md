@@ -13,7 +13,7 @@
 - Project の責務領域を示す
 - Horizon Review では `Area::Goals` を通じて上位 Goal とつながる
 
-Area は「毎日触る対象」「週に何時間積む対象」「何曜日にレビューする対象」を表現しない。そうした運用は Organization 側の追加タグで扱う。
+Area 自体は責務領域であり、レビュー曜日を持たせない。ただし、毎日 / 毎週の時間コミットメントは `DailyFloorCommitment` / `WeeklyQuotaCommitment` を追加タグとして持ってよい。
 
 ## Area スキーマ
 
@@ -54,19 +54,20 @@ Area エントリは、少なくとも次を持つ前提で読む：
 Organization 自体は文脈のハブに留め、次を追加タグで表すのを推奨する：
 
 - `WeeklyReviewTarget`: その Organization を何曜日にレビューするか
-- `DailyFloorCommitment`: 毎日最低限どれだけ触るか
-- `WeeklyQuotaCommitment`: 週あたり何時間積むか
+- `DailyFloorCommitment`: commitment anchor に毎日最低限どれだけ触るか
+- `WeeklyQuotaCommitment`: commitment anchor に週あたり何時間積むか
 
 この設計では、
 
 - Area は責務の分類
 - Organization は文脈の分類
 - 追加タグはレビュー / 時間配分ポリシー
+- 時間配分ポリシーは `Organization` だけでなく `Area` / `Project` / `Goal` にも付けられる
 
 という役割分担になる。
 
 ## 避けること
 
 - Area を Organization の代替として使う
-- Area に時間コミットメントやレビュー曜日の意味を持たせる
+- Area 本体フィールドにレビュー曜日や時間コミットメント数値を書き込む
 - Skill ファイルに特定の Area 名や Organization 名をハードコードする
