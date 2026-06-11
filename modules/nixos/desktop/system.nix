@@ -25,6 +25,7 @@ in
     fcitx5.waylandFrontend = true;
     fcitx5.addons = with pkgs; [
       fcitx5-skk
+      fcitx5-hangul
     ];
     fcitx5.settings.addons.skk = {
       globalSection = {
