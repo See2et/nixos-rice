@@ -8,6 +8,7 @@
       ".direnv/"
       ".chiron/"
       ".nix-mingw/"
+      ".omo/"
     ];
     settings = {
       user.name = "See2et";
