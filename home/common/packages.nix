@@ -7,6 +7,9 @@
   opencodePackage,
   ...
 }:
+let
+  pencil-cli = pkgs.callPackage ../../packages/pencil-cli { };
+in
 {
   home.packages =
     (with pkgs; [
@@ -55,5 +58,6 @@
       rustToolchain
       inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex
       opencodePackage
+      pencil-cli
     ];
 }
