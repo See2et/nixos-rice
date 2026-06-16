@@ -9,6 +9,7 @@
       ".chiron/"
       ".nix-mingw/"
       ".omo/"
+      ".envrc"
     ];
     settings = {
       user.name = "See2et";
