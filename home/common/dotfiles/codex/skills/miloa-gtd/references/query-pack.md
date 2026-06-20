@@ -8,6 +8,7 @@
 2. 先に検索を終えてから計画や更新に入る
 3. クエリ結果が空でも、その確認自体を完了扱いとして記録する
 4. `WeeklyNote` / `DailyNote` / Task 更新を書き始める前に、必要クエリの未実行がないことを確認する
+5. `Project` 本文の Natural Planning Model 骨格（`# Purpose` / `# Principles` / `# Outcome` / `# Plan`）は structured filter だけでは検査できない。必要な `Active` Project 一覧を取得したあと、本文を個別確認する
 
 ## 週次レビューの必須取得順
 
