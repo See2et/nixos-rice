@@ -56,6 +56,7 @@
       "obsidian"
       "rowboat"
       "slack"
+      "tailscale"
       "wezterm"
       "yubico-authenticator"
       "zen"

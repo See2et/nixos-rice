@@ -14,5 +14,6 @@
     ./vr.nix
     ./firewall.nix
     ./docker.nix
+    ./remote-dev.nix
   ];
 }

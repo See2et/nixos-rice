@@ -69,5 +69,6 @@
     ./rebuild.nix
     ./session.nix
     ./omniwm.nix
+    ./remote-dev.nix
   ];
 }
