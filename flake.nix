@@ -187,12 +187,12 @@
           release =
             {
               x86_64-linux = {
-                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.0/opencode-linux-x64-baseline.tar.gz";
-                hash = "sha256-sT3TnOOAcVP6FfcpAepQPLcaJUh4nbl5lkuWJ3u3HhY=";
+                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-x64-baseline.tar.gz";
+                hash = "sha256-aqnYgO8KgQBx02ZYZ6rsLhDjn6CktiR4BdElgpJ5ovc=";
               };
               aarch64-linux = {
-                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.0/opencode-linux-arm64.tar.gz";
-                hash = "sha256-ahritE0VtTG34KocYjnxb4oV7J+SFFe/qKKxLiI1jtM=";
+                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-arm64.tar.gz";
+                hash = "sha256-9tjQRCEM56t3iz/da6WXkJZ6KyOf9KUDc4XMpZhyl7E=";
               };
             }
             .${system} or (throw "Unsupported opencode release system: ${system}");
