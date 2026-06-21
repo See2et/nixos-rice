@@ -15,9 +15,8 @@
     "miloa": {
       "type": "remote",
       "url": "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp",
-      "headers": {
-        "Authorization": "Bearer dummy"
-      }
+      "enabled": true,
+      "timeout": 30000
     },
     "godot": {
       "type": "local",
