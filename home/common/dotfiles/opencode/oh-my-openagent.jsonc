@@ -29,10 +29,24 @@
       "variant": "high"
     },
     "librarian": {
-      "model": "openai/gpt-5.4-mini-fast"
+      "model": "opencode/gpt-5.3-codex-spark",
+      "fallback_models": [
+        "openai/gpt-5.4-mini-fast",
+        {
+          "model": "openai/gpt-5.4",
+          "variant": "medium"
+        }
+      ]
     },
     "explore": {
-      "model": "openai/gpt-5.4-mini-fast"
+      "model": "opencode/gpt-5.3-codex-spark",
+      "fallback_models": [
+        "openai/gpt-5.4-mini-fast",
+        {
+          "model": "openai/gpt-5.4",
+          "variant": "medium"
+        }
+      ]
     },
     "multimodal-looker": {
       "model": "openai/gpt-5.4",
@@ -73,7 +87,14 @@
       "variant": "medium"
     },
     "quick": {
-      "model": "openai/gpt-5.4-mini"
+      "model": "opencode/gpt-5.3-codex-spark",
+      "fallback_models": [
+        "openai/gpt-5.4-mini",
+        {
+          "model": "openai/gpt-5.4",
+          "variant": "medium"
+        }
+      ]
     },
     "unspecified-low": {
       "model": "openai/gpt-5.4-mini"
@@ -83,7 +104,14 @@
       "variant": "high"
     },
     "writing": {
-      "model": "openai/gpt-5.4-mini"
+      "model": "opencode/gpt-5.3-codex-spark",
+      "fallback_models": [
+        "openai/gpt-5.4-mini",
+        {
+          "model": "openai/gpt-5.4",
+          "variant": "medium"
+        }
+      ]
     }
   },
   "git_master": {
