@@ -14,7 +14,7 @@
   "mcp": {
     "miloa": {
       "type": "remote",
-      "url": "http://localhost:3000/w/6a3796854921bf6f4061a1f5/mcp",
+      "url": "http://localhost:1430/w/6a3796854921bf6f4061a1f5/mcp",
       "enabled": true,
       "timeout": 30000
     },

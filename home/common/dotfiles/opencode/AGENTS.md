@@ -1,26 +1,20 @@
 - thinking は英語ですること。
 - ユーザーへの回答は原則として日本語ですること。ただし、ログやソースコードを添付する際は、元の言語のまま貼り付けること。
 
-## Background task ownership
+## Background task continuation
 
-`<system-reminder>` for a background task is delivered only to the session that launched that task. It is **not** forwarded automatically to the parent agent, sibling agents, or upstream orchestrator sessions.
+`<system-reminder>` notifications are **pure signals**, not automatic continuations. When a background task completes, the framework emits a notification, but it **does not** automatically invoke `background_output`, parse results, or trigger the next reasoning turn. The agent must explicitly perform these steps.
 
-If a subagent launches its own background tasks, that subagent **owns the full lifecycle**:
-- wait for its own reminder
-- call `background_output` itself
-- synthesize the results into its final reply to the parent
-
-The parent agent must never assume visibility into a subagent's internal background tasks. A parent can observe only:
-- the child task it launched directly
-- the child task's final returned message
-
-**Critical rule:** if a subagent needs results from its own background tasks, it must not return early expecting the parent to collect them later. The parent will be blind unless the child explicitly includes the results in its reply.
+This applies to **every session**, including parent/orchestrator sessions:
+- Receiving `[BACKGROUND TASK COMPLETED]` does **not** mean the framework will auto-continue the workflow
+- The agent must call `background_output` itself after receiving the notification
+- The agent must synthesize the returned results and decide the next action itself
 
 **Wrong mental model:**
-- "The subagent saw `[ALL BACKGROUND TASKS COMPLETE]`, so the parent will see it too."
+- "I received `[ALL BACKGROUND TASKS COMPLETE]`, so the system will automatically fetch results and let me continue."
 
 **Correct mental model:**
-- "Background task reminders are session-local. Nested tasks must be collected and summarized at the level that created them."
+- "The notification only tells me results are ready. I must call `background_output` explicitly, then reason over the results and issue the next tool calls myself."
 
 ## Orchestration / Delegation
 
