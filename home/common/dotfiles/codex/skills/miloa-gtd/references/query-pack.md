@@ -40,7 +40,7 @@
 8. 古い `Next`
 9. 古い `Await`
 10. 今日に関係する `DailyFloorCommitment`
-11. 直近 `WeeklyNote` の今日配分
+11. 直近 `WeeklyNote` の週内粗配分と優先順位
 12. 必要な Active Project
 13. Google Calendar の今日予定
 
@@ -70,5 +70,5 @@
 - `Project::DueDate` が近くなくても、本文の `# Schedule` / `# Plan` にある節目が週次・日次計画へ落ちていない
 - `ScheduledDate` / `DueDate` を変更したいのに、理由の記録先が決まっていない
 - `Project::DueDate` を変更したいのに、理由の記録先が決まっていない
-- `WeeklyQuotaCommitment` があるのに、WeeklyNote 側の週内配分が見えていない
+- `WeeklyQuotaCommitment` があるのに、WeeklyNote 側の週内粗配分や優先順位が見えていない
 - `Bucket` を変更したくなったが、その変更自体が依頼されていない
