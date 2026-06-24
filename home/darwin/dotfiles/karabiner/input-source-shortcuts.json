@@ -1,0 +1,88 @@
+{
+  "title": "Input source shortcuts",
+  "rules": [
+    {
+      "description": "Input source: fn+s -> AquaSKK ASCII",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "s",
+            "modifiers": {
+              "mandatory": [
+                "fn"
+              ],
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "select_input_source": {
+                "language": "en",
+                "input_source_id": "jp.sourceforge.inputmethod.aquaskk.Ascii",
+                "input_mode_id": "com.apple.inputmethod.Roman"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Input source: fn+j -> AquaSKK Hiragana",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "j",
+            "modifiers": {
+              "mandatory": [
+                "fn"
+              ],
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "select_input_source": {
+                "language": "ja",
+                "input_source_id": "jp.sourceforge.inputmethod.aquaskk.Hiragana",
+                "input_mode_id": "com.apple.inputmethod.Japanese.Hiragana"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "Input source: fn+k -> Korean 2-Set",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "k",
+            "modifiers": {
+              "mandatory": [
+                "fn"
+              ],
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "select_input_source": {
+                "language": "ko",
+                "input_source_id": "com.apple.inputmethod.Korean.2SetKorean"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
