@@ -1,6 +1,0 @@
-interface:
-  display_name: "miloa GTD"
-  short_description: "miloaのGTD整理、Project締切整合、週次レビュー、日次計画を行う"
-  default_prompt: "Use $miloa-gtd to review my miloa projects, areas, organizations, goals, and tasks for GTD hygiene, keep Next and Await trustworthy, check project due-date integrity against child tasks, manage per-organization review-day policies and time-commitment policies on organizations/areas/projects/goals, run weekly reviews with one must-solve problem per reviewed organization, and build realistic daily plans when needed."
-policy:
-  allow_implicit_invocation: true
