@@ -1,6 +1,7 @@
 { lib, ... }:
 {
   imports = [
+    ./bluetooth.nix
     ./niri.nix
     ./session-startup.nix
     ./wallpaper.nix
