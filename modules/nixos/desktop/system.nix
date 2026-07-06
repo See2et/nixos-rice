@@ -84,6 +84,7 @@ in
 
   programs.xfconf.enable = true;
   services.gvfs.enable = true;
+  services.udisks2.enable = true;
   services.tumbler.enable = true;
 
   environment.systemPackages = with pkgs; [
@@ -106,6 +107,7 @@ in
     (ffmpeg-full.override { withUnfree = true; })
     vulkan-tools
     libva-utils
+    usbutils
   ];
 
   services.pcscd.enable = true;
