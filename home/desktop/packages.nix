@@ -3,6 +3,7 @@
   pkgs,
   inputs,
   config,
+  hostId,
   ...
 }:
 let
@@ -710,5 +711,9 @@ in
         wlx-overlay-s
         oyasumiLaunch
       ]
-    );
+    )
+    ++ lib.optionals (hostId == "desktop") [
+      pkgs.bambu-studio
+      pkgsUnstable.zmk-studio
+    ];
 }
