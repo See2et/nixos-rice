@@ -4,7 +4,6 @@
 { ... }:
 {
   imports = [
-    ./files/codex.nix
     ./fonts.nix
     ./files/opencode.nix
     ./programs/direnv.nix

@@ -67,45 +67,45 @@
   '';
 
   home.activation.syncKarabinerInputSourceShortcuts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    karabinerConfig="${config.home.homeDirectory}/.config/karabiner/karabiner.json"
-    karabinerRuleAsset="${config.home.homeDirectory}/.config/karabiner/assets/complex_modifications/input-source-shortcuts.json"
+        karabinerConfig="${config.home.homeDirectory}/.config/karabiner/karabiner.json"
+        karabinerRuleAsset="${config.home.homeDirectory}/.config/karabiner/assets/complex_modifications/input-source-shortcuts.json"
 
-    if [ ! -f "$karabinerRuleAsset" ]; then
-      exit 0
-    fi
+        if [ ! -f "$karabinerRuleAsset" ]; then
+          exit 0
+        fi
 
-    mkdir -p "$(dirname "$karabinerConfig")"
+        mkdir -p "$(dirname "$karabinerConfig")"
 
-    ${pkgs.python3}/bin/python3 - <<'PY'
-import json
-from pathlib import Path
+        ${pkgs.python3}/bin/python3 - <<'PY'
+    import json
+    from pathlib import Path
 
-config_path = Path("${config.home.homeDirectory}/.config/karabiner/karabiner.json")
-asset_path = Path("${config.home.homeDirectory}/.config/karabiner/assets/complex_modifications/input-source-shortcuts.json")
+    config_path = Path("${config.home.homeDirectory}/.config/karabiner/karabiner.json")
+    asset_path = Path("${config.home.homeDirectory}/.config/karabiner/assets/complex_modifications/input-source-shortcuts.json")
 
-if config_path.exists():
-    config = json.loads(config_path.read_text())
-else:
-    config = {}
+    if config_path.exists():
+        config = json.loads(config_path.read_text())
+    else:
+        config = {}
 
-profiles = config.setdefault("profiles", [])
-if not profiles:
-    profiles.append({"name": "Default profile", "selected": True})
+    profiles = config.setdefault("profiles", [])
+    if not profiles:
+        profiles.append({"name": "Default profile", "selected": True})
 
-profile = next((p for p in profiles if p.get("selected")), profiles[0])
-complex_modifications = profile.setdefault("complex_modifications", {})
-existing_rules = complex_modifications.setdefault("rules", [])
+    profile = next((p for p in profiles if p.get("selected")), profiles[0])
+    complex_modifications = profile.setdefault("complex_modifications", {})
+    existing_rules = complex_modifications.setdefault("rules", [])
 
-asset = json.loads(asset_path.read_text())
-new_rules = asset.get("rules", [])
-managed_descriptions = {rule.get("description") for rule in new_rules}
+    asset = json.loads(asset_path.read_text())
+    new_rules = asset.get("rules", [])
+    managed_descriptions = {rule.get("description") for rule in new_rules}
 
-complex_modifications["rules"] = [
-    rule for rule in existing_rules if rule.get("description") not in managed_descriptions
-] + new_rules
+    complex_modifications["rules"] = [
+        rule for rule in existing_rules if rule.get("description") not in managed_descriptions
+    ] + new_rules
 
-config_path.write_text(json.dumps(config, indent=4) + "\n")
-PY
+    config_path.write_text(json.dumps(config, indent=4) + "\n")
+    PY
   '';
 
   home.file."Library/Application Support/AquaSKK/BlacklistApps.plist" = {
