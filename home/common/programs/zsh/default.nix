@@ -342,7 +342,7 @@
             }
 
             printf "%s\n\n--- STAGED DIFF ---\n%s\n" "$prompt" "$diff" \
-              | codex exec --color never --output-last-message "$tmp_output" -c model_reasoning_effort=\"low\" -s read-only - >/dev/null 2>&1 || {
+            | codex exec --color never --output-last-message "$tmp_output" --model gpt-5.4 -c model_reasoning_effort=\"low\" -s read-only - >/dev/null 2>&1 || {
               rm -f "$tmp_output"
               print -u2 "git-codex-commit: codex failed"
               return 1
