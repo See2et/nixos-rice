@@ -18,6 +18,8 @@
   imports = [
     # Shared baseline (nix.settings, shell, gpg)
     ../../modules/nixos/common
+    # Keep generation retention local to this storage-constrained host.
+    ./generation-retention.nix
     # Desktop-only system domains (boot/display/gpu/audio/vr/firewall)
     ../../modules/nixos/desktop
     # Include the results of the hardware scan.
@@ -39,6 +41,7 @@
       ../../home/common
       ../../home/linux
       ../../home/desktop
+      ./home-generation-retention.nix
     ];
     home.username = "see2et";
     home.homeDirectory = "/home/see2et";
