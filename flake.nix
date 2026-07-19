@@ -59,23 +59,15 @@
     {
       self,
       nixpkgs,
-      nixpkgs-steam,
       home-manager,
       nix-darwin,
-      niri,
-      nixos-wsl,
-      nixpkgs-xr,
-      codex-cli-nix,
-      opencode,
       ...
     }@inputs:
     let
       linuxSystem = "x86_64-linux";
-      laptopSystem = "aarch64-linux";
       darwinSystem = "aarch64-darwin";
       systems = [
         linuxSystem
-        laptopSystem
         darwinSystem
       ];
 
@@ -190,10 +182,6 @@
                 url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-x64-baseline.tar.gz";
                 hash = "sha256-aqnYgO8KgQBx02ZYZ6rsLhDjn6CktiR4BdElgpJ5ovc=";
               };
-              aarch64-linux = {
-                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-arm64.tar.gz";
-                hash = "sha256-9tjQRCEM56t3iz/da6WXkJZ6KyOf9KUDc4XMpZhyl7E=";
-              };
             }
             .${system} or (throw "Unsupported opencode release system: ${system}");
           opencodeBinary = pkgs.fetchzip {
@@ -212,7 +200,6 @@
         '';
 
       opencodePackageLinux = mkOpencodeReleasePackage linuxSystem;
-      opencodePackageLaptop = mkOpencodeReleasePackage laptopSystem;
 
       opencodePkgsDarwin = import nixpkgs {
         system = darwinSystem;
@@ -247,17 +234,6 @@
           };
           modules = [
             ./hosts/desktop
-          ];
-        };
-
-        laptop = nixpkgs.lib.nixosSystem {
-          system = laptopSystem;
-          specialArgs = {
-            inherit inputs;
-            opencodePackage = opencodePackageLaptop;
-          };
-          modules = [
-            ./hosts/laptop
           ];
         };
 
