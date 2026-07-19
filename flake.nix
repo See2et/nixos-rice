@@ -139,6 +139,35 @@
           touch "$out"
         '';
 
+      mkScriptCheck =
+        system: name: scriptPath:
+        let
+          pkgs = mkPkgs system;
+        in
+        pkgs.runCommand name
+          {
+            nativeBuildInputs = with pkgs; [
+              bash
+              binutils
+              coreutils
+              findutils
+              gnugrep
+              jq
+            ];
+            src = self;
+          }
+          ''
+            export HOME="$TMPDIR"
+            worktree="$TMPDIR/flake-src"
+            mkdir -p "$worktree"
+            cp -a "$src"/. "$worktree"
+            chmod -R u+rwX "$worktree"
+            cd "$worktree"
+            printf '%s: running %s from %s\n' "${name}" "./${scriptPath}" "$PWD"
+            bash "./${scriptPath}"
+            touch "$out"
+          '';
+
       pkgsDarwin = mkPkgs darwinSystem;
 
       bun114Overlay = final: prev: {
