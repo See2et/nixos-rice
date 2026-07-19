@@ -1,9 +1,8 @@
 # nixos-rice
 
-1つのリポジトリで、以下4ターゲットを管理する統合Nix flakeです。
+1つのリポジトリで、以下3ターゲットを管理する統合Nix flakeです。
 
 - `nixosConfigurations.desktop`（NixOSデスクトップ）
-- `nixosConfigurations.laptop`（Asahi Linux / aarch64-linux ラップトップ）
 - `nixosConfigurations.wsl`（NixOS-WSL）
 - `darwinConfigurations.darwin`（macOS向けnix-darwin + Home Manager + nix-homebrew）
 
@@ -28,21 +27,13 @@ cd /etc/nixos
 
 ## 3) ターゲット別の導入手順
 
-### Desktop / Laptop（NixOS）
+### Desktop（NixOS）
 
 1. ハードウェア設定を更新します。
 
 ```bash
 sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configuration.nix
 ```
-
-Laptop（Asahi Linux / M1 MacBook）用に導入する場合は、以下を使います。
-
-```bash
-sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configuration-laptop.nix
-```
-
-注: `laptop` は `aarch64-linux` 固定です。`hardware-configuration-laptop.nix` は実機で必ず生成し直してください。
 
 2. 必要に応じて `hosts/desktop/default.nix` のユーザー情報を変更します。
    - `home-manager.users.see2et`
@@ -129,7 +120,6 @@ nix run github:LnL7/nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake
 ```bash
 cd /etc/nixos
 nix build .#nixosConfigurations.desktop.config.system.build.toplevel
-nix build .#nixosConfigurations.laptop.config.system.build.toplevel
 nix build .#nixosConfigurations.wsl.config.system.build.toplevel
 ```
 

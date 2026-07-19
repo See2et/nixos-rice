@@ -2,19 +2,21 @@
 
 ## Overview
 
-This is a unified NixOS flake repo managing four targets from a single source of truth:
+This is a unified NixOS flake repo managing three targets from a single source of truth:
 - **Desktop** (`nixosConfigurations.desktop`) — NixOS x86_64-linux workstation
-- **Laptop** (`nixosConfigurations.laptop`) — NixOS aarch64-linux laptop
 - **WSL** (`nixosConfigurations.wsl`) — NixOS-WSL under Windows
 - **Darwin** (`darwinConfigurations.darwin`) — nix-darwin + Home Manager + nix-homebrew on aarch64-darwin
 
 ## Architecture
 
+VR 変更の一次参照は `home/desktop/vr/AGENTS.md`。
+Steam, SteamVR, ALVR, OyasumiVR, WayVR に触る前に必ず読むこと。
+このリポジトリに laptop ターゲットはない。
+
 ```
 flake.nix                         # Single entry point — all outputs defined here
 ├── hosts/
 │   ├── desktop/default.nix       # Desktop host wiring (imports hw, desktop modules, niri, nvidia, HM)
-│   ├── laptop/default.nix        # Laptop host wiring (imports laptop hw, desktop-class modules, HM)
 │   ├── darwin/default.nix        # Darwin host wiring (imports darwin modules, HM, nix-homebrew)
 │   └── wsl/default.nix           # WSL host wiring (imports nixos-wsl, HM)
 ├── modules/darwin/
@@ -100,7 +102,6 @@ grep -rn 'modules/nixos/wsl\|home/wsl\|nixos-wsl\|/mnt/c' hosts/desktop/ home/co
 ```bash
 nix flake check --show-trace                                          # Validate all outputs
 nix build .#nixosConfigurations.desktop.config.system.build.toplevel  # Build desktop (no activation)
-nix build .#nixosConfigurations.laptop.config.system.build.toplevel   # Build laptop
 nix build .#nixosConfigurations.wsl.config.system.build.toplevel      # Build WSL
 nix eval .#nixosConfigurations.desktop.config.services.pipewire.enable # Inspect any option
 nix build .#darwinConfigurations.darwin.system                         # Darwin build (requires aarch64-darwin)
