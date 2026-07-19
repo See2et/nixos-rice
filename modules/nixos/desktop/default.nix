@@ -3,6 +3,7 @@
 {
   imports = [
     ./system.nix
+    ./steam.nix
     ./unity-runtime.nix
     ./bluetooth.nix
     ./boot.nix
