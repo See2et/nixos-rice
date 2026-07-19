@@ -12,6 +12,7 @@
     ./niri.nix
     ./nvidia.nix
     ./audio.nix
+    ./adb.nix
     ./vr.nix
     ./firewall.nix
     ./docker.nix
