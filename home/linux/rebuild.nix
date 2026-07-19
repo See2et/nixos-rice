@@ -2,8 +2,7 @@
 { hostId, lib, ... }:
 let
   rebuildCommands = {
-    desktop = "sudo nixos-rebuild switch --flake /etc/nixos#desktop";
-    laptop = "sudo nixos-rebuild switch --flake /etc/nixos#laptop";
+    desktop = "sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop";
   };
 in
 {

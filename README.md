@@ -46,13 +46,13 @@ sudo nixos-generate-config --show-hardware-config > /etc/nixos/hardware-configur
 sudo passwd see2et
 ```
 
-4. 安全な順序で検証・反映します（`#desktop` または `#laptop` を選択）。
+4. 安全な順序で検証・反映します。`dry-activate` から開始し、`test` と `switch` は必ず実機ユーザーが手動で実行してください。
 
 ```bash
 nix flake check --show-trace
-sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop  # or #laptop
-sudo nixos-rebuild test --flake /etc/nixos#desktop          # or #laptop
-sudo nixos-rebuild switch --flake /etc/nixos#desktop        # or #laptop
+sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop
+sudo nixos-rebuild test --flake /etc/nixos#desktop
+sudo nixos-rebuild switch --flake /etc/nixos#desktop
 ```
 
 ### WSL（NixOS-WSL）
@@ -69,7 +69,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#desktop        # or #laptop
 sudo passwd nixos
 ```
 
-4. 検証・反映を実行します。
+4. 検証・反映を実行します。必ず `dry-activate` から始め、`test` と `switch` は実機ユーザーが手動で進めてください。
 
 ```bash
 nix flake check --show-trace
@@ -131,7 +131,9 @@ nix build .#nixosConfigurations.wsl.config.system.build.toplevel
 cd /etc/nixos
 git pull --rebase
 nix flake check --show-trace
-sudo nixos-rebuild switch --flake /etc/nixos#desktop   # または #wsl
+sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop   # または #wsl
+sudo nixos-rebuild test --flake /etc/nixos#desktop           # 実機ユーザーが手動実行
+sudo nixos-rebuild switch --flake /etc/nixos#desktop         # 実機ユーザーが最後に手動実行
 ```
 
 ## 6) ロールバック（NixOS）
