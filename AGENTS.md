@@ -43,6 +43,8 @@ flake.nix                         # Single entry point — all outputs defined h
 
 This repo lives at `/etc/nixos` — the live NixOS system configuration. `switch` and `test` can affect the running system immediately. `dry-activate` is a lower-risk preflight check, but it still executes activation logic in dry mode. During this migration, a subagent ran `nixos-rebuild switch` without authorization, triggering a reboot and login lockout.
 
+VR changes add one more gate, physical HMD QA after build and user activation.
+
 **Mandatory protocol:**
 - Build and eval are always safe: `nix build`, `nix eval`, `nix flake check`
 - Agent automation may run `dry-activate` only (never delegate this to subagents)
