@@ -13,7 +13,7 @@
     ./packages.nix
     ./lazydocker.nix
     ./obs.nix
-    ./alvr.nix
+    ./vr
     ./zen-browser.nix
     ./xdg.nix
     ./theme.nix
