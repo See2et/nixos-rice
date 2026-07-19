@@ -1,0 +1,4 @@
+// Canonical empty OpenXR overrides for WayVR.
+// SteamVR controller bindings can be managed from:
+// http://localhost:27062/dashboard/controllerbinding.html
+[]
