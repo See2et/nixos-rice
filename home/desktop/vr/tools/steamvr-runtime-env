@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: steamvr-runtime-env --manifest PATH -- COMMAND [ARG...]
+
+Run COMMAND with XR_RUNTIME_JSON scoped to the provided OpenXR runtime
+manifest. The parent shell environment is not modified.
+EOF
+}
+
+fail() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+require_jq() {
+  command -v jq >/dev/null 2>&1 || fail "jq not found in PATH"
+}
+
+require_readelf() {
+  command -v readelf >/dev/null 2>&1 || fail "readelf not found in PATH"
+}
+
+jq_exec() {
+  jq "$@"
+}
+
+runtime_library_validation_message() {
+  local runtime_library_path=$1
+  local readelf_output
+  local readelf_status
+  local diagnostic_line
+
+  if [[ ! -f $runtime_library_path ]]; then
+    printf 'missing shared library'
+    return 0
+  fi
+
+  if readelf_output=$(LC_ALL=C readelf -h -l -d --wide "$runtime_library_path" 2>&1); then
+    readelf_status=0
+  else
+    readelf_status=$?
+  fi
+
+  diagnostic_line=
+  while IFS= read -r line; do
+    case $line in
+      *Error:*|*Warning:*)
+        diagnostic_line=$line
+        break
+        ;;
+    esac
+  done <<< "$readelf_output"
+
+  if (( readelf_status != 0 )) || [[ -n $diagnostic_line ]]; then
+    if [[ -n $diagnostic_line ]]; then
+      printf 'invalid ELF structure; readelf diagnostics: %s' "$diagnostic_line"
+    else
+      printf 'invalid ELF structure; readelf exited with status %s' "$readelf_status"
+    fi
+    return 0
+  fi
+
+  if [[ -z $readelf_output ]]; then
+    printf 'invalid ELF header; expected ELF64 x86-64 ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Class:                             ELF64"* ]]; then
+    printf 'invalid ELF class; expected ELF64 x86-64 ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Machine:                           Advanced Micro Devices X86-64"* ]]; then
+    printf 'invalid ELF machine; expected x86-64 shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Type:                              DYN (Shared object file)"* ]]; then
+    printf 'invalid ELF type; expected ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"  LOAD           "* ]]; then
+    printf 'invalid ELF structure; missing LOAD segment in program headers'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"  DYNAMIC        "* ]]; then
+    printf 'invalid ELF structure; missing DYNAMIC segment in program headers'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Dynamic section at offset"* ]]; then
+    printf 'invalid ELF structure; missing dynamic section entries'
+    return 0
+  fi
+
+  printf ''
+}
+
+manifest_parseable() {
+  jq_exec -e . "$1" >/dev/null 2>&1
+}
+
+abs_dirname() {
+  local dir_path=$1
+  (cd -- "$dir_path" && pwd -P)
+}
+
+to_absolute_path() {
+  local input_path=$1
+  local dir_name
+  local base_name
+
+  if [[ $input_path == /* ]]; then
+    printf '%s\n' "$input_path"
+    return 0
+  fi
+
+  dir_name=$(dirname -- "$input_path")
+  base_name=$(basename -- "$input_path")
+  printf '%s/%s\n' "$(abs_dirname "$dir_name")" "$base_name"
+}
+
+resolve_against_dir() {
+  local base_dir=$1
+  local input_path=$2
+
+  if [[ $input_path == /* ]]; then
+    printf '%s\n' "$input_path"
+  else
+    printf '%s/%s\n' "$base_dir" "$input_path"
+  fi
+}
+
+manifest_library_path() {
+  jq_exec -er '
+    select(.file_format_version == "1.0.0")
+    | .runtime
+    | select(type == "object")
+    | .library_path
+    | strings
+    | select(length > 0)
+  ' "$1" 2>/dev/null
+}
+
+manifest_validation_reason() {
+  jq_exec -er '
+    if .file_format_version != "1.0.0" then
+      "invalid file_format_version"
+    elif (.runtime | type) != "object" then
+      "missing runtime object"
+    elif (.runtime.library_path | type) != "string" then
+      "missing runtime.library_path"
+    elif (.runtime.library_path | length) == 0 then
+      "empty runtime.library_path"
+    else
+      empty
+    end
+  ' "$1" 2>/dev/null || true
+}
+
+validate_manifest() {
+  local manifest_path=$1
+  local manifest_dir
+  local library_path
+  local resolved_library_path
+  local validation_reason
+
+  [[ -f $manifest_path ]] || fail "manifest not found: ${manifest_path}"
+
+  manifest_parseable "$manifest_path" || fail "malformed OpenXR manifest: ${manifest_path}"
+
+  library_path=$(manifest_library_path "$manifest_path" || true)
+  if [[ -z $library_path ]]; then
+    validation_reason=$(manifest_validation_reason "$manifest_path")
+    if [[ -n $validation_reason ]]; then
+      fail "${validation_reason} in OpenXR manifest: ${manifest_path}"
+    fi
+    fail "malformed OpenXR manifest: ${manifest_path}"
+  fi
+
+  manifest_dir=$(dirname -- "$manifest_path")
+  resolved_library_path=$(resolve_against_dir "$manifest_dir" "$library_path")
+
+  [[ -f $resolved_library_path ]] || fail "missing shared library for manifest ${manifest_path}: ${resolved_library_path}"
+  validation_reason=$(runtime_library_validation_message "$resolved_library_path")
+  [[ -z $validation_reason ]] || fail "${validation_reason} for manifest ${manifest_path}: ${resolved_library_path}"
+}
+
+if [[ ${1-} == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ ${1-} != "--manifest" ]]; then
+  usage >&2
+  fail "missing required --manifest PATH"
+fi
+
+manifest_path=${2-}
+if [[ -z ${manifest_path} ]]; then
+  usage >&2
+  fail "missing manifest path"
+fi
+
+if [[ ${3-} != "--" ]]; then
+  usage >&2
+  fail "expected -- before command"
+fi
+
+shift 3
+
+if [[ $# -eq 0 ]]; then
+  usage >&2
+  fail "missing command"
+fi
+
+manifest_path=$(to_absolute_path "$manifest_path")
+require_jq
+require_readelf
+validate_manifest "$manifest_path"
+
+exec env XR_RUNTIME_JSON="${manifest_path}" "$@"

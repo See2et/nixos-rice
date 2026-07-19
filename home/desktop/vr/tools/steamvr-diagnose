@@ -1,0 +1,308 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: steamvr-diagnose
+
+Read-only SteamVR/OpenXR diagnostic report. Inspects conventional Steam and
+OpenXR selector paths, reports missing Steam or read-only state, and prints
+selector/runtime details without mutating user files.
+EOF
+}
+
+say() {
+  printf '%s\n' "$*"
+}
+
+require_jq() {
+  command -v jq >/dev/null 2>&1 || {
+    say "jq: missing from PATH"
+    exit 1
+  }
+}
+
+require_readelf() {
+  command -v readelf >/dev/null 2>&1 || {
+    say "readelf: missing from PATH"
+    exit 1
+  }
+}
+
+path_mode() {
+  stat -c '%a' -- "$1" 2>/dev/null || printf 'unknown\n'
+}
+
+jq_exec() {
+  jq "$@"
+}
+
+runtime_library_validation_message() {
+  local runtime_library_path=$1
+  local readelf_output
+  local readelf_status
+  local diagnostic_line
+
+  if [[ ! -f $runtime_library_path ]]; then
+    printf 'missing'
+    return 0
+  fi
+
+  if readelf_output=$(LC_ALL=C readelf -h -l -d --wide "$runtime_library_path" 2>&1); then
+    readelf_status=0
+  else
+    readelf_status=$?
+  fi
+
+  diagnostic_line=
+  while IFS= read -r line; do
+    case $line in
+      *Error:*|*Warning:*)
+        diagnostic_line=$line
+        break
+        ;;
+    esac
+  done <<< "$readelf_output"
+
+  if (( readelf_status != 0 )) || [[ -n $diagnostic_line ]]; then
+    if [[ -n $diagnostic_line ]]; then
+      printf 'invalid ELF structure; readelf diagnostics: %s' "$diagnostic_line"
+    else
+      printf 'invalid ELF structure; readelf exited with status %s' "$readelf_status"
+    fi
+    return 0
+  fi
+
+  if [[ -z $readelf_output ]]; then
+    printf 'invalid ELF header; expected ELF64 x86-64 ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Class:                             ELF64"* ]]; then
+    printf 'invalid ELF class; expected ELF64 x86-64 ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Machine:                           Advanced Micro Devices X86-64"* ]]; then
+    printf 'invalid ELF machine; expected x86-64 shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Type:                              DYN (Shared object file)"* ]]; then
+    printf 'invalid ELF type; expected ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"  LOAD           "* ]]; then
+    printf 'invalid ELF structure; missing LOAD segment in program headers'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"  DYNAMIC        "* ]]; then
+    printf 'invalid ELF structure; missing DYNAMIC segment in program headers'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Dynamic section at offset"* ]]; then
+    printf 'invalid ELF structure; missing dynamic section entries'
+    return 0
+  fi
+
+  printf ''
+}
+
+manifest_parseable() {
+  jq_exec -e . "$1" >/dev/null 2>&1
+}
+
+manifest_library_path() {
+  jq_exec -er '
+    select(.file_format_version == "1.0.0")
+    | .runtime
+    | select(type == "object")
+    | .library_path
+    | strings
+    | select(length > 0)
+  ' "$1" 2>/dev/null
+}
+
+manifest_validation_reason() {
+  jq_exec -er '
+    if .file_format_version != "1.0.0" then
+      "invalid file_format_version"
+    elif (.runtime | type) != "object" then
+      "missing runtime object"
+    elif (.runtime.library_path | type) != "string" then
+      "missing runtime.library_path"
+    elif (.runtime.library_path | length) == 0 then
+      "empty runtime.library_path"
+    else
+      empty
+    end
+  ' "$1" 2>/dev/null || true
+}
+
+resolve_against_dir() {
+  local base_dir=$1
+  local input_path=$2
+
+  if [[ $input_path == /* ]]; then
+    printf '%s\n' "$input_path"
+  else
+    printf '%s/%s\n' "$base_dir" "$input_path"
+  fi
+}
+
+report_runtime_library_status() {
+  local label=$1
+  local runtime_library_path=$2
+  local validation_reason
+
+  if [[ ! -f $runtime_library_path ]]; then
+    say "${label}: missing (${runtime_library_path})"
+    return 0
+  fi
+
+  validation_reason=$(runtime_library_validation_message "$runtime_library_path")
+  if [[ -z $validation_reason ]]; then
+    say "${label}: present (${runtime_library_path})"
+  else
+    say "${label}: ${validation_reason} (${runtime_library_path})"
+  fi
+}
+
+report_selector() {
+  local selector_path=$1
+  local selector_label=$2
+  local raw_target
+  local manifest_path
+  local library_path
+  local resolved_library_path
+  local validation_reason
+
+  if [[ ! -e $selector_path && ! -L $selector_path ]]; then
+    say "${selector_label}: absent (${selector_path})"
+    return 0
+  fi
+
+  if [[ -L $selector_path ]]; then
+    raw_target=$(readlink -- "$selector_path")
+    manifest_path=$(resolve_against_dir "$(dirname -- "$selector_path")" "$raw_target")
+    say "${selector_label}: symlink -> ${raw_target}"
+  elif [[ -f $selector_path ]]; then
+    manifest_path=$selector_path
+    say "${selector_label}: regular file (${selector_path})"
+  else
+    say "${selector_label}: unusual non-file node at ${selector_path}"
+    return 0
+  fi
+
+  if [[ ! -f $manifest_path ]]; then
+    say "runtime manifest: missing (${manifest_path})"
+    return 0
+  fi
+
+  if ! manifest_parseable "$manifest_path"; then
+    say "runtime manifest: malformed (${manifest_path})"
+    return 0
+  fi
+
+  library_path=$(manifest_library_path "$manifest_path" || true)
+  if [[ -z $library_path ]]; then
+    validation_reason=$(manifest_validation_reason "$manifest_path")
+    if [[ -n $validation_reason ]]; then
+      say "runtime manifest: ${validation_reason} (${manifest_path})"
+    else
+      say "runtime manifest: malformed (${manifest_path})"
+    fi
+    return 0
+  fi
+
+  resolved_library_path=$(resolve_against_dir "$(dirname -- "$manifest_path")" "$library_path")
+  say "runtime manifest: valid (${manifest_path})"
+  report_runtime_library_status "runtime library" "$resolved_library_path"
+}
+
+report_manifest() {
+  local manifest_path=$1
+  local label=$2
+  local library_path
+  local resolved_library_path
+  local validation_reason
+
+  if [[ ! -f $manifest_path ]]; then
+    say "${label}: missing (${manifest_path})"
+    return 0
+  fi
+
+  if ! manifest_parseable "$manifest_path"; then
+    say "${label}: malformed (${manifest_path})"
+    return 0
+  fi
+
+  library_path=$(manifest_library_path "$manifest_path" || true)
+  if [[ -z $library_path ]]; then
+    validation_reason=$(manifest_validation_reason "$manifest_path")
+    if [[ -n $validation_reason ]]; then
+      say "${label}: ${validation_reason} (${manifest_path})"
+    else
+      say "${label}: malformed (${manifest_path})"
+    fi
+    return 0
+  fi
+
+  resolved_library_path=$(resolve_against_dir "$(dirname -- "$manifest_path")" "$library_path")
+  say "${label}: manifest valid (${manifest_path})"
+  validation_reason=$(runtime_library_validation_message "$resolved_library_path")
+  if [[ $validation_reason == missing ]]; then
+    say "${label}: resolved runtime library missing (${resolved_library_path})"
+  elif [[ -z $validation_reason ]]; then
+    say "${label}: resolved runtime library present (${resolved_library_path})"
+  else
+    say "${label}: resolved runtime library ${validation_reason} (${resolved_library_path})"
+  fi
+}
+
+if [[ ${1-} == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -ne 0 ]]; then
+  usage >&2
+  exit 1
+fi
+
+steam_root="${HOME}/.local/share/Steam"
+steamvr_library="${steam_root}/steamapps/common/SteamVR/bin/linux64/libopenxr_loader.so"
+steamvr_manifest="${steam_root}/steamapps/common/SteamVR/steamxr_linux64.json"
+config_home=${XDG_CONFIG_HOME:-"${HOME}/.config"}
+selector_arch_path="${config_home}/openxr/1/active_runtime.x86_64.json"
+selector_generic_path="${config_home}/openxr/1/active_runtime.json"
+
+require_jq
+require_readelf
+
+if [[ ! -d $steam_root ]]; then
+  say "Steam: missing Steam at ${steam_root}"
+else
+  if [[ -w $steam_root ]]; then
+    say "Steam: present and writable at ${steam_root} (mode $(path_mode "$steam_root"))"
+  else
+    say "Steam: present but read-only at ${steam_root} (mode $(path_mode "$steam_root"))"
+  fi
+
+  validation_reason=$(runtime_library_validation_message "$steamvr_library")
+  if [[ $validation_reason == missing ]]; then
+    say "SteamVR runtime library: missing (${steamvr_library})"
+  elif [[ -z $validation_reason ]]; then
+    say "SteamVR runtime library: present (${steamvr_library}, mode $(path_mode "$steamvr_library"))"
+  else
+    say "SteamVR runtime library: ${validation_reason} (${steamvr_library})"
+  fi
+fi
+
+report_manifest "$steamvr_manifest" "SteamVR runtime manifest"
+report_selector "$selector_arch_path" "selector x86_64"
+report_selector "$selector_generic_path" "selector generic"

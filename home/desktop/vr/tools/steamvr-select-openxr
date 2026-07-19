@@ -1,0 +1,416 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: steamvr-select-openxr --manifest PATH [--force]
+       steamvr-select-openxr --restore
+
+Validate an OpenXR runtime manifest with jq, then atomically point
+$XDG_CONFIG_HOME/openxr/1/active_runtime.x86_64.json at it. When replacing
+an existing selector, preserve the previous selector at
+$XDG_CONFIG_HOME/openxr/1/active_runtime.x86_64.json.steamvr-backup.
+If no arch-specific selector existed, record that absent state so --restore
+removes the created arch-specific selector and re-exposes generic fallback or
+full absence. Unknown existing selectors require --force.
+EOF
+}
+
+fail() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+require_readelf() {
+  command -v readelf >/dev/null 2>&1 || fail "readelf not found in PATH"
+}
+
+jq_exec() {
+  if command -v jq >/dev/null 2>&1; then
+    jq "$@"
+  else
+    nix shell nixpkgs#jq -c jq "$@"
+  fi
+}
+
+runtime_library_validation_message() {
+  local runtime_library_path=$1
+  local readelf_output
+  local readelf_status
+  local diagnostic_line
+
+  if [[ ! -f $runtime_library_path ]]; then
+    printf 'missing shared library'
+    return 0
+  fi
+
+  if readelf_output=$(LC_ALL=C readelf -h -l -d --wide "$runtime_library_path" 2>&1); then
+    readelf_status=0
+  else
+    readelf_status=$?
+  fi
+
+  diagnostic_line=
+  while IFS= read -r line; do
+    case $line in
+      *Error:*|*Warning:*)
+        diagnostic_line=$line
+        break
+        ;;
+    esac
+  done <<< "$readelf_output"
+
+  if (( readelf_status != 0 )) || [[ -n $diagnostic_line ]]; then
+    if [[ -n $diagnostic_line ]]; then
+      printf 'invalid ELF structure; readelf diagnostics: %s' "$diagnostic_line"
+    else
+      printf 'invalid ELF structure; readelf exited with status %s' "$readelf_status"
+    fi
+    return 0
+  fi
+
+  if [[ -z $readelf_output ]]; then
+    printf 'invalid ELF header; expected ELF64 x86-64 ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Class:                             ELF64"* ]]; then
+    printf 'invalid ELF class; expected ELF64 x86-64 ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Machine:                           Advanced Micro Devices X86-64"* ]]; then
+    printf 'invalid ELF machine; expected x86-64 shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Type:                              DYN (Shared object file)"* ]]; then
+    printf 'invalid ELF type; expected ET_DYN shared object'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"  LOAD           "* ]]; then
+    printf 'invalid ELF structure; missing LOAD segment in program headers'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"  DYNAMIC        "* ]]; then
+    printf 'invalid ELF structure; missing DYNAMIC segment in program headers'
+    return 0
+  fi
+
+  if [[ $readelf_output != *"Dynamic section at offset"* ]]; then
+    printf 'invalid ELF structure; missing dynamic section entries'
+    return 0
+  fi
+
+  printf ''
+}
+
+manifest_parseable() {
+  jq_exec -e . "$1" >/dev/null 2>&1
+}
+
+abs_dirname() {
+  local dir_path=$1
+  (cd -- "$dir_path" && pwd -P)
+}
+
+to_absolute_path() {
+  local input_path=$1
+  local dir_name
+  local base_name
+
+  if [[ $input_path == /* ]]; then
+    printf '%s\n' "$input_path"
+    return 0
+  fi
+
+  dir_name=$(dirname -- "$input_path")
+  base_name=$(basename -- "$input_path")
+  printf '%s/%s\n' "$(abs_dirname "$dir_name")" "$base_name"
+}
+
+resolve_against_dir() {
+  local base_dir=$1
+  local input_path=$2
+
+  if [[ $input_path == /* ]]; then
+    printf '%s\n' "$input_path"
+  else
+    printf '%s/%s\n' "$base_dir" "$input_path"
+  fi
+}
+
+manifest_library_path() {
+  jq_exec -er '
+    select(.file_format_version == "1.0.0")
+    | .runtime
+    | select(type == "object")
+    | .library_path
+    | strings
+    | select(length > 0)
+  ' "$1" 2>/dev/null
+}
+
+manifest_validation_reason() {
+  jq_exec -er '
+    if .file_format_version != "1.0.0" then
+      "invalid file_format_version"
+    elif (.runtime | type) != "object" then
+      "missing runtime object"
+    elif (.runtime.library_path | type) != "string" then
+      "missing runtime.library_path"
+    elif (.runtime.library_path | length) == 0 then
+      "empty runtime.library_path"
+    else
+      empty
+    end
+  ' "$1" 2>/dev/null || true
+}
+
+manifest_has_runtime_path() {
+  local manifest_path=$1
+  local manifest_dir
+  local library_path
+  local resolved_library_path
+  local validation_reason
+
+  [[ -f $manifest_path ]] || return 1
+  manifest_parseable "$manifest_path" || return 1
+  library_path=$(manifest_library_path "$manifest_path") || return 1
+  [[ -n $library_path ]] || return 1
+  manifest_dir=$(dirname -- "$manifest_path")
+  resolved_library_path=$(resolve_against_dir "$manifest_dir" "$library_path")
+  [[ -f $resolved_library_path ]] || return 1
+  validation_reason=$(runtime_library_validation_message "$resolved_library_path")
+  [[ -z $validation_reason ]]
+}
+
+validate_requested_manifest() {
+  local manifest_path=$1
+  local manifest_dir
+  local library_path
+  local resolved_library_path
+  local validation_reason
+
+  [[ -f $manifest_path ]] || fail "manifest not found: ${manifest_path}"
+
+  manifest_parseable "$manifest_path" || fail "malformed OpenXR manifest: ${manifest_path}"
+
+  library_path=$(manifest_library_path "$manifest_path" || true)
+  if [[ -z $library_path ]]; then
+    validation_reason=$(manifest_validation_reason "$manifest_path")
+    if [[ -n $validation_reason ]]; then
+      fail "${validation_reason} in OpenXR manifest: ${manifest_path}"
+    fi
+    fail "malformed OpenXR manifest: ${manifest_path}"
+  fi
+
+  manifest_dir=$(dirname -- "$manifest_path")
+  resolved_library_path=$(resolve_against_dir "$manifest_dir" "$library_path")
+
+  [[ -f $resolved_library_path ]] || fail "missing shared library for manifest ${manifest_path}: ${resolved_library_path}"
+  validation_reason=$(runtime_library_validation_message "$resolved_library_path")
+  [[ -z $validation_reason ]] || fail "${validation_reason} for manifest ${manifest_path}: ${resolved_library_path}"
+}
+
+resolve_selector_target() {
+  local selector_path=$1
+  local raw_target
+
+  raw_target=$(readlink -- "$selector_path") || return 1
+  resolve_against_dir "$(dirname -- "$selector_path")" "$raw_target"
+}
+
+backup_existing_selector() {
+  local selector_path=$1
+  local backup_path=$2
+  local backup_dir
+  local temp_backup
+
+  backup_dir=$(dirname -- "$backup_path")
+  mkdir -p -- "$backup_dir"
+  temp_backup=$(mktemp "${backup_dir}/.active_runtime.backup.tmp.XXXXXX")
+  rm -f -- "$temp_backup"
+
+  cleanup_temp_backup() {
+    rm -f -- "$temp_backup"
+  }
+
+  trap cleanup_temp_backup RETURN
+  cp -a -- "$selector_path" "$temp_backup"
+  mv -Tf -- "$temp_backup" "$backup_path"
+  rm -f -- "$temp_backup"
+}
+
+restore_backup_atomically() {
+  local selector_path=$1
+  local backup_path=$2
+
+  [[ -e $backup_path || -L $backup_path ]] || fail "backup not found: ${backup_path}"
+  mv -Tf -- "$backup_path" "$selector_path"
+}
+
+create_absent_marker_atomically() {
+  local absent_marker_path=$1
+  local marker_dir
+  local temp_marker
+
+  marker_dir=$(dirname -- "$absent_marker_path")
+  mkdir -p -- "$marker_dir"
+  temp_marker=$(mktemp "${marker_dir}/.active_runtime.absent.tmp.XXXXXX")
+
+  cleanup_temp_marker() {
+    rm -f -- "$temp_marker"
+  }
+
+  trap cleanup_temp_marker RETURN
+  printf '%s\n' 'steamvr-select-openxr absent-state marker' >"$temp_marker"
+  mv -Tf -- "$temp_marker" "$absent_marker_path"
+  rm -f -- "$temp_marker"
+}
+
+restore_absent_state() {
+  local selector_path=$1
+  local absent_marker_path=$2
+
+  [[ -e $absent_marker_path || -L $absent_marker_path ]] || fail "absent marker not found: ${absent_marker_path}"
+  rm -f -- "$selector_path"
+  rm -f -- "$absent_marker_path"
+}
+
+ensure_backup_marker_consistent() {
+  local backup_path=$1
+  local absent_marker_path=$2
+
+  if [[ (-e $backup_path || -L $backup_path) && (-e $absent_marker_path || -L $absent_marker_path) ]]; then
+    fail "backup/absent marker conflict: ${backup_path} and ${absent_marker_path}"
+  fi
+}
+
+replace_selector_atomically() {
+  local selector_path=$1
+  local manifest_path=$2
+  local selector_dir
+  local temp_dir
+  local temp_link
+
+  selector_dir=$(dirname -- "$selector_path")
+  mkdir -p -- "$selector_dir"
+  temp_dir=$(mktemp -d "${selector_dir}/.active_runtime.tmp.XXXXXX")
+  temp_link="${temp_dir}/active_runtime.x86_64.json"
+
+  cleanup_temp_dir() {
+    rm -rf -- "$temp_dir"
+  }
+
+  trap cleanup_temp_dir RETURN
+
+  ln -s -- "$manifest_path" "$temp_link"
+  mv -Tf -- "$temp_link" "$selector_path"
+  rm -rf -- "$temp_dir"
+}
+
+force=0
+restore=0
+manifest_arg=
+
+while (($# > 0)); do
+  case $1 in
+    --help)
+      usage
+      exit 0
+      ;;
+    --force)
+      force=1
+      ;;
+    --restore)
+      restore=1
+      ;;
+    --manifest)
+      shift
+      [[ $# -gt 0 ]] || {
+        usage >&2
+        fail "expected --manifest PATH"
+      }
+      manifest_arg=$1
+      ;;
+    *)
+      usage >&2
+      fail "unknown argument: $1"
+      ;;
+  esac
+  shift
+done
+
+config_home=${XDG_CONFIG_HOME:-"${HOME}/.config"}
+selector_path="${config_home}/openxr/1/active_runtime.x86_64.json"
+backup_path="${selector_path}.steamvr-backup"
+absent_marker_path="${selector_path}.steamvr-absent"
+
+require_readelf
+ensure_backup_marker_consistent "$backup_path" "$absent_marker_path"
+
+if ((restore)); then
+  if ((force)) || [[ -n ${manifest_arg} ]]; then
+    usage >&2
+    fail "--restore does not accept --manifest or --force"
+  fi
+
+  if [[ -e $backup_path || -L $backup_path ]]; then
+    restore_backup_atomically "$selector_path" "$backup_path"
+    printf 'restored OpenXR runtime selector from backup: %s\n' "$backup_path"
+    exit 0
+  fi
+
+  if [[ -e $absent_marker_path || -L $absent_marker_path ]]; then
+    restore_absent_state "$selector_path" "$absent_marker_path"
+    printf 'restored OpenXR runtime selector to absent x86_64 state: %s\n' "$selector_path"
+    exit 0
+  fi
+
+  fail "no restore state found for selector: ${selector_path}"
+fi
+
+[[ -n ${manifest_arg} ]] || {
+  usage >&2
+  fail "expected --manifest PATH or --restore"
+}
+
+manifest_path=$(to_absolute_path "$manifest_arg")
+validate_requested_manifest "$manifest_path"
+
+if [[ -e $backup_path || -L $backup_path ]]; then
+  fail "backup already exists: ${backup_path}"
+fi
+
+if [[ -e $absent_marker_path || -L $absent_marker_path ]]; then
+  fail "absent marker already exists: ${absent_marker_path}"
+fi
+
+if [[ -e $selector_path || -L $selector_path ]]; then
+  if [[ -L $selector_path ]]; then
+    resolved_target=$(resolve_selector_target "$selector_path") || fail "unknown existing selector: ${selector_path}"
+
+    if [[ $resolved_target == "$manifest_path" ]]; then
+      printf 'selected OpenXR runtime: %s\n' "$manifest_path"
+      exit 0
+    fi
+
+    if ! manifest_has_runtime_path "$resolved_target" && (( ! force )); then
+      fail "unknown existing selector: ${selector_path} -> $(readlink -- "$selector_path")"
+    fi
+  else
+    (( force )) || fail "unknown existing selector: ${selector_path}"
+  fi
+
+  backup_existing_selector "$selector_path" "$backup_path"
+else
+  create_absent_marker_atomically "$absent_marker_path"
+fi
+
+replace_selector_atomically "$selector_path" "$manifest_path"
+
+printf 'selected OpenXR runtime: %s\n' "$manifest_path"

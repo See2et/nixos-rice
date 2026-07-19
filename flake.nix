@@ -297,9 +297,18 @@
         };
       };
 
-      checks = forAllSystems (system: {
-        formatting = mkFormattingCheck system;
-      });
+      checks = forAllSystems (
+        system:
+        let
+          steamvrToolsCheck = mkScriptCheck system "steamvr-tools" "tests/steamvr-tools.sh";
+        in
+        {
+          formatting = mkFormattingCheck system;
+        }
+        // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
+          steamvr-tools = steamvrToolsCheck;
+        }
+      );
 
       formatter = forAllSystems mkFormatter;
     };
