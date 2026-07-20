@@ -6,13 +6,25 @@
 }:
 let
   isX86_64 = pkgs.stdenv.hostPlatform.isx86_64;
-  wayvrPackage = inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.wayvr;
+  wayvrPackage =
+    inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.wayvr.overrideAttrs
+      (oldAttrs: {
+        postPatch = (oldAttrs.postPatch or "") + ''
+          cp ${./wayvr/oculus-touch-binding.json} wayvr/src/res/actions_binding_oculus.json
+        '';
+      });
+
+  wayvrOpenvrRuntimeLibraryPath = pkgs.lib.makeLibraryPath [
+    pkgs.libglvnd
+    pkgs.libuuid
+    pkgs.vulkan-loader
+  ];
 
   wayvrOpenxr = pkgs.writeShellApplication {
     name = "wayvr-openxr";
     runtimeInputs = [ wayvrPackage ];
     text = ''
-      exec ${wayvrPackage}/bin/wayvr --openxr "$@"
+      exec ${wayvrPackage}/bin/wayvr --openxr --show "$@"
     '';
   };
 
@@ -20,7 +32,9 @@ let
     name = "wayvr-openvr";
     runtimeInputs = [ wayvrPackage ];
     text = ''
-      exec ${wayvrPackage}/bin/wayvr --openvr "$@"
+      export LD_LIBRARY_PATH="${wayvrOpenvrRuntimeLibraryPath}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+      exec ${wayvrPackage}/bin/wayvr --openvr --show "$@"
     '';
   };
 in

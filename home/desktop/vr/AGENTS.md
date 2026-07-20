@@ -81,6 +81,7 @@
   - `home/desktop/vr/wayvr.nix` で配る固定設定
   - `wayvr/config.yaml`
   - `wayvr/openxr_actions.json5`
+  - `wayvr/oculus-touch-binding.json` と、WayVR package に埋め込む初回生成用の immutable OpenVR binding seed
   - `wayvr-openxr`, `wayvr-openvr`
 - runtime が持つもの
   - `conf.d/zz-saved-config.json5`
@@ -92,6 +93,18 @@
   - 起動後に WayVR が書き足すファイル群
 
 この境界を越えて保存したら、その変更は壊れる前提で扱う。再現対象ではなく、runtime の副産物とみなす。
+
+## WayVR を desktop overlay / playspace mover として使う
+
+- ALVR + SteamVR では `wayvr-openvr` を正規導線とし、SteamVR 起動後に実行する。wrapper は `--show` を付け、dashboard/watch を起動時から表示する。
+- Niri では `screencopy` freeze を避けるため `capture_method: pw-fallback` を固定する。WayVR 26.2.1 の serde alias はハイフン区切りであり、upstream sample comment の `pw_fallback` は無効。desktop mirror は WayVR 内の **Add Mirror** (`::NewMirror`) から作り、PipeWire portal で対象 monitor を選ぶ。portal の選択/token は runtime state なのでNixへ固定しない。
+- Wayland mirror は desktop の閲覧用途であり、WayVR 26.2.1 では mirror 自体への mouse input は提供しない。XSOverlay の完全互換ではない。
+- Space Drag は左 controller の **Y hold**、Space Turn (`SpaceRotate`) は右 controller の **B hold**。左 Y の double-click は WayVR show/hide を維持する。
+- Y/B は VRChat の menu 操作とも重なる。これはユーザーが許容した競合であり、誤発火が問題になった場合は SteamVR binding UI で変更する。
+- `space_drag_unlocked: true` で3軸移動を許可し、`space_rotate_unlocked: false` で回転を yaw-only にする。OpenVR backend の SpaceRotate は連続 hold 操作で、snap turn ではない。
+- WayVR は `actions.json` を毎回生成する一方、`actions_binding_oculus.json` は runtime に存在しない場合だけ package の seed から生成する。既存 binding をNix activationで上書きしてはいけない。
+- 初回起動時は runtime binding が未作成であることを確認してから `wayvr-openvr` を起動する。既存 binding がある場合は backup と SteamVR binding UI の current binding を確認し、黙って削除しない。
+- SteamVR binding UI は `http://localhost:27062/dashboard/controllerbinding.html`。WayVR application key は `wlx-team.wayvr`。
 
 ## runtime selection と rollback
 

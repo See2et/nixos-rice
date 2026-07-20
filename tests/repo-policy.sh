@@ -39,6 +39,16 @@ match_any_many() {
   done
 }
 
+jq_exec() {
+  if command -v jq >/dev/null 2>&1; then
+    jq "$@"
+  elif command -v nix >/dev/null 2>&1; then
+    nix shell nixpkgs#jq -c jq "$@"
+  else
+    return 127
+  fi
+}
+
 check_absent() {
   local label=$1
   local pattern=$2
@@ -99,13 +109,56 @@ check_absent "home .local/bin/steam must not shadow programs.steam" '\.local/bin
 
 check_absent "wlx-overlay-s package/wrapper/config path must be removed" 'wlx-overlay-s' '*.nix'
 
-check_absent "WayVR must not own mutable runtime files" '(^|["/])(zz-saved[^"/]*|pw_tokens|wayvr\.vrmanifest|actions\.json|actions_binding_[^"/]*)(["/]|$)' '*.nix'
+wayvr_mutable_matches=$(match_any '(^|["/])(zz-saved[^"/]*|pw_tokens|wayvr\.vrmanifest|actions\.json|actions_binding_[^"/]*)(["/]|$)' '*.nix')
+wayvr_mutable_matches=$(printf '%s\n' "$wayvr_mutable_matches" | grep -v 'wayvr/src/res/actions_binding_oculus\.json' || true)
+if [[ -n $wayvr_mutable_matches ]]; then
+  fail "WayVR must not own mutable runtime files; immutable package seed bindings are the only exception"
+  report "$wayvr_mutable_matches"
+fi
 
 check_present "WayVR must be sourced from base nixpkgs" 'inputs\.nixpkgs\.legacyPackages\.\$\{pkgs\.stdenv\.hostPlatform\.system\}\.wayvr' 'wayvr.nix'
 
 check_absent "WayVR must not be sourced from non-base nixpkgs inputs" 'inputs\.(nixpkgs-unstable|nixpkgs-compat|nixpkgs-steam|nixpkgs-xr)\.legacyPackages\..*\.wayvr' 'wayvr.nix'
 
 check_absent "WayVR 26.2.1 launchers must not use --wait" '--wait' 'wayvr.nix'
+
+check_present "WayVR OpenVR launcher must show the dashboard on startup" 'wayvr\s+--openvr\s+--show' 'wayvr.nix'
+
+check_present "WayVR OpenVR launcher must declare libglvnd" 'pkgs\.libglvnd' 'wayvr.nix'
+
+check_present "WayVR OpenVR launcher must declare libuuid" 'pkgs\.libuuid' 'wayvr.nix'
+
+check_present "WayVR OpenVR launcher must declare vulkan-loader" 'pkgs\.vulkan-loader' 'wayvr.nix'
+
+check_present "WayVR OpenVR launcher must prepend an explicit library path without an empty search entry" 'LD_LIBRARY_PATH="\$\{wayvrOpenvrRuntimeLibraryPath\}.*LD_LIBRARY_PATH:\+:\$LD_LIBRARY_PATH' 'wayvr.nix'
+
+check_absent "WayVR OpenVR launcher must not inject broad Steam Runtime wrappers or preload hooks" 'steam-run|steam-runtime|scout|sniper|LD_PRELOAD' 'wayvr.nix'
+
+check_present "WayVR package must embed the declared Oculus Touch binding" 'actions_binding_oculus\.json' 'wayvr.nix'
+
+check_present "WayVR on Niri must force PipeWire CPU fallback capture" '^capture_method:[[:space:]]*pw-fallback$' 'config.yaml'
+
+check_absent "WayVR capture method must use the serialized pw-fallback alias, not the invalid upstream sample spelling" '^capture_method:[[:space:]]*pw_fallback$' 'config.yaml'
+
+check_present "WayVR Space Drag must allow three-axis movement" '^space_drag_unlocked:[[:space:]]*true$' 'config.yaml'
+
+check_present "WayVR Space Turn must remain yaw-only" '^space_rotate_unlocked:[[:space:]]*false$' 'config.yaml'
+
+wayvr_oculus_binding="$repo_root/home/desktop/vr/wayvr/oculus-touch-binding.json"
+if [[ ! -f $wayvr_oculus_binding ]]; then
+  fail "WayVR Oculus Touch binding profile must exist"
+elif ! jq_exec -e '
+  .bindings["/actions/default"].sources as $sources
+  | any($sources[];
+      .path == "/user/hand/left/input/y"
+      and .inputs.click.output == "/actions/default/in/spacedrag"
+      and .inputs.double.output == "/actions/default/in/showhide")
+    and any($sources[];
+      .path == "/user/hand/right/input/b"
+      and .inputs.click.output == "/actions/default/in/spacerotate")
+' "$wayvr_oculus_binding" >/dev/null; then
+  fail "WayVR Oculus Touch binding must map left Y to SpaceDrag, right B to SpaceRotate, and preserve double-Y ShowHide"
+fi
 
 check_present "home/desktop/vr/alvr.nix must override pkgs.ffmpeg for patchedFfmpeg" 'patchedFfmpeg\s*=\s*pkgs\.ffmpeg\.(override|overrideAttrs)\b' 'alvr.nix'
 
