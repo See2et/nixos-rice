@@ -136,9 +136,9 @@ check_absent "WayVR OpenVR launcher must not inject broad Steam Runtime wrappers
 
 check_present "WayVR package must embed the declared Oculus Touch binding" 'actions_binding_oculus\.json' 'wayvr.nix'
 
-check_present "WayVR on Niri must force PipeWire CPU fallback capture" '^capture_method:[[:space:]]*pw-fallback$' 'config.yaml'
+check_present "WayVR on Niri must use the verified PipeWire GPU capture path" '^capture_method:[[:space:]]*pipewire$' 'config.yaml'
 
-check_absent "WayVR capture method must use the serialized pw-fallback alias, not the invalid upstream sample spelling" '^capture_method:[[:space:]]*pw_fallback$' 'config.yaml'
+check_absent "WayVR must not use CPU fallback capture that fails Niri format negotiation" '^capture_method:[[:space:]]*(pw-fallback|pw_fallback)$' 'config.yaml'
 
 check_present "WayVR Space Drag must allow three-axis movement" '^space_drag_unlocked:[[:space:]]*true$' 'config.yaml'
 
@@ -150,14 +150,18 @@ if [[ ! -f $wayvr_oculus_binding ]]; then
 elif ! jq_exec -e '
   .bindings["/actions/default"].sources as $sources
   | any($sources[];
+      .path == "/user/hand/left/input/x"
+      and .inputs.double.output == "/actions/default/in/showhide"
+      and (.inputs | has("click") | not))
+    and any($sources[];
       .path == "/user/hand/left/input/y"
       and .inputs.click.output == "/actions/default/in/spacedrag"
-      and .inputs.double.output == "/actions/default/in/showhide")
+      and (.inputs | has("double") | not))
     and any($sources[];
       .path == "/user/hand/right/input/b"
       and .inputs.click.output == "/actions/default/in/spacerotate")
 ' "$wayvr_oculus_binding" >/dev/null; then
-  fail "WayVR Oculus Touch binding must map left Y to SpaceDrag, right B to SpaceRotate, and preserve double-Y ShowHide"
+  fail "WayVR Oculus Touch binding must split Y hold SpaceDrag, double-X ShowHide, and B hold SpaceRotate across distinct inputs"
 fi
 
 check_present "home/desktop/vr/alvr.nix must override pkgs.ffmpeg for patchedFfmpeg" 'patchedFfmpeg\s*=\s*pkgs\.ffmpeg\.(override|overrideAttrs)\b' 'alvr.nix'

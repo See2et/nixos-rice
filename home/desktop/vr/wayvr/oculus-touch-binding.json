@@ -29,9 +29,6 @@
             "click": {
               "output": "/actions/default/in/spacedrag"
             },
-            "double": {
-              "output": "/actions/default/in/showhide"
-            },
             "touch": {
               "output": "/actions/default/in/clickmodifierright"
             }
@@ -41,6 +38,9 @@
         },
         {
           "inputs": {
+            "double": {
+              "output": "/actions/default/in/showhide"
+            },
             "touch": {
               "output": "/actions/default/in/clickmodifiermiddle"
             }
@@ -140,7 +140,7 @@
   },
   "category": "steamvr_input",
   "controller_type": "oculus_touch",
-  "description": "PICO 4 via ALVR: Y SpaceDrag, B SpaceRotate",
+  "description": "PICO 4 via ALVR: Y SpaceDrag, double-X ShowHide, B SpaceRotate",
   "interaction_profile": "",
   "name": "WayVR configuration for Oculus Touch Controller",
   "options": {

@@ -1,6 +1,6 @@
-# Niri's screencopy path can freeze; use the PipeWire portal fallback for
-# desktop mirrors. The user still chooses the monitor in the portal picker.
-capture_method: pw-fallback
+# Niri and WayVR 26.2.1 cannot negotiate a video format through PipeWire CPU;
+# PipeWire GPU reaches Streaming with BGRx DMA-BUF on NVIDIA.
+capture_method: pipewire
 
 space_drag_multiplier: 1.0
 space_drag_unlocked: true

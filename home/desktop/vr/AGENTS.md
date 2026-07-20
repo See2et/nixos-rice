@@ -97,9 +97,12 @@
 ## WayVR を desktop overlay / playspace mover として使う
 
 - ALVR + SteamVR では `wayvr-openvr` を正規導線とし、SteamVR 起動後に実行する。wrapper は `--show` を付け、dashboard/watch を起動時から表示する。
-- Niri では `screencopy` freeze を避けるため `capture_method: pw-fallback` を固定する。WayVR 26.2.1 の serde alias はハイフン区切りであり、upstream sample comment の `pw_fallback` は無効。desktop mirror は WayVR 内の **Add Mirror** (`::NewMirror`) から作り、PipeWire portal で対象 monitor を選ぶ。portal の選択/token は runtime state なのでNixへ固定しない。
+- Niri では `screencopy` freeze と PipeWire CPU の `no more input formats` を避けるため `capture_method: pipewire` を固定する。WayVR 26.2.1 の PipeWire GPU 経路は NVIDIA で BGRx/DMA-BUF を合意して Streaming まで到達する。desktop mirror は WayVR 内の **Add Mirror** (`::NewMirror`) から作り、PipeWire portal で対象 monitor を選ぶ。portal の選択/token は runtime state なのでNixへ固定しない。
+- `conf.d/zz-saved-config.json5` は base の `config.yaml` より後に読み込まれ、`capture_method` を上書きする。既存環境では Dashboard の **Wayland capture method** も `PipeWire` に変更し、Nix設定だけ変えて反映済みと誤認しない。
+- WayVR は `conf.d` 内の全ファイルを設定として読み込む。runtime state を手動移行するときの backup は必ず `conf.d` の外へ置く。`.bak`を同居させると unsupported file format で起動時にpanicする。
+- SteamVR標準のDesktop ViewがWayland上で黒くなる問題はValve側の独立した既知制約であり、WayVRのPipeWire capture不良を裏付ける証拠として扱わない。
 - Wayland mirror は desktop の閲覧用途であり、WayVR 26.2.1 では mirror 自体への mouse input は提供しない。XSOverlay の完全互換ではない。
-- Space Drag は左 controller の **Y hold**、Space Turn (`SpaceRotate`) は右 controller の **B hold**。左 Y の double-click は WayVR show/hide を維持する。
+- Space Drag は左 controller の **Y hold**、Space Turn (`SpaceRotate`) は右 controller の **B hold**。左 X の double-click は WayVR show/hide にする。SteamVR の Single/Double 判定とhold操作を同じbuttonへ重ねると、SpaceDragが短いpulseへ変換されるため、YとXへ分離する。
 - Y/B は VRChat の menu 操作とも重なる。これはユーザーが許容した競合であり、誤発火が問題になった場合は SteamVR binding UI で変更する。
 - `space_drag_unlocked: true` で3軸移動を許可し、`space_rotate_unlocked: false` で回転を yaw-only にする。OpenVR backend の SpaceRotate は連続 hold 操作で、snap turn ではない。
 - WayVR は `actions.json` を毎回生成する一方、`actions_binding_oculus.json` は runtime に存在しない場合だけ package の seed から生成する。既存 binding をNix activationで上書きしてはいけない。
