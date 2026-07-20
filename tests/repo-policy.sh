@@ -74,6 +74,17 @@ check_present() {
   fi
 }
 
+check_present_many() {
+  local label=$1
+  local pattern=$2
+  shift 2
+  local matches
+  matches=$(match_any_many "$pattern" "$@")
+  if [[ -z "$matches" ]]; then
+    fail "$label"
+  fi
+}
+
 check_absent_many "operational laptop output/files/refs must be gone" 'nixosConfigurations\.laptop|#laptop|hosts[/-]laptop|home[/-]laptop|modules/.*/laptop|hardware-configuration-laptop|hardware-laptop|WSL/Laptop' '*.nix' '*.md' '*.jsonc'
 
 check_absent "home.activation must not mutate SteamVR/VRChat/Oyasumi/ALVR state" 'home\.activation\.[A-Za-z0-9_]*(steamVr|vrchat|oyasumi|alvr)[A-Za-z0-9_]*' '*.nix'
@@ -95,6 +106,32 @@ check_present "WayVR must be sourced from base nixpkgs" 'inputs\.nixpkgs\.legacy
 check_absent "WayVR must not be sourced from non-base nixpkgs inputs" 'inputs\.(nixpkgs-unstable|nixpkgs-compat|nixpkgs-steam|nixpkgs-xr)\.legacyPackages\..*\.wayvr' 'wayvr.nix'
 
 check_absent "WayVR 26.2.1 launchers must not use --wait" '--wait' 'wayvr.nix'
+
+check_present "home/desktop/vr/alvr.nix must override pkgs.ffmpeg for patchedFfmpeg" 'patchedFfmpeg\s*=\s*pkgs\.ffmpeg\.(override|overrideAttrs)\b' 'alvr.nix'
+
+check_present "home/desktop/vr/alvr.nix must pass patchedFfmpeg into pkgs.alvr.override" 'pkgs\.alvr\.override' 'alvr.nix'
+
+check_present "home/desktop/vr/alvr.nix must bind the overridden ALVR package for wrappers" 'alvr\s*=\s*pkgs\.alvr\.override' 'alvr.nix'
+
+check_present "home/desktop/vr/alvr.nix wrappers must use the overridden ALVR package" 'runtimeInputs\s*=\s*\[\s*alvr\s*\]' 'alvr.nix'
+
+check_present "home/desktop/vr/alvr.nix wrappers must exec the overridden ALVR package" 'exec\s+"\$\{alvr\}/bin/alvr_(dashboard|launcher)"' 'alvr.nix'
+
+check_absent "home/desktop/vr/alvr.nix wrappers must not exec pkgs.alvr directly" '\$\{pkgs\.alvr\}/bin/alvr_(dashboard|launcher)' 'alvr.nix'
+
+check_absent "home/desktop/vr/alvr.nix wrappers must not depend on pkgs.alvr directly" 'runtimeInputs\s*=\s*\[\s*pkgs\.alvr\s*\]' 'alvr.nix'
+
+check_present_many "ALVR patch source must contain the Vulkan-to-CUDA packed format channel count fix" '\.NumChannels\s*=\s*desc->comp\[i\]\.step\s*/\s*elem_size' '*.nix' '*.patch'
+
+check_present_many "ALVR patch source must contain the packed-format depth-aware channel count fix" '1\s*\+\s*\(desc->comp\[0\]\.depth\s*>\s*8\)' '*.nix' '*.patch'
+
+steam_ffmpeg_headless_matches=$(match_any 'patchedFfmpegHeadless\s*=\s*prev\.ffmpeg-headless\.(override|overrideAttrs)\b' 'steam.nix')
+steam_ffmpeg_patch_matches=$(match_any 'ffmpeg-8\.0-vulkan-cuda-packed-format\.patch' 'steam.nix')
+steam_desktop_overlay_matches=$(match_any 'nixpkgs\.overlays\s*=\s*\[\s*steamFfmpegOverlay\s*\]' 'steam.nix')
+steam_vaapi_matches=$(match_any 'nvidia-vaapi-driver\s*=\s*prev\.nvidia-vaapi-driver\.override' 'steam.nix')
+if [[ -z "$steam_ffmpeg_headless_matches" || -z "$steam_ffmpeg_patch_matches" || -z "$steam_desktop_overlay_matches" || -z "$steam_vaapi_matches" ]]; then
+  fail "modules/nixos/desktop/steam.nix must feed patched ffmpeg-headless into Steam's NVIDIA VA-API closure"
+fi
 
 check_absent "home/wsl/rebuild.nix must not direct-switch re helper" 'programs\.zsh\.zsh-abbr\.abbreviations\.re\s*=\s*"sudo nixos-rebuild (switch|test) --flake /etc/nixos#wsl"' 'rebuild.nix'
 check_present "home/wsl/rebuild.nix must start re helper with dry-activate" 'programs\.zsh\.zsh-abbr\.abbreviations\.re\s*=\s*"sudo nixos-rebuild dry-activate --flake /etc/nixos#wsl"' 'rebuild.nix'

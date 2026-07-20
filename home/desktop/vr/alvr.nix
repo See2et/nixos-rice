@@ -5,6 +5,14 @@
 }:
 let
   isX86_64 = pkgs.stdenv.hostPlatform.isx86_64;
+  patchedFfmpeg = pkgs.ffmpeg.overrideAttrs (oldAttrs: {
+    patches = (oldAttrs.patches or [ ]) ++ [
+      ./patches/ffmpeg-8.0-vulkan-cuda-packed-format.patch
+    ];
+  });
+  alvr = pkgs.alvr.override {
+    ffmpeg = patchedFfmpeg;
+  };
 
   alvrEnvText = ''
     if [ -n "''${WAYLAND_DISPLAY:-}" ]; then
@@ -36,19 +44,19 @@ let
 
   alvrDashboard = pkgs.writeShellApplication {
     name = "alvr_dashboard";
-    runtimeInputs = [ pkgs.alvr ];
+    runtimeInputs = [ alvr ];
     text = ''
       ${alvrEnvText}
-      exec "${pkgs.alvr}/bin/alvr_dashboard" "$@"
+      exec "${alvr}/bin/alvr_dashboard" "$@"
     '';
   };
 
   alvrLauncher = pkgs.writeShellApplication {
     name = "alvr_launcher";
-    runtimeInputs = [ pkgs.alvr ];
+    runtimeInputs = [ alvr ];
     text = ''
       ${alvrEnvText}
-      exec "${pkgs.alvr}/bin/alvr_launcher" "$@"
+      exec "${alvr}/bin/alvr_launcher" "$@"
     '';
   };
 in
