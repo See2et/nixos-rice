@@ -10,9 +10,17 @@ let
       ./patches/ffmpeg-8.0-vulkan-cuda-packed-format.patch
     ];
   });
-  alvr = pkgs.alvr.override {
-    ffmpeg = patchedFfmpeg;
-  };
+  alvr =
+    (pkgs.alvr.override {
+      ffmpeg = patchedFfmpeg;
+    }).overrideAttrs
+      (oldAttrs: {
+        postPatch = (oldAttrs.postPatch or "") + ''
+          substituteInPlace alvr/server_openvr/src/lib.rs --replace-fail \
+            'let early_hmd_initialization = !dashboard_process_paths.is_empty();' \
+            'let early_hmd_initialization = true;'
+        '';
+      });
 
   alvrEnvText = ''
     if [ -n "''${WAYLAND_DISPLAY:-}" ]; then

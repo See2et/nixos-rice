@@ -12,20 +12,39 @@
 - WayVR の安定設定は Nix が持つが、`conf.d/zz-saved-config.json5`, `conf.d/zz-saved-state.json5`, `pw_tokens.yaml`, `wayvr.vrmanifest`, `actions.json`, `actions_binding_*.json` は runtime 側の書き込み領域。
 - `wayvr --install` を activation で実行してはいけない。
 
+## ALVR と SteamVR の前提
+
+- この節は現時点の検証結果に基づく運用規則であり、将来の SteamVR / ALVR 版に同じ症状や同じ回避策を保証しない。
+- `home/desktop/vr/alvr.nix` は `early_hmd_initialization=true` をパッチし、`tests/repo-policy.sh` はその固定を守る。
+- SteamVR の更新や branch 変更は `SteamVR/bin/linux64/vrcompositor` の wrapper symlink を上書きするので、変更後は ALVR Dashboard から SteamVR を起動して wrapper を再導入する。
+- `vrcompositor` は使用中の ALVR package の `libexec/alvr/vrcompositor-wrapper` への symlink であることを確認し、`vrcompositor.real` は選択中の SteamVR branch の通常 binary であることを確認する。
+- Steam updater が `vrcompositor` と stale な `vrcompositor.real` を通常 file として残すと、ALVR の wrapper 再導入は rename 衝突で失敗する。
+- wrapper が復元されない場合は SteamVR と ALVR を停止し、branch 変更前の backup と hash を照合してから重複を解消する。通常 file を根拠なく削除または移動してはいけない。
+- `previous` は移動する runtime workaround であり、Nix pin ではないので、branch 選択時と更新後の QA で build 番号を確認する。
+- SteamVR branch は Steam の公式 UI で選択し、`appmanifest_250820.acf`, `localconfig.vdf`, depot を直接編集して branch を偽装しない。
+- 手動で `vrcompositor` を触るのは、SteamVR と ALVR が停止していて、完全な backup があり、hash 照合で active branch の binary を特定できる場合だけにする。
+- 今回の系では、起動順は ALVR Dashboard、そこから SteamVR を起動、`vrserver` と `vrcompositor` の起動確認、PICO client 起動、encoder 起動確認で固定する。
+- shutdown 系の異常は HMD 初期化の遅延と chaperone 変化を先に疑い、stutter 系の異常は encoder / network / decode の健全さを見てから SteamVR の branch 差を切り分ける。
+- live QA は ALVR WebSocket `ws://127.0.0.1:8082/api/events` に `X-ALVR: true` を付けて行い、`GraphStatistics` の `game_time_s`, `server_compositor_s`, `encoder_s`, `network_s`, `decoder_s`, `client_fps`, `server_fps` を見る。
+- ALVR 20.14.1 の text logs は `STATS` と `GRAPH` の payload を意図的に省略するので、空の tag を「統計が無い」と解釈しない。
+- 現時点の healthy reference は 180s、12,835 samples、desync/disconnect 0、`game_time` p50 11.65ms、p95 16.01ms、`client_fps` と `server_fps` はおおむね 72fps である。
+
 ## 所有権マトリクス
 
 | 領域 | 所有者 | 変更してよいもの | 触ってはいけないもの |
 | --- | --- | --- | --- |
 | Nix 管理 | Nix | `programs.steam` 統合, package, immutable wrapper, read-only diagnostics, explicit child runtime env, explicit selector command, stable WayVR config | depot 内容, `localconfig.vdf`, runtime state |
 | Steam / SteamVR runtime | runtime | depot, `localconfig.vdf`, active runtime selector, ALVR session, Oyasumi state | activation からの上書き |
+| SteamVR 内の ALVR wrapper symlink と SteamVR branch | runtime | `SteamVR/bin/linux64/vrcompositor`, `vrcompositor.real`, ALVR Dashboard からの再導入, `previous` の実体確認 | Nix 管理 wrapper の改変, branch の Nix pin, activation からの再生成 |
 | active runtime selector | user-owned mutable state | `steamvr-select-openxr --manifest`, `steamvr-select-openxr --restore` で切り替える現在値 | activation の自動上書き |
 | WayVR 安定設定 | Nix | `home/desktop/vr/wayvr.nix` で配る `wayvr/config.yaml`, `wayvr/openxr_actions.json5`, `wayvr-openxr`, `wayvr-openvr` | runtime 生成物, token, 保存済みセッション |
 | WayVR 実行時状態 | runtime | `conf.d/zz-saved-config.json5`, `conf.d/zz-saved-state.json5`, `pw_tokens.yaml`, `wayvr.vrmanifest`, `actions.json`, `actions_binding_*.json` | Git 管理下の設定ファイル |
 
 ## 禁止パターン
 
-- activation で Steam, SteamVR, WayVR の runtime state を書き換える。
+- activation で Steam, SteamVR, ALVR, WayVR の runtime state を書き換える。
 - `localconfig.vdf` や depot を Nix で再現可能な資産として扱う。
+- SteamVR branch を `appmanifest_250820.acf` や `localconfig.vdf` の直接編集だけで切り替える。
 - `wayvr --install` を system activation に入れる。
 - explicit user command 以外で active runtime selector を切り替える。
 - 安定設定と generated state を同じディレクトリで混ぜる。
@@ -37,8 +56,9 @@
 2. `nix build .#nixosConfigurations.desktop.config.system.build.toplevel` でビルドを確認する。
 3. 必要なら `nix eval` で option の読み取りだけ行う。
 4. 反映はユーザーが `sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop`、次に `test`、最後に `switch` を手動で実行する。
-5. VR 固有の許可コマンドは `steamvr-diagnose`, `steamvr-runtime-env`, `steamvr-select-openxr --manifest`, `steamvr-select-openxr --restore`, `wayvr-openxr`, `wayvr-openvr` に限る。
-6. active runtime selector の切り替えは、`steamvr-select-openxr` の明示コマンドで行い、事前 backup か absent-state marker と失敗時 restore をセットで扱う。
+5. VR 固有の Nix 管理コマンドは `steamvr-diagnose`, `steamvr-runtime-env`, `steamvr-select-openxr --manifest`, `steamvr-select-openxr --restore`, `wayvr-openxr`, `wayvr-openvr` に限る。
+6. SteamVR branch 選択と ALVR Dashboard からの SteamVR 起動は user-owned runtime 操作であり、前項の Nix 管理コマンドには含めない。
+7. active runtime selector の切り替えは、`steamvr-select-openxr` の明示コマンドで行い、事前 backup か absent-state marker と失敗時 restore をセットで扱う。
 
 ## WayVR の config と generated state の境界
 
@@ -80,6 +100,9 @@ selector の目的は「今どの runtime を使うか」を明示すること�
 - selector command の実行前後で退避した state の差分
 - `wayvr/openxr_actions.json5` と generated state の境界が分かる証拠
 - SteamVR, ALVR, Oyasumi の読み取り専用ログ
+- SteamVR の `buildid` と `BetaKey`、`vrcompositor` symlink の参照先、`vrcompositor.real` の file type と hash
+- ALVR `GraphStatistics` の計測時間、sample 数、desync/disconnect 数、`game_time_s` と client/server FPS の分布
+- ALVR Dashboard、SteamVR、PICO client、encoder の起動順と、計測終了時の process 生存確認
 - 物理 HMD の実機確認メモ
 
 ## update と reproducibility の限界
@@ -87,6 +110,7 @@ selector の目的は「今どの runtime を使うか」を明示すること�
 - 再現できるのは Nix が管理する設定と wrapper だけ。
 - depot, selector state, localconfig, token, session は machine-local で揺れる。
 - その場の HMD 接続状態や runtime の自動生成物は、ビルド成果物としては再現しない。
+- ALVR wrapper binary は Nix が持つが、SteamVR 内の wrapper symlink、SteamVR branch、`previous` の指す build は runtime-local で揺れるので、Nix に固定した体で書かない。
 - 仕様変更があれば、この文書を先に直してから実装する。
 
 ## validation と activation の gate
@@ -101,5 +125,8 @@ selector の目的は「今どの runtime を使うか」を明示すること�
 - OpenXR loader spec: https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html
 - NixOS steam module: https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/programs/steam.nix
 - Valve steam-runtime: https://github.com/ValveSoftware/steam-runtime
+- ALVR issue #3244: https://github.com/alvr-org/ALVR/issues/3244
+- ALVR issue #3297: https://github.com/alvr-org/ALVR/issues/3297
+- ALVR issue #3326: https://github.com/alvr-org/ALVR/issues/3326
 - WayVR repository and docs: https://github.com/wayvr-org/wayvr
 - WayVR commit 786660a4d54b73714399c9433a68c8cc35eb55f4: https://github.com/wayvr-org/wayvr/commit/786660a4d54b73714399c9433a68c8cc35eb55f4

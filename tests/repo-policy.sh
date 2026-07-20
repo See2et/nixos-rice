@@ -111,7 +111,23 @@ check_present "home/desktop/vr/alvr.nix must override pkgs.ffmpeg for patchedFfm
 
 check_present "home/desktop/vr/alvr.nix must pass patchedFfmpeg into pkgs.alvr.override" 'pkgs\.alvr\.override' 'alvr.nix'
 
-check_present "home/desktop/vr/alvr.nix must bind the overridden ALVR package for wrappers" 'alvr\s*=\s*pkgs\.alvr\.override' 'alvr.nix'
+alvr_binding_name_matches=$(match_any '^[[:space:]]*alvr[[:space:]]*=' 'alvr.nix')
+alvr_binding_override_matches=$(match_any 'pkgs\.alvr\.override' 'alvr.nix')
+alvr_binding_final_override_matches=$(match_any 'overrideAttrs' 'alvr.nix')
+if [[ -z "$alvr_binding_name_matches" || -z "$alvr_binding_override_matches" || -z "$alvr_binding_final_override_matches" ]]; then
+  fail "home/desktop/vr/alvr.nix must bind the overridden ALVR package for wrappers"
+  report "$alvr_binding_name_matches"
+  report "$alvr_binding_override_matches"
+  report "$alvr_binding_final_override_matches"
+fi
+
+alvr_early_hmd_source_matches=$(match_any 'let\s+early_hmd_initialization\s*=\s*!\s*dashboard_process_paths\.is_empty\(\)\s*;' 'alvr.nix')
+alvr_early_hmd_override_matches=$(match_any 'let\s+early_hmd_initialization\s*=\s*true\s*;' 'alvr.nix')
+if [[ -z "$alvr_early_hmd_source_matches" || -z "$alvr_early_hmd_override_matches" ]]; then
+  fail "home/desktop/vr/alvr.nix must bind the ALVR 20.14.1 shutdown-regression workaround by keeping the original early_hmd_initialization source target and forcing early_hmd_initialization = true;"
+  report "$alvr_early_hmd_source_matches"
+  report "$alvr_early_hmd_override_matches"
+fi
 
 check_present "home/desktop/vr/alvr.nix wrappers must use the overridden ALVR package" 'runtimeInputs\s*=\s*\[\s*alvr\s*\]' 'alvr.nix'
 
