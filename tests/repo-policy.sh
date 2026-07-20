@@ -137,6 +137,28 @@ check_absent "home/desktop/vr/alvr.nix wrappers must not exec pkgs.alvr directly
 
 check_absent "home/desktop/vr/alvr.nix wrappers must not depend on pkgs.alvr directly" 'runtimeInputs\s*=\s*\[\s*pkgs\.alvr\s*\]' 'alvr.nix'
 
+check_present "ALVR quality profile command must be packaged" 'name\s*=\s*"alvr-quality-profile"' 'tools.nix'
+
+check_present "ALVR quality profile command must load its dedicated tool" 'builtins\.readFile\s+\./tools/alvr-quality-profile' 'tools.nix'
+
+check_present "ALVR quality profile command must use the live dashboard API" '/api/dashboard-request' 'alvr-quality-profile'
+
+check_present "ALVR quality profile must pin HEVC" '^PROFILE_CODEC=Hevc$' 'alvr-quality-profile'
+
+check_present "ALVR quality profile must pin 35 Mbps" '^PROFILE_BITRATE_MBPS=35$' 'alvr-quality-profile'
+
+check_present "ALVR quality profile must pin foveation center X" '^PROFILE_CENTER_X=0\.6$' 'alvr-quality-profile'
+
+check_present "ALVR quality profile must pin foveation center Y" '^PROFILE_CENTER_Y=0\.55$' 'alvr-quality-profile'
+
+check_present "ALVR quality profile must pin foveation edge ratio X" '^PROFILE_EDGE_RATIO_X=2\.0$' 'alvr-quality-profile'
+
+check_present "ALVR quality profile must pin foveation edge ratio Y" '^PROFILE_EDGE_RATIO_Y=2\.5$' 'alvr-quality-profile'
+
+check_absent "ALVR quality profile command must not write session.json directly" '(>|cp|mv|install|rm|truncate|tee)[^[:cntrl:]]*session\.json' 'alvr-quality-profile'
+
+check_absent "ALVR quality profile command must not run from activation" 'home\.activation\.[A-Za-z0-9_]*alvr[A-Za-z0-9_]*|alvr-quality-profile[[:space:]]+apply' '*.nix'
+
 check_present_many "ALVR patch source must contain the Vulkan-to-CUDA packed format channel count fix" '\.NumChannels\s*=\s*desc->comp\[i\]\.step\s*/\s*elem_size' '*.nix' '*.patch'
 
 check_present_many "ALVR patch source must contain the packed-format depth-aware channel count fix" '1\s*\+\s*\(desc->comp\[0\]\.depth\s*>\s*8\)' '*.nix' '*.patch'

@@ -29,12 +29,23 @@
 - ALVR 20.14.1 の text logs は `STATS` と `GRAPH` の payload を意図的に省略するので、空の tag を「統計が無い」と解釈しない。
 - 現時点の healthy reference は 180s、12,835 samples、desync/disconnect 0、`game_time` p50 11.65ms、p95 16.01ms、`client_fps` と `server_fps` はおおむね 72fps である。
 
+## ALVR quality profile の再現と適用
+
+- `home/desktop/vr/tools/alvr-quality-profile` は、Nix が持つ PICO 4 向け画質 profile を runtime-owned な ALVR session へ明示適用する唯一の導線。
+- profile は HEVC、35Mbps、72Hz、view width 1856、foveation center `0.60x0.55`、edge ratio `2.0x2.5`、client-side post-processing 無効を固定する。
+- `alvr-quality-profile status` は current session を読み取って profile と比較するだけで、session を変更しない。完全一致なら exit 0、drift があれば non-zero を返す。
+- `alvr-quality-profile apply` は drift がある場合だけ、起動中の ALVR server の `/api/dashboard-request` へ `SetValues` を送り、session の read-back が完全一致するまで検証する。既に一致していれば API request を送らず成功し、session file は直接書き換えない。
+- `apply` は activation、login hook、desktop entry、timer から自動実行してはいけない。必ずユーザーが明示的に実行する。
+- `apply` 後は ALVR Dashboard の **Restart SteamVR** を使う。外部から `RestartSteamvr` API だけを送ると server 側の shutdown half だけが実行され、Dashboard が持つ relaunch worker が動かないため、SteamVR が停止したままになる。
+- profile が再現するのは宣言した画質 field の desired state だけ。client trust、IP、接続状態、token、その他の session state は引き続き runtime 所有であり、Nix の再現対象ではない。
+
 ## 所有権マトリクス
 
 | 領域 | 所有者 | 変更してよいもの | 触ってはいけないもの |
 | --- | --- | --- | --- |
 | Nix 管理 | Nix | `programs.steam` 統合, package, immutable wrapper, read-only diagnostics, explicit child runtime env, explicit selector command, stable WayVR config | depot 内容, `localconfig.vdf`, runtime state |
 | Steam / SteamVR runtime | runtime | depot, `localconfig.vdf`, active runtime selector, ALVR session, Oyasumi state | activation からの上書き |
+| ALVR quality profile | Nix が desired fields、runtime が session | `alvr-quality-profile status`, ユーザーによる明示的な `apply`, ALVR API 経由の field 更新 | session file の直接編集, activation/login/timer からの自動適用, client trust/IP/token の所有 |
 | SteamVR 内の ALVR wrapper symlink と SteamVR branch | runtime | `SteamVR/bin/linux64/vrcompositor`, `vrcompositor.real`, ALVR Dashboard からの再導入, `previous` の実体確認 | Nix 管理 wrapper の改変, branch の Nix pin, activation からの再生成 |
 | active runtime selector | user-owned mutable state | `steamvr-select-openxr --manifest`, `steamvr-select-openxr --restore` で切り替える現在値 | activation の自動上書き |
 | WayVR 安定設定 | Nix | `home/desktop/vr/wayvr.nix` で配る `wayvr/config.yaml`, `wayvr/openxr_actions.json5`, `wayvr-openxr`, `wayvr-openvr` | runtime 生成物, token, 保存済みセッション |
@@ -45,6 +56,9 @@
 - activation で Steam, SteamVR, ALVR, WayVR の runtime state を書き換える。
 - `localconfig.vdf` や depot を Nix で再現可能な資産として扱う。
 - SteamVR branch を `appmanifest_250820.acf` や `localconfig.vdf` の直接編集だけで切り替える。
+- `alvr-quality-profile apply` を activation、login hook、timer から実行する。
+- ALVR session file を profile 適用のために直接編集する。
+- 外部 API の `RestartSteamvr` だけで SteamVR restart が完結すると仮定する。
 - `wayvr --install` を system activation に入れる。
 - explicit user command 以外で active runtime selector を切り替える。
 - 安定設定と generated state を同じディレクトリで混ぜる。
@@ -56,9 +70,10 @@
 2. `nix build .#nixosConfigurations.desktop.config.system.build.toplevel` でビルドを確認する。
 3. 必要なら `nix eval` で option の読み取りだけ行う。
 4. 反映はユーザーが `sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop`、次に `test`、最後に `switch` を手動で実行する。
-5. VR 固有の Nix 管理コマンドは `steamvr-diagnose`, `steamvr-runtime-env`, `steamvr-select-openxr --manifest`, `steamvr-select-openxr --restore`, `wayvr-openxr`, `wayvr-openvr` に限る。
+5. VR 固有の Nix 管理コマンドは `steamvr-diagnose`, `steamvr-runtime-env`, `steamvr-select-openxr --manifest`, `steamvr-select-openxr --restore`, `alvr-quality-profile status`, `alvr-quality-profile apply`, `wayvr-openxr`, `wayvr-openvr` に限る。
 6. SteamVR branch 選択と ALVR Dashboard からの SteamVR 起動は user-owned runtime 操作であり、前項の Nix 管理コマンドには含めない。
 7. active runtime selector の切り替えは、`steamvr-select-openxr` の明示コマンドで行い、事前 backup か absent-state marker と失敗時 restore をセットで扱う。
+8. ALVR quality profile は `status`、ALVR Dashboard と SteamVR の起動、`apply`、Dashboard の **Restart SteamVR**、PICO client 再接続、`status`、physical HMD QA の順で適用する。
 
 ## WayVR の config と generated state の境界
 
@@ -102,6 +117,7 @@ selector の目的は「今どの runtime を使うか」を明示すること�
 - SteamVR, ALVR, Oyasumi の読み取り専用ログ
 - SteamVR の `buildid` と `BetaKey`、`vrcompositor` symlink の参照先、`vrcompositor.real` の file type と hash
 - ALVR `GraphStatistics` の計測時間、sample 数、desync/disconnect 数、`game_time_s` と client/server FPS の分布
+- `alvr-quality-profile status` の apply 前後の結果と、Dashboard-owned restart 後の negotiated codec/bitrate
 - ALVR Dashboard、SteamVR、PICO client、encoder の起動順と、計測終了時の process 生存確認
 - 物理 HMD の実機確認メモ
 
@@ -111,6 +127,7 @@ selector の目的は「今どの runtime を使うか」を明示すること�
 - depot, selector state, localconfig, token, session は machine-local で揺れる。
 - その場の HMD 接続状態や runtime の自動生成物は、ビルド成果物としては再現しない。
 - ALVR wrapper binary は Nix が持つが、SteamVR 内の wrapper symlink、SteamVR branch、`previous` の指す build は runtime-local で揺れるので、Nix に固定した体で書かない。
+- `alvr-quality-profile` により画質 field の desired state は再現できるが、session 全体は再現しない。`status` で drift を検出し、必要なときだけ明示的に `apply` する。
 - 仕様変更があれば、この文書を先に直してから実装する。
 
 ## validation と activation の gate

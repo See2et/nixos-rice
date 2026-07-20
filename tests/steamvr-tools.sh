@@ -9,10 +9,12 @@ REPO_ROOT=$(CDPATH='' cd -- "${SCRIPT_DIR}/.." && pwd)
 DIAGNOSE_BIN=${STEAMVR_DIAGNOSE_BIN:-"${REPO_ROOT}/home/desktop/vr/tools/steamvr-diagnose"}
 RUNTIME_ENV_BIN=${STEAMVR_RUNTIME_ENV_BIN:-"${REPO_ROOT}/home/desktop/vr/tools/steamvr-runtime-env"}
 SELECT_OPENXR_BIN=${STEAMVR_SELECT_OPENXR_BIN:-"${REPO_ROOT}/home/desktop/vr/tools/steamvr-select-openxr"}
+ALVR_QUALITY_PROFILE_BIN=${ALVR_QUALITY_PROFILE_BIN:-"${REPO_ROOT}/home/desktop/vr/tools/alvr-quality-profile"}
 
 DIAGNOSE_CMD=(bash "${DIAGNOSE_BIN}")
 RUNTIME_ENV_CMD=(bash "${RUNTIME_ENV_BIN}")
 SELECT_OPENXR_CMD=(bash "${SELECT_OPENXR_BIN}")
+ALVR_QUALITY_PROFILE_CMD=(bash "${ALVR_QUALITY_PROFILE_BIN}")
 
 JQ_WRAPPER_DIR=
 BINUTILS_WRAPPER_DIR=
@@ -175,6 +177,91 @@ prepare_case_home() {
 
   export HOME=${HOME_DIR}
   export XDG_CONFIG_HOME
+}
+
+write_alvr_quality_session() {
+  session_path=${XDG_CONFIG_HOME}/alvr/session.json
+  mkdir -p -- "$(dirname -- "${session_path}")"
+  cat >"${session_path}" <<'EOF'
+{
+  "session_settings": {
+    "video": {
+      "bitrate": {
+        "mode": {
+          "ConstantMbps": 35,
+          "variant": "ConstantMbps"
+        }
+      },
+      "preferred_codec": {
+        "variant": "Hevc"
+      },
+      "preferred_fps": 72.0,
+      "transcoding_view_resolution": {
+        "Absolute": {
+          "width": 1856,
+          "height": {
+            "set": false
+          }
+        },
+        "variant": "Absolute"
+      },
+      "emulated_headset_view_resolution": {
+        "Absolute": {
+          "width": 1856,
+          "height": {
+            "set": false
+          }
+        },
+        "variant": "Absolute"
+      },
+      "foveated_encoding": {
+        "enabled": true,
+        "content": {
+          "center_size_x": 0.6,
+          "center_size_y": 0.55,
+          "edge_ratio_x": 2.0,
+          "edge_ratio_y": 2.5
+        }
+      },
+      "clientside_post_processing": {
+        "enabled": false
+      }
+    }
+  }
+}
+EOF
+}
+
+prepare_mock_curl() {
+  MOCK_CURL_DIR=${TMP_ROOT}/mock-curl
+  ALVR_CURL_BODY=${TMP_ROOT}/alvr-curl-body.json
+  ALVR_CURL_ARGS=${TMP_ROOT}/alvr-curl-args.txt
+  mkdir -p -- "${MOCK_CURL_DIR}"
+  printf '#!%s\n' "$(command -v bash)" >"${MOCK_CURL_DIR}/curl"
+  cat >>"${MOCK_CURL_DIR}/curl" <<'EOF'
+set -euo pipefail
+
+: "${ALVR_CURL_BODY:?}"
+: "${ALVR_CURL_ARGS:?}"
+printf '%s\n' "$@" >"${ALVR_CURL_ARGS}"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --data)
+      printf '%s\n' "$2" >"${ALVR_CURL_BODY}"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+if [[ -n ${ALVR_CURL_RESULT_SESSION:-} ]]; then
+  cp -- "${ALVR_CURL_RESULT_SESSION}" "${ALVR_SESSION_PATH}"
+fi
+EOF
+  chmod +x -- "${MOCK_CURL_DIR}/curl"
 }
 
 write_runtime_manifest() {
@@ -966,6 +1053,110 @@ case_selector_rejects_simultaneous_backup_and_absent_marker() {
   run_expect_failure selector_rejects_simultaneous_backup_and_absent_marker_restore "backup/absent marker conflict" "${SELECT_OPENXR_CMD[@]}" --restore
 }
 
+case_alvr_quality_profile_requires_explicit_subcommand() {
+  prepare_case_home alvr-quality-explicit
+
+  run_expect_success alvr_quality_profile_help "${ALVR_QUALITY_PROFILE_CMD[@]}" --help
+  assert_contains "${RUN_STDOUT}" "Usage: alvr-quality-profile <status|apply>" "ALVR quality profile help"
+
+  run_expect_failure alvr_quality_profile_requires_subcommand "Usage: alvr-quality-profile" "${ALVR_QUALITY_PROFILE_CMD[@]}"
+  run_expect_failure alvr_quality_profile_rejects_unknown "unknown command: implicit" "${ALVR_QUALITY_PROFILE_CMD[@]}" implicit
+}
+
+case_alvr_quality_profile_status_is_read_only() {
+  prepare_case_home alvr-quality-status
+  write_alvr_quality_session
+  session_path=${XDG_CONFIG_HOME}/alvr/session.json
+  before_hash=$(sha256sum -- "${session_path}")
+
+  run_expect_success alvr_quality_profile_status env \
+    ALVR_SESSION_PATH="${session_path}" \
+    "${ALVR_QUALITY_PROFILE_CMD[@]}" status
+
+  assert_contains "${RUN_STDOUT}" "Status: applied" "ALVR quality profile status"
+  after_hash=$(sha256sum -- "${session_path}")
+  assert_eq "${before_hash}" "${after_hash}" "ALVR quality status must not mutate session"
+}
+
+case_alvr_quality_profile_status_detects_drift() {
+  prepare_case_home alvr-quality-drift
+  write_alvr_quality_session
+  session_path=${XDG_CONFIG_HOME}/alvr/session.json
+  replacement_path=${session_path}.replacement
+  jq '.session_settings.video.bitrate.mode.ConstantMbps = 30' "${session_path}" >"${replacement_path}"
+  mv -- "${replacement_path}" "${session_path}"
+  before_hash=$(sha256sum -- "${session_path}")
+
+  run_expect_failure alvr_quality_profile_status_detects_drift "Status: not applied" env \
+    ALVR_SESSION_PATH="${session_path}" \
+    "${ALVR_QUALITY_PROFILE_CMD[@]}" status
+
+  after_hash=$(sha256sum -- "${session_path}")
+  assert_eq "${before_hash}" "${after_hash}" "ALVR quality drift check must not mutate session"
+}
+
+case_alvr_quality_profile_apply_posts_exact_profile_without_direct_write() {
+  prepare_case_home alvr-quality-apply
+  write_alvr_quality_session
+  prepare_mock_curl
+  session_path=${XDG_CONFIG_HOME}/alvr/session.json
+  expected_session=${TMP_ROOT}/expected-alvr-session.json
+  replacement_path=${session_path}.replacement
+  cp -- "${session_path}" "${expected_session}"
+  jq '.session_settings.video.bitrate.mode.ConstantMbps = 30' "${session_path}" >"${replacement_path}"
+  mv -- "${replacement_path}" "${session_path}"
+
+  run_expect_success alvr_quality_profile_apply env \
+    PATH="${MOCK_CURL_DIR}:${PATH}" \
+    ALVR_CURL_BODY="${ALVR_CURL_BODY}" \
+    ALVR_CURL_ARGS="${ALVR_CURL_ARGS}" \
+    ALVR_CURL_RESULT_SESSION="${expected_session}" \
+    ALVR_DASHBOARD_URL=http://127.0.0.1:18082 \
+    ALVR_SESSION_PATH="${session_path}" \
+    "${ALVR_QUALITY_PROFILE_CMD[@]}" apply
+
+  assert_contains "${RUN_STDOUT}" "applied and verified" "ALVR quality profile apply"
+  assert_contains "${RUN_STDOUT}" "Restart SteamVR from the ALVR Dashboard" "ALVR quality profile restart guidance"
+  assert_file_exists "${ALVR_CURL_BODY}"
+  assert_file_exists "${ALVR_CURL_ARGS}"
+  assert_contains "$(<"${ALVR_CURL_ARGS}")" "http://127.0.0.1:18082/api/dashboard-request" "ALVR dashboard request endpoint"
+
+  jq -e '
+    .SetValues as $values
+    | def value($path): first($values[] | select([.path[].Name] == $path) | .value);
+      value(["session_settings", "video", "bitrate", "mode", "variant"]) == "ConstantMbps"
+      and value(["session_settings", "video", "bitrate", "mode", "ConstantMbps"]) == 35
+      and value(["session_settings", "video", "preferred_codec", "variant"]) == "Hevc"
+      and value(["session_settings", "video", "preferred_fps"]) == 72
+      and value(["session_settings", "video", "transcoding_view_resolution", "Absolute", "width"]) == 1856
+      and value(["session_settings", "video", "emulated_headset_view_resolution", "Absolute", "width"]) == 1856
+      and value(["session_settings", "video", "foveated_encoding", "enabled"]) == true
+      and value(["session_settings", "video", "foveated_encoding", "content", "center_size_x"]) == 0.6
+      and value(["session_settings", "video", "foveated_encoding", "content", "center_size_y"]) == 0.55
+      and value(["session_settings", "video", "foveated_encoding", "content", "edge_ratio_x"]) == 2.0
+      and value(["session_settings", "video", "foveated_encoding", "content", "edge_ratio_y"]) == 2.5
+      and value(["session_settings", "video", "clientside_post_processing", "enabled"]) == false
+  ' "${ALVR_CURL_BODY}" >/dev/null || fail "ALVR quality profile apply: unexpected payload"
+
+  cmp -- "${expected_session}" "${session_path}" >/dev/null || fail "ALVR quality profile apply: read-back session does not match API result"
+}
+
+case_alvr_quality_profile_apply_is_idempotent() {
+  prepare_case_home alvr-quality-idempotent
+  write_alvr_quality_session
+  session_path=${XDG_CONFIG_HOME}/alvr/session.json
+  before_hash=$(sha256sum -- "${session_path}")
+
+  run_expect_success alvr_quality_profile_apply_idempotent env \
+    ALVR_DASHBOARD_URL=http://127.0.0.1:1 \
+    ALVR_SESSION_PATH="${session_path}" \
+    "${ALVR_QUALITY_PROFILE_CMD[@]}" apply
+
+  assert_contains "${RUN_STDOUT}" "already applied; no API request sent" "ALVR quality idempotent apply"
+  after_hash=$(sha256sum -- "${session_path}")
+  assert_eq "${before_hash}" "${after_hash}" "ALVR quality idempotent apply must not mutate session"
+}
+
 run_case() {
   name=$1
   printf '== %s ==\n' "${name}"
@@ -1015,6 +1206,11 @@ main() {
   run_case selector_generic_only_select_and_restore_reveals_generic_fallback
   run_case selector_no_selector_select_and_restore_returns_to_absent_state
   run_case selector_rejects_simultaneous_backup_and_absent_marker
+  run_case alvr_quality_profile_requires_explicit_subcommand
+  run_case alvr_quality_profile_status_is_read_only
+  run_case alvr_quality_profile_status_detects_drift
+  run_case alvr_quality_profile_apply_posts_exact_profile_without_direct_write
+  run_case alvr_quality_profile_apply_is_idempotent
 
   printf 'steamvr tool contract tests passed\n'
 }

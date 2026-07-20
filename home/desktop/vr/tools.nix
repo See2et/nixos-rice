@@ -25,11 +25,18 @@ let
     inherit runtimeInputs;
     text = builtins.readFile ./tools/steamvr-diagnose;
   };
+
+  alvrQualityProfile = pkgs.writeShellApplication {
+    name = "alvr-quality-profile";
+    runtimeInputs = runtimeInputs ++ [ pkgs.curl ];
+    text = builtins.readFile ./tools/alvr-quality-profile;
+  };
 in
 {
   home.packages = [
     steamvrRuntimeEnv
     steamvrSelectOpenxr
     steamvrDiagnose
+    alvrQualityProfile
   ];
 }

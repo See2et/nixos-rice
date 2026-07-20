@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+PROFILE_NAME=pico4-quality
+PROFILE_CODEC=Hevc
+PROFILE_BITRATE_MBPS=35
+PROFILE_FPS=72
+PROFILE_VIEW_WIDTH=1856
+PROFILE_CENTER_X=0.6
+PROFILE_CENTER_Y=0.55
+PROFILE_EDGE_RATIO_X=2.0
+PROFILE_EDGE_RATIO_Y=2.5
+
+dashboard_url=${ALVR_DASHBOARD_URL:-http://127.0.0.1:8082}
+session_path=${ALVR_SESSION_PATH:-${XDG_CONFIG_HOME:-${HOME}/.config}/alvr/session.json}
+
+usage() {
+  cat <<'EOF'
+Usage: alvr-quality-profile <status|apply>
+
+Manage the Nix-defined PICO 4 ALVR quality profile explicitly.
+
+  status  Compare the runtime-owned ALVR session with the declared profile.
+  apply   Apply the declared fields through the live ALVR Dashboard API.
+
+This command never runs during activation and never writes session.json
+directly. After apply, restart SteamVR from the ALVR Dashboard when prompted.
+EOF
+}
+
+say() {
+  printf '%s\n' "$*"
+}
+
+die() {
+  say "$*" >&2
+  exit 1
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || die "$1: missing from PATH"
+}
+
+require_session() {
+  [[ -f $session_path ]] || die "ALVR session not found: $session_path"
+}
+
+profile_matches() {
+  jq -e \
+    --arg codec "$PROFILE_CODEC" \
+    --argjson bitrate "$PROFILE_BITRATE_MBPS" \
+    --argjson fps "$PROFILE_FPS" \
+    --argjson view_width "$PROFILE_VIEW_WIDTH" \
+    --argjson center_x "$PROFILE_CENTER_X" \
+    --argjson center_y "$PROFILE_CENTER_Y" \
+    --argjson edge_x "$PROFILE_EDGE_RATIO_X" \
+    --argjson edge_y "$PROFILE_EDGE_RATIO_Y" \
+    '
+      .session_settings.video as $video
+      | $video.bitrate.mode.variant == "ConstantMbps"
+        and $video.bitrate.mode.ConstantMbps == $bitrate
+        and $video.preferred_codec.variant == $codec
+        and $video.preferred_fps == $fps
+        and $video.transcoding_view_resolution.variant == "Absolute"
+        and $video.transcoding_view_resolution.Absolute.width == $view_width
+        and $video.transcoding_view_resolution.Absolute.height.set == false
+        and $video.emulated_headset_view_resolution.variant == "Absolute"
+        and $video.emulated_headset_view_resolution.Absolute.width == $view_width
+        and $video.emulated_headset_view_resolution.Absolute.height.set == false
+        and $video.foveated_encoding.enabled == true
+        and $video.foveated_encoding.content.center_size_x == $center_x
+        and $video.foveated_encoding.content.center_size_y == $center_y
+        and $video.foveated_encoding.content.edge_ratio_x == $edge_x
+        and $video.foveated_encoding.content.edge_ratio_y == $edge_y
+        and $video.clientside_post_processing.enabled == false
+    ' "$session_path" >/dev/null
+}
+
+print_status() {
+  local current
+
+  current=$(jq -r '
+    .session_settings.video
+    | "codec=\(.preferred_codec.variant) bitrate=\(.bitrate.mode.ConstantMbps)Mbps fps=\(.preferred_fps) view_width=\(.transcoding_view_resolution.Absolute.width) foveation=\(.foveated_encoding.enabled) center=\(.foveated_encoding.content.center_size_x)x\(.foveated_encoding.content.center_size_y) edge=\(.foveated_encoding.content.edge_ratio_x)x\(.foveated_encoding.content.edge_ratio_y) post_processing=\(.clientside_post_processing.enabled)"
+  ' "$session_path")
+
+  say "Profile: $PROFILE_NAME"
+  say "Expected: codec=$PROFILE_CODEC bitrate=${PROFILE_BITRATE_MBPS}Mbps fps=$PROFILE_FPS view_width=$PROFILE_VIEW_WIDTH foveation=true center=${PROFILE_CENTER_X}x${PROFILE_CENTER_Y} edge=${PROFILE_EDGE_RATIO_X}x${PROFILE_EDGE_RATIO_Y} post_processing=false"
+  say "Current: $current"
+
+  if profile_matches; then
+    say "Status: applied"
+  else
+    say "Status: not applied"
+    return 1
+  fi
+}
+
+build_payload() {
+  jq -cn \
+    --arg codec "$PROFILE_CODEC" \
+    --argjson bitrate "$PROFILE_BITRATE_MBPS" \
+    --argjson fps "$PROFILE_FPS" \
+    --argjson view_width "$PROFILE_VIEW_WIDTH" \
+    --argjson center_x "$PROFILE_CENTER_X" \
+    --argjson center_y "$PROFILE_CENTER_Y" \
+    --argjson edge_x "$PROFILE_EDGE_RATIO_X" \
+    --argjson edge_y "$PROFILE_EDGE_RATIO_Y" \
+    '
+      def pair($path; $value): {
+        path: ($path | map({ Name: . })),
+        value: $value
+      };
+      {
+        SetValues: [
+          pair(["session_settings", "video", "bitrate", "mode", "variant"]; "ConstantMbps"),
+          pair(["session_settings", "video", "bitrate", "mode", "ConstantMbps"]; $bitrate),
+          pair(["session_settings", "video", "preferred_codec", "variant"]; $codec),
+          pair(["session_settings", "video", "preferred_fps"]; $fps),
+          pair(["session_settings", "video", "transcoding_view_resolution", "variant"]; "Absolute"),
+          pair(["session_settings", "video", "transcoding_view_resolution", "Absolute", "width"]; $view_width),
+          pair(["session_settings", "video", "transcoding_view_resolution", "Absolute", "height", "set"]; false),
+          pair(["session_settings", "video", "emulated_headset_view_resolution", "variant"]; "Absolute"),
+          pair(["session_settings", "video", "emulated_headset_view_resolution", "Absolute", "width"]; $view_width),
+          pair(["session_settings", "video", "emulated_headset_view_resolution", "Absolute", "height", "set"]; false),
+          pair(["session_settings", "video", "foveated_encoding", "enabled"]; true),
+          pair(["session_settings", "video", "foveated_encoding", "content", "center_size_x"]; $center_x),
+          pair(["session_settings", "video", "foveated_encoding", "content", "center_size_y"]; $center_y),
+          pair(["session_settings", "video", "foveated_encoding", "content", "edge_ratio_x"]; $edge_x),
+          pair(["session_settings", "video", "foveated_encoding", "content", "edge_ratio_y"]; $edge_y),
+          pair(["session_settings", "video", "clientside_post_processing", "enabled"]; false)
+        ]
+      }
+    '
+}
+
+apply_profile() {
+  local payload
+
+  if profile_matches; then
+    say "ALVR quality profile is already applied; no API request sent."
+    say "If these settings have not been activated yet, restart SteamVR from the ALVR Dashboard."
+    return 0
+  fi
+
+  require_command curl
+  payload=$(build_payload)
+
+  curl \
+    --fail-with-body \
+    --silent \
+    --show-error \
+    --request POST \
+    --header 'X-ALVR: true' \
+    --header 'Content-Type: application/json' \
+    --data "$payload" \
+    "${dashboard_url%/}/api/dashboard-request"
+
+  for _ in 1 2 3 4 5; do
+    if profile_matches; then
+      say "ALVR quality profile applied and verified."
+      say "Restart SteamVR from the ALVR Dashboard to activate codec, resolution, and foveation changes."
+      return 0
+    fi
+    sleep 1
+  done
+
+  die "ALVR accepted the request, but session read-back does not match $PROFILE_NAME"
+}
+
+main() {
+  require_command jq
+
+  case ${1-} in
+    status)
+      [[ $# -eq 1 ]] || die "status does not accept additional arguments"
+      require_session
+      print_status
+      ;;
+    apply)
+      [[ $# -eq 1 ]] || die "apply does not accept additional arguments"
+      require_session
+      apply_profile
+      ;;
+    -h|--help)
+      usage
+      ;;
+    '')
+      usage >&2
+      exit 2
+      ;;
+    *)
+      usage >&2
+      die "unknown command: $1"
+      ;;
+  esac
+}
+
+main "$@"
