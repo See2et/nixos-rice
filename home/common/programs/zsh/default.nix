@@ -1,5 +1,10 @@
 # Common zsh configuration
-{ pkgs, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ./abbreviations.nix
@@ -10,6 +15,7 @@
 
   programs.zsh = {
     enable = true;
+    dotDir = config.home.homeDirectory;
 
     initContent =
       let

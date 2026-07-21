@@ -58,16 +58,10 @@ in
         }
       ];
 
-      events = [
-        {
-          event = "before-sleep";
-          command = "${lockAndPowerOffCmd}/bin/desktop-lock-and-display-off";
-        }
-        {
-          event = "after-resume";
-          command = "${wakeCmd}/bin/desktop-idle-wake";
-        }
-      ];
+      events = {
+        "before-sleep" = "${lockAndPowerOffCmd}/bin/desktop-lock-and-display-off";
+        "after-resume" = "${wakeCmd}/bin/desktop-idle-wake";
+      };
     };
   };
 }

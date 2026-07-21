@@ -555,9 +555,9 @@ in
       ankiWithRequestedAddons
       pkgsUnstable.obsidian
       obs-studio
-      xfce.thunar
-      xfce.thunar-archive-plugin
-      xfce.thunar-volman
+      thunar
+      thunar-archive-plugin
+      thunar-volman
       p7zip
       rofiLauncher
       desktopSessionAction
@@ -578,7 +578,7 @@ in
         slack
         zoom-us
         figma-linux
-        youtube-music
+        pear-desktop
         yubioath-flutter
       ]
     )

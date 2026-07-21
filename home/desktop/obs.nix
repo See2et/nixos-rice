@@ -8,6 +8,7 @@
   xdg.userDirs = {
     enable = true;
     createDirectories = true;
+    setSessionVariables = true;
     videos = "${config.home.homeDirectory}/Videos";
   };
 

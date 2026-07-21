@@ -97,6 +97,40 @@ check_present_many() {
 
 check_absent_many "operational laptop output/files/refs must be gone" 'nixosConfigurations\.laptop|#laptop|hosts[/-]laptop|home[/-]laptop|modules/.*/laptop|hardware-configuration-laptop|hardware-laptop|WSL/Laptop' '*.nix' '*.md' '*.jsonc'
 
+check_absent "desktop wallpaper must not use the removed swww command names" 'pkgs\.swww|/bin/swww(-daemon)?\b|swww-daemon' '*.nix'
+
+check_present "desktop wallpaper must use the awww package" 'pkgs\.awww' 'wallpaper.nix'
+
+check_present "desktop wallpaper must invoke the awww client" '/bin/awww[[:space:]]+(query|img)' 'wallpaper.nix'
+
+check_present "desktop wallpaper must invoke the awww daemon" '/bin/awww-daemon\b' 'wallpaper.nix'
+
+check_absent "Waybar must not use the image module that blocks 26.05 startup" 'image#logo|^[[:space:]]*interval[[:space:]]*=[[:space:]]*0;' 'waybar.nix'
+
+check_present "Waybar must keep a lightweight text logo module" 'custom/logo' 'waybar.nix'
+
+check_absent "Waybar must not leave an empty playback group" 'group/playback' 'waybar.nix'
+
+check_present "Waybar music module must render only with an active player" '"?exec-if"?[[:space:]]*=[[:space:]]*"playerctl status' 'waybar.nix'
+
+check_absent "desktop Waybar must not include laptop-only status modules" 'power-profiles-daemon|^[[:space:]]*(backlight|battery)[[:space:]]*=' 'waybar.nix'
+
+check_absent_many "26.05 package aliases must not remain in local configuration" 'nixfmt-rfc-style|xfce\.(thunar|thunar-archive-plugin|thunar-volman)|youtube-music|xorg\.(libX11|libXcursor|libXrandr|libXi|libXrender|libXfixes|libXcomposite|libXdamage|libxcb|libXtst|libXScrnSaver)' '*.nix'
+
+check_absent "swayidle must not use the legacy list-form events schema" 'events[[:space:]]*=[[:space:]]*\[' 'idle.nix'
+
+check_present "swayidle must use the 26.05 attrset events schema" 'events[[:space:]]*=[[:space:]]*\{' 'idle.nix'
+
+check_present "GTK4 legacy theme behavior must be explicit" 'gtk4\.theme[[:space:]]*=[[:space:]]*config\.gtk\.theme' 'theme.nix'
+
+check_present "Neovim Python provider compatibility must be explicit" 'withPython3[[:space:]]*=[[:space:]]*true' 'neovim.nix'
+
+check_present "Neovim Ruby provider compatibility must be explicit" 'withRuby[[:space:]]*=[[:space:]]*true' 'neovim.nix'
+
+check_present "XDG user-dir session variables compatibility must be explicit" 'setSessionVariables[[:space:]]*=[[:space:]]*true' 'obs.nix'
+
+check_present "Zsh dotDir compatibility must be explicit" 'dotDir[[:space:]]*=[[:space:]]*config\.home\.homeDirectory' 'default.nix'
+
 check_absent "home.activation must not mutate SteamVR/VRChat/Oyasumi/ALVR state" 'home\.activation\.[A-Za-z0-9_]*(steamVr|vrchat|oyasumi|alvr)[A-Za-z0-9_]*' '*.nix'
 
 check_absent "localconfig.vdf or ALVR session.json must not be mutated by Home Manager" 'localconfig\.vdf|session\.json' '*.nix'
@@ -164,13 +198,15 @@ elif ! jq_exec -e '
   fail "WayVR Oculus Touch binding must split Y hold SpaceDrag, double-X ShowHide, and B hold SpaceRotate across distinct inputs"
 fi
 
-check_present "home/desktop/vr/alvr.nix must override pkgs.ffmpeg for patchedFfmpeg" 'patchedFfmpeg\s*=\s*pkgs\.ffmpeg\.(override|overrideAttrs)\b' 'alvr.nix'
+check_present "home/desktop/vr/alvr.nix must override the dedicated ffmpeg-alvr package" 'patchedFfmpegAlvr[[:space:]]*=[[:space:]]*pkgs\.alvr\.passthru\."ffmpeg-alvr"\.overrideAttrs\b' 'alvr.nix'
 
-check_present "home/desktop/vr/alvr.nix must pass patchedFfmpeg into pkgs.alvr.override" 'pkgs\.alvr\.override' 'alvr.nix'
+check_present "home/desktop/vr/alvr.nix must pass patchedFfmpegAlvr into pkgs.alvr.override" 'pkgs\.alvr\.override[[:space:]]*\{' 'alvr.nix'
+
+check_present "home/desktop/vr/alvr.nix must assign patchedFfmpegAlvr to ffmpeg-alvr" '"ffmpeg-alvr"[[:space:]]*=[[:space:]]*patchedFfmpegAlvr[[:space:]]*;' 'alvr.nix'
 
 alvr_binding_name_matches=$(match_any '^[[:space:]]*alvr[[:space:]]*=' 'alvr.nix')
 alvr_binding_override_matches=$(match_any 'pkgs\.alvr\.override' 'alvr.nix')
-alvr_binding_final_override_matches=$(match_any 'overrideAttrs' 'alvr.nix')
+alvr_binding_final_override_matches=$(match_any '\}\)\.overrideAttrs' 'alvr.nix')
 if [[ -z "$alvr_binding_name_matches" || -z "$alvr_binding_override_matches" || -z "$alvr_binding_final_override_matches" ]]; then
   fail "home/desktop/vr/alvr.nix must bind the overridden ALVR package for wrappers"
   report "$alvr_binding_name_matches"
@@ -178,13 +214,17 @@ if [[ -z "$alvr_binding_name_matches" || -z "$alvr_binding_override_matches" || 
   report "$alvr_binding_final_override_matches"
 fi
 
-alvr_early_hmd_source_matches=$(match_any 'let\s+early_hmd_initialization\s*=\s*!\s*dashboard_process_paths\.is_empty\(\)\s*;' 'alvr.nix')
-alvr_early_hmd_override_matches=$(match_any 'let\s+early_hmd_initialization\s*=\s*true\s*;' 'alvr.nix')
-if [[ -z "$alvr_early_hmd_source_matches" || -z "$alvr_early_hmd_override_matches" ]]; then
-  fail "home/desktop/vr/alvr.nix must bind the ALVR 20.14.1 shutdown-regression workaround by keeping the original early_hmd_initialization source target and forcing early_hmd_initialization = true;"
+alvr_early_hmd_source_matches=$(match_any 'dashboard_processes\.is_empty\(\)' 'alvr.nix')
+alvr_early_hmd_replace_matches=$(match_any '--replace-fail' 'alvr.nix')
+alvr_early_hmd_override_matches=$(match_any 'let[[:space:]]+early_hmd_initialization[[:space:]]*=[[:space:]]*true[[:space:]]*;' 'alvr.nix')
+if [[ -z "$alvr_early_hmd_source_matches" || -z "$alvr_early_hmd_replace_matches" || -z "$alvr_early_hmd_override_matches" ]]; then
+  fail "home/desktop/vr/alvr.nix must replace the current dashboard_processes early_hmd_initialization source and force early_hmd_initialization = true"
   report "$alvr_early_hmd_source_matches"
+  report "$alvr_early_hmd_replace_matches"
   report "$alvr_early_hmd_override_matches"
 fi
+
+check_absent "home/desktop/vr/alvr.nix must not keep dead ffmpeg-alvr compatibility wiring" 'builtins\.seq|ffmpegPackedFormatPatch|dashboard_process_paths|replace-warn' 'alvr.nix'
 
 check_present "home/desktop/vr/alvr.nix wrappers must use the overridden ALVR package" 'runtimeInputs\s*=\s*\[\s*alvr\s*\]' 'alvr.nix'
 
@@ -216,9 +256,9 @@ check_absent "ALVR quality profile command must not write session.json directly"
 
 check_absent "ALVR quality profile command must not run from activation" 'home\.activation\.[A-Za-z0-9_]*alvr[A-Za-z0-9_]*|alvr-quality-profile[[:space:]]+apply' '*.nix'
 
-check_present_many "ALVR patch source must contain the Vulkan-to-CUDA packed format channel count fix" '\.NumChannels\s*=\s*desc->comp\[i\]\.step\s*/\s*elem_size' '*.nix' '*.patch'
+check_present_many "ALVR patch source must contain the Vulkan-to-CUDA packed format channel count fix" '\.NumChannels[[:space:]]*=[[:space:]]*desc->comp\[i\]\.step[[:space:]]*/[[:space:]]*elem_size' '*.nix' '*.patch'
 
-check_present_many "ALVR patch source must contain the packed-format depth-aware channel count fix" '1\s*\+\s*\(desc->comp\[0\]\.depth\s*>\s*8\)' '*.nix' '*.patch'
+check_present_many "ALVR patch source must contain the packed-format depth-aware channel count fix" '1[[:space:]]*\+[[:space:]]*\(desc->comp\[0\]\.depth[[:space:]]*>[[:space:]]*8\)' '*.nix' '*.patch'
 
 steam_ffmpeg_headless_matches=$(match_any 'patchedFfmpegHeadless\s*=\s*prev\.ffmpeg-headless\.(override|overrideAttrs)\b' 'steam.nix')
 steam_ffmpeg_patch_matches=$(match_any 'ffmpeg-8\.0-vulkan-cuda-packed-format\.patch' 'steam.nix')

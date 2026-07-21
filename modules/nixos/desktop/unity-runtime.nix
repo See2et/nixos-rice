@@ -17,17 +17,17 @@ in
     openssl
     icu
     libGL
-    xorg.libX11
-    xorg.libXcursor
-    xorg.libXrandr
-    xorg.libXi
-    xorg.libXrender
-    xorg.libXfixes
-    xorg.libXcomposite
-    xorg.libXdamage
-    xorg.libxcb
-    xorg.libXtst
-    xorg.libXScrnSaver
+    libx11
+    libxcursor
+    libxrandr
+    libxi
+    libxrender
+    libxfixes
+    libxcomposite
+    libxdamage
+    libxcb
+    libxtst
+    libxscrnsaver
     udev
     gtk3
     glib

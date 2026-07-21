@@ -109,8 +109,8 @@ darwin-rebuild switch --flake .#darwin
 `darwin-rebuild` コマンドが未導入の場合:
 
 ```bash
-nix run github:LnL7/nix-darwin/nix-darwin-25.11#darwin-rebuild -- build --flake .#darwin
-nix run github:LnL7/nix-darwin/nix-darwin-25.11#darwin-rebuild -- switch --flake .#darwin
+nix run github:LnL7/nix-darwin/nix-darwin-26.05#darwin-rebuild -- build --flake .#darwin
+nix run github:LnL7/nix-darwin/nix-darwin-26.05#darwin-rebuild -- switch --flake .#darwin
 ```
 
 注: `homeConfigurations.darwin` は評価互換のため残していますが、通常運用は `darwinConfigurations.darwin` を使用してください。

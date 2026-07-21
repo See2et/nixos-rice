@@ -58,18 +58,18 @@ let
         return 1
       fi
 
-      if ! ${pkgs.swww}/bin/swww query >/dev/null 2>&1; then
-        ${pkgs.swww}/bin/swww-daemon --no-cache >/dev/null 2>&1 &
+      if ! ${pkgs.awww}/bin/awww query >/dev/null 2>&1; then
+        ${pkgs.awww}/bin/awww-daemon --no-cache >/dev/null 2>&1 &
       fi
 
       for attempt in $(seq 1 30); do
-        if ${pkgs.swww}/bin/swww query >/dev/null 2>&1; then
+        if ${pkgs.awww}/bin/awww query >/dev/null 2>&1; then
           return 0
         fi
         sleep 0.2
       done
 
-      printf '%s\n' "desktop-wallpaper-apply: swww-daemon not ready" >&2
+      printf '%s\n' "desktop-wallpaper-apply: awww-daemon not ready" >&2
       return 1
     }
 
@@ -111,9 +111,9 @@ let
     ensure_daemon
 
     if [ "$startup" -eq 1 ]; then
-      ${pkgs.swww}/bin/swww img "$target" --transition-type none
+      ${pkgs.awww}/bin/awww img "$target" --transition-type none
     else
-      ${pkgs.swww}/bin/swww img "$target" \
+      ${pkgs.awww}/bin/awww img "$target" \
         --transition-type fade \
         --transition-fps 60 \
         --transition-duration 1.0
@@ -260,7 +260,7 @@ in
 {
   config = lib.mkIf config.programs.niri.enable {
     home.packages = [
-      pkgs.swww
+      pkgs.awww
       desktopWallpaperApply
       desktopWallpaperCycle
       desktopWallpaperAuto

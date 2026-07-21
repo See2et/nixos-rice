@@ -5,19 +5,53 @@
 }:
 let
   isX86_64 = pkgs.stdenv.hostPlatform.isx86_64;
-  patchedFfmpeg = pkgs.ffmpeg.overrideAttrs (oldAttrs: {
+  ffmpegPackedFormatAlvrPatch = builtins.toFile "ffmpeg-8.0-vulkan-cuda-packed-format-alvr.patch" ''
+    From 927f205eb8de44fc106a36f00ea9d713c813a4f3 Mon Sep 17 00:00:00 2001
+    From: FFmpeg upstream
+    Date: Mon, 20 Jul 2026 00:00:00 +0000
+    Subject: [PATCH] avutil/hwcontext_vulkan: fix CUDA packed-format channel count
+
+    Backport follow-up for ALVR's ffmpeg tree, which already carries
+    0001-lavu-hwcontext_vulkan-Fix-importing-RGBx-frames-to-C.patch.
+
+    ---
+     libavutil/hwcontext_vulkan.c | 3 ++-
+     1 file changed, 2 insertions(+), 1 deletion(-)
+
+    diff --git a/libavutil/hwcontext_vulkan.c b/libavutil/hwcontext_vulkan.c
+    index e3bd6ace9b..f87cb8b7dc 100644
+    --- a/libavutil/hwcontext_vulkan.c
+    +++ b/libavutil/hwcontext_vulkan.c
+    @@ -3761,6 +3761,7 @@ static int vulkan_export_to_cuda(AVHWFramesContext *hwfc,
+         CudaFunctions *cu = cu_internal->cuda_dl;
+         CUarray_format cufmt = desc->comp[0].depth > 8 ? CU_AD_FORMAT_UNSIGNED_INT16 :
+                                                          CU_AD_FORMAT_UNSIGNED_INT8;
+    +    const int elem_size = 1 + (desc->comp[0].depth > 8);
+
+         dst_f = (AVVkFrame *)frame->data[0];
+         dst_int = dst_f->internal;
+    @@ -3805,7 +3806,7 @@ static int vulkan_export_to_cuda(AVHWFramesContext *hwfc,
+                         .Depth = 0,
+                         .Format = cufmt,
+    -                    .NumChannels = desc->comp[i].step,
+    +                    .NumChannels = desc->comp[i].step / elem_size,
+                         .Flags = 0,
+                     },
+                     .numLevels = 1,
+  '';
+  patchedFfmpegAlvr = pkgs.alvr.passthru."ffmpeg-alvr".overrideAttrs (oldAttrs: {
     patches = (oldAttrs.patches or [ ]) ++ [
-      ./patches/ffmpeg-8.0-vulkan-cuda-packed-format.patch
+      ffmpegPackedFormatAlvrPatch
     ];
   });
   alvr =
     (pkgs.alvr.override {
-      ffmpeg = patchedFfmpeg;
+      "ffmpeg-alvr" = patchedFfmpegAlvr;
     }).overrideAttrs
       (oldAttrs: {
         postPatch = (oldAttrs.postPatch or "") + ''
           substituteInPlace alvr/server_openvr/src/lib.rs --replace-fail \
-            'let early_hmd_initialization = !dashboard_process_paths.is_empty();' \
+            'let early_hmd_initialization = !dashboard_processes.is_empty();' \
             'let early_hmd_initialization = true;'
         '';
       });

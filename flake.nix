@@ -1,17 +1,17 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     # Unity 2022.x requires libxml2.so.2 compatibility for nix-ld.
     nixpkgs-compat.url = "github:NixOS/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-steam.url = "github:NixOS/nixpkgs/75563f8f5237c44ed7b8a51fd870ed3d6a11eb82";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-darwin = {
-      url = "github:LnL7/nix-darwin/nix-darwin-25.11";
+      url = "github:LnL7/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew = {
@@ -37,7 +37,7 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/release-26.05";
     noctalia = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,9 +50,6 @@
     };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     opencode.url = "github:anomalyco/opencode";
-    # Newer OpenCode revisions currently segfault on this WSL2 kernel.
-    # Keep WSL on a known-good revision and let native hosts track stable.
-    opencode-wsl.url = "github:anomalyco/opencode/500dcfc";
   };
 
   outputs =
@@ -115,7 +112,7 @@
           name = "treefmt-wrapper";
           runtimeInputs = with pkgs; [
             jq
-            nixfmt-rfc-style
+            nixfmt
             stylua
             treefmt
           ];
@@ -202,17 +199,9 @@
       };
 
       mkOpencodeReleasePackage =
-        system:
+        system: release:
         let
           pkgs = mkPkgs system;
-          release =
-            {
-              x86_64-linux = {
-                url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-x64-baseline.tar.gz";
-                hash = "sha256-aqnYgO8KgQBx02ZYZ6rsLhDjn6CktiR4BdElgpJ5ovc=";
-              };
-            }
-            .${system} or (throw "Unsupported opencode release system: ${system}");
           opencodeBinary = pkgs.fetchzip {
             inherit (release) url hash;
             stripRoot = false;
@@ -228,7 +217,17 @@
           exec ${opencodeBinary}/opencode "$@"
         '';
 
-      opencodePackageLinux = mkOpencodeReleasePackage linuxSystem;
+      opencodePackageLinux = mkOpencodeReleasePackage linuxSystem {
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-x64-baseline.tar.gz";
+        hash = "sha256-aqnYgO8KgQBx02ZYZ6rsLhDjn6CktiR4BdElgpJ5ovc=";
+      };
+
+      # Newer OpenCode revisions currently segfault on this WSL2 kernel.
+      # Keep WSL on the known-good 1.3.13 binary without rebuilding it with newer Bun versions.
+      opencodePackageWsl = mkOpencodeReleasePackage linuxSystem {
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.3.13/opencode-linux-x64-baseline.tar.gz";
+        hash = "sha256-K/uBgByhR7igNy8u4t/07mifoPyAJ98Toy68MmubCls=";
+      };
 
       opencodePkgsDarwin = import nixpkgs {
         system = darwinSystem;
@@ -268,7 +267,7 @@
 
         wsl = nixpkgs.lib.nixosSystem {
           system = linuxSystem;
-          specialArgs = { inherit inputs; };
+          specialArgs = { inherit inputs opencodePackageWsl; };
           modules = [
             ./hosts/wsl
           ];

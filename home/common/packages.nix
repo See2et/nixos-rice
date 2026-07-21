@@ -23,7 +23,7 @@ in
       lua-language-server
       tre-command
       lsd
-      nixfmt-rfc-style
+      nixfmt
       nixd
       gh
       ghq
@@ -48,7 +48,7 @@ in
       websocat
       fzf
       markdownlint-cli2
-      nodePackages.textlint
+      (lib.hiPrio textlint)
       yubikey-manager
       wget
       openssl

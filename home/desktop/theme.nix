@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkForce;
   gtkTheme = "adw-gtk3-dark";
@@ -26,6 +31,7 @@ in
       package = mkForce pkgs.bibata-cursors;
     };
     gtk3.extraConfig.gtk-application-prefer-dark-theme = 1;
+    gtk4.theme = config.gtk.theme;
     gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
   };
 

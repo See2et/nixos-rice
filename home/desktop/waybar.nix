@@ -1,6 +1,5 @@
 { config, ... }:
 let
-  logoIcon = ./assets/waybar-logo.png;
   t = config.desktop.ui.tokens;
 in
 {
@@ -35,6 +34,7 @@ in
       }
 
       #workspaces,
+      #custom-music,
       .modules-right box {
         background-color: ${t.colors.surface};
         margin: 0 ${toString t.spacing.sm}px;
@@ -46,7 +46,9 @@ in
         margin: 0 ${toString t.spacing.lg}px;
       }
 
-      .modules-left #image {
+      .modules-left #custom-logo {
+        color: ${t.colors.accent};
+        font-family: ${t.typography.iconFamily};
         margin: 0 ${toString t.spacing.lg}px;
       }
 
@@ -126,10 +128,6 @@ in
         color: ${t.colors.lavender};
       }
 
-      #power-profiles-daemon {
-        color: ${t.colors.info};
-      }
-
       #custom-codex {
         color: ${t.colors.info};
         font-family: ${t.typography.monoFamily};
@@ -141,26 +139,6 @@ in
 
       #custom-codex.critical {
         color: ${t.colors.danger};
-      }
-
-      #battery {
-        color: ${t.colors.success};
-      }
-
-      #battery.charging {
-        color: ${t.colors.success};
-      }
-
-      #battery.warning:not(.charging) {
-        color: ${t.colors.warning};
-      }
-
-      #battery.critical:not(.charging) {
-        color: ${t.colors.danger};
-      }
-
-      #backlight {
-        color: ${t.colors.warning};
       }
 
       #pulseaudio {
@@ -232,31 +210,23 @@ in
         "margin-bottom" = t.spacing.md;
 
         "modules-left" = [
-          "image#logo"
+          "custom/logo"
           "niri/workspaces"
           "niri/window"
         ];
         "modules-center" = [ "clock" ];
         "modules-right" = [
-          "group/playback"
+          "custom/music"
           "group/status"
           "group/notifications"
           "tray"
           "group/power"
         ];
 
-        "group/playback" = {
-          orientation = "inherit";
-          modules = [ "custom/music" ];
-        };
-
         "group/status" = {
           orientation = "inherit";
           modules = [
             "pulseaudio"
-            "backlight"
-            "battery"
-            "power-profiles-daemon"
             "custom/codex"
           ];
         };
@@ -274,11 +244,9 @@ in
           modules = [ "custom/notifications" ];
         };
 
-        "image#logo" = {
-          path = logoIcon;
-          size = t.sizes.barLogo;
+        "custom/logo" = {
+          format = "";
           tooltip = false;
-          interval = 0;
         };
 
         "niri/workspaces" = {
@@ -347,7 +315,8 @@ in
           escape = true;
           interval = 5;
           tooltip = false;
-          exec = "playerctl metadata --format='{{ title }}'";
+          "exec-if" = "playerctl status >/dev/null 2>&1";
+          exec = "playerctl metadata --format='{{ title }}' 2>/dev/null || true";
           "on-click" = "playerctl play-pause";
           "max-length" = 50;
         };
@@ -380,36 +349,6 @@ in
           };
         };
 
-        backlight = {
-          device = "intel_backlight";
-          format = "{icon} {percent}%";
-          "format-icons" = [
-            ""
-            ""
-          ];
-          "scroll-step" = 1;
-        };
-
-        battery = {
-          interval = 30;
-          states = {
-            warning = 20;
-            critical = 10;
-          };
-          "full-at" = 98;
-          format = "{icon} {capacity}%";
-          "format-icons" = [
-            ""
-            ""
-            ""
-            ""
-            ""
-          ];
-          "format-critical" = " {capacity}%";
-          "tooltip-format" = "{timeTo} ({power}W)";
-          "format-charging" = " {capacity}%";
-        };
-
         pulseaudio = {
           format = "{icon} {volume}%";
           "format-bluetooth" = "{icon} {volume}%";
@@ -440,18 +379,6 @@ in
             { type = "screenshare"; }
             { type = "audio-in"; }
           ];
-        };
-
-        "power-profiles-daemon" = {
-          format = "{icon}";
-          tooltip = true;
-          "tooltip-format" = "Power profile: {profile}\nDriver: {driver}";
-          "format-icons" = {
-            default = "";
-            performance = " perf";
-            balanced = " balance";
-            "power-saver" = " save";
-          };
         };
 
         "custom/codex" = {

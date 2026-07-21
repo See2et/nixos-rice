@@ -2,7 +2,12 @@
 # This module is WSL-specific and should only be imported in the WSL host configuration.
 # It imports the nixos-wsl module which provides WSL-specific options and behavior.
 
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  opencodePackageWsl,
+  pkgs,
+  ...
+}:
 
 {
   imports = [
@@ -41,6 +46,6 @@
     isDarwin = false;
     hostId = "wsl";
     rustToolchain = pkgs.rustc;
-    opencodePackage = inputs."opencode-wsl".packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+    opencodePackage = opencodePackageWsl;
   };
 }

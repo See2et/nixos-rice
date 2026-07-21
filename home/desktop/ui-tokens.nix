@@ -104,7 +104,7 @@ in
     };
 
     sizes = {
-      barHeight = 28;
+      barHeight = 34;
       barLogo = 20;
       trayIcon = 16;
       privacyIcon = 12;
