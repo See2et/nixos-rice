@@ -1,1 +1,2 @@
 home/desktop/vr/patches/*.patch -whitespace
+patches/*.patch -whitespace

@@ -1,15 +1,9 @@
 { lib, ... }:
 {
   imports = [
-    ./bluetooth.nix
+    ./dank-material-shell.nix
     ./niri.nix
-    ./session-startup.nix
-    ./wallpaper.nix
-    ./idle.nix
-    ./waybar.nix
-    ./rofi.nix
     ./ui-tokens.nix
-    ./surfaces.nix
     ./packages.nix
     ./lazydocker.nix
     ./obs.nix

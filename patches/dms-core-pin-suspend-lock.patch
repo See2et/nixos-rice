@@ -1,0 +1,173 @@
+diff --git a/internal/server/loginctl/actions.go b/internal/server/loginctl/actions.go
+--- a/internal/server/loginctl/actions.go
++++ b/internal/server/loginctl/actions.go
+@@ -84,18 +84,3 @@
+ 	}
+ 	return nil
+ }
+-
+-func (m *Manager) SetLockBeforeSuspend(enabled bool) {
+-	m.lockBeforeSuspend.Store(enabled)
+-}
+-
+-func (m *Manager) SetSleepInhibitorEnabled(enabled bool) {
+-	m.sleepInhibitorEnabled.Store(enabled)
+-	if enabled {
+-		// Re-acquire inhibitor if enabled
+-		m.acquireSleepInhibitor()
+-	} else {
+-		// Release inhibitor if disabled
+-		m.releaseSleepInhibitor()
+-	}
+-}
+diff --git a/internal/server/loginctl/handlers.go b/internal/server/loginctl/handlers.go
+--- a/internal/server/loginctl/handlers.go
++++ b/internal/server/loginctl/handlers.go
+@@ -21,12 +21,6 @@
+ 		handleSetIdleHint(conn, req, manager)
+ 	case "loginctl.setLockedHint":
+ 		handleSetLockedHint(conn, req, manager)
+-	case "loginctl.setLockBeforeSuspend":
+-		handleSetLockBeforeSuspend(conn, req, manager)
+-	case "loginctl.setSleepInhibitorEnabled":
+-		handleSetSleepInhibitorEnabled(conn, req, manager)
+-	case "loginctl.lockerReady":
+-		handleLockerReady(conn, req, manager)
+ 	case "loginctl.terminate":
+ 		handleTerminate(conn, req, manager)
+ 	case "loginctl.subscribe":
+@@ -84,45 +78,6 @@
+ 	models.Respond(conn, req.ID, models.SuccessResult{Success: true, Message: "locked hint set"})
+ }
+ 
+-func handleSetLockBeforeSuspend(conn net.Conn, req models.Request, manager *Manager) {
+-	enabled, err := params.Bool(req.Params, "enabled")
+-	if err != nil {
+-		models.RespondError(conn, req.ID, err.Error())
+-		return
+-	}
+-
+-	manager.SetLockBeforeSuspend(enabled)
+-	models.Respond(conn, req.ID, models.SuccessResult{Success: true, Message: "lock before suspend set"})
+-}
+-
+-func handleSetSleepInhibitorEnabled(conn net.Conn, req models.Request, manager *Manager) {
+-	enabled, err := params.Bool(req.Params, "enabled")
+-	if err != nil {
+-		models.RespondError(conn, req.ID, err.Error())
+-		return
+-	}
+-
+-	manager.SetSleepInhibitorEnabled(enabled)
+-	models.Respond(conn, req.ID, models.SuccessResult{Success: true, Message: "sleep inhibitor setting updated"})
+-}
+-
+-func handleLockerReady(conn net.Conn, req models.Request, manager *Manager) {
+-	manager.lockTimerMu.Lock()
+-	if manager.lockTimer != nil {
+-		manager.lockTimer.Stop()
+-		manager.lockTimer = nil
+-	}
+-	manager.lockTimerMu.Unlock()
+-
+-	id := manager.sleepCycleID.Load()
+-	manager.releaseForCycle(id)
+-
+-	if manager.inSleepCycle.Load() {
+-		manager.signalLockerReady()
+-	}
+-	models.Respond(conn, req.ID, models.SuccessResult{Success: true, Message: "ok"})
+-}
+-
+ func handleTerminate(conn net.Conn, req models.Request, manager *Manager) {
+ 	if err := manager.Terminate(); err != nil {
+ 		models.RespondError(conn, req.ID, err.Error())
+diff --git a/internal/server/loginctl/manager.go b/internal/server/loginctl/manager.go
+--- a/internal/server/loginctl/manager.go
++++ b/internal/server/loginctl/manager.go
+@@ -26,6 +26,7 @@
+ 		dirty:    make(chan struct{}, 1),
+ 		signals:  make(chan *dbus.Signal, 256),
+ 	}
++	m.lockBeforeSuspend.Store(true)
+ 	m.sleepInhibitorEnabled.Store(true)
+ 
+ 	if err := m.initialize(); err != nil {
+@@ -442,23 +443,6 @@
+ 	}
+ }
+ 
+-func (m *Manager) newLockerReadyCh() chan struct{} {
+-	m.lockerReadyChMu.Lock()
+-	defer m.lockerReadyChMu.Unlock()
+-	m.lockerReadyCh = make(chan struct{})
+-	return m.lockerReadyCh
+-}
+-
+-func (m *Manager) signalLockerReady() {
+-	m.lockerReadyChMu.Lock()
+-	ch := m.lockerReadyCh
+-	if ch != nil {
+-		close(ch)
+-		m.lockerReadyCh = nil
+-	}
+-	m.lockerReadyChMu.Unlock()
+-}
+-
+ func (m *Manager) snapshotState() SessionState {
+ 	m.stateMutex.RLock()
+ 	defer m.stateMutex.RUnlock()
+diff --git a/internal/server/loginctl/monitor.go b/internal/server/loginctl/monitor.go
+--- a/internal/server/loginctl/monitor.go
++++ b/internal/server/loginctl/monitor.go
+@@ -53,23 +53,11 @@
+ 		preparing, _ := sig.Body[0].(bool)
+ 
+ 		if preparing {
+-			cycleID := m.sleepCycleID.Add(1)
++			m.sleepCycleID.Add(1)
+ 			m.inSleepCycle.Store(true)
+-
+-			if m.lockBeforeSuspend.Load() {
+-				m.Lock()
+-			}
+-
+-			readyCh := m.newLockerReadyCh()
+-			go func(id uint64, ch <-chan struct{}) {
+-				<-ch
+-				if m.inSleepCycle.Load() && m.sleepCycleID.Load() == id {
+-					m.releaseSleepInhibitor()
+-				}
+-			}(cycleID, readyCh)
++			m.Lock()
+ 		} else {
+ 			m.inSleepCycle.Store(false)
+-			m.signalLockerReady()
+ 			m.refreshSessionBinding()
+ 			m.acquireSleepInhibitor()
+ 		}
+diff --git a/internal/server/loginctl/types.go b/internal/server/loginctl/types.go
+--- a/internal/server/loginctl/types.go
++++ b/internal/server/loginctl/types.go
+@@ -62,8 +62,6 @@
+ 	lockBeforeSuspend     atomic.Bool
+ 	inSleepCycle          atomic.Bool
+ 	sleepCycleID          atomic.Uint64
+-	lockerReadyChMu       sync.Mutex
+-	lockerReadyCh         chan struct{}
+ 	lockTimerMu           sync.Mutex
+ 	lockTimer             *time.Timer
+ 	sleepInhibitorEnabled atomic.Bool
+diff --git a/internal/server/server.go b/internal/server/server.go
+--- a/internal/server/server.go
++++ b/internal/server/server.go
+@@ -1456,9 +1456,6 @@
+ 		log.Info(" loginctl.lock               - Lock session")
+ 		log.Info(" loginctl.activate           - Activate session")
+ 		log.Info(" loginctl.setIdleHint        - Set idle hint (params: idle)")
+-		log.Info(" loginctl.setLockBeforeSuspend - Set lock before suspend (params: enabled)")
+-		log.Info(" loginctl.setSleepInhibitorEnabled - Enable/disable sleep inhibitor (params: enabled)")
+-		log.Info(" loginctl.lockerReady        - Signal locker UI is ready (releases sleep inhibitor)")
+ 		log.Info(" loginctl.terminate          - Terminate session")
+ 		log.Info(" loginctl.subscribe          - Subscribe to session state changes (streaming)")
+ 		log.Info("Freedesktop:")

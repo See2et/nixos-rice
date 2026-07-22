@@ -37,6 +37,10 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell/v1.5.2";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-wsl.url = "github:nix-community/NixOS-WSL/release-26.05";
     noctalia = {
       url = "github:noctalia-dev/noctalia-shell";
@@ -165,6 +169,7 @@
             touch "$out"
           '';
 
+      pkgsLinux = mkPkgs linuxSystem;
       pkgsDarwin = mkPkgs darwinSystem;
 
       bun114Overlay = final: prev: {
@@ -229,6 +234,20 @@
         hash = "sha256-K/uBgByhR7igNy8u4t/07mifoPyAJ98Toy68MmubCls=";
       };
 
+      dmsPackage = inputs.dms.packages.${linuxSystem}.default.overrideAttrs (oldAttrs: {
+        patches = (oldAttrs.patches or [ ]) ++ [
+          ./patches/dms-core-disable-unauthenticated-unlock.patch
+          ./patches/dms-core-pin-suspend-lock.patch
+        ];
+        nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [ pkgsLinux.patch ];
+        postInstall = oldAttrs.postInstall + ''
+          chmod -R u+w "$out/share/quickshell/dms"
+          ${pkgsLinux.patch}/bin/patch -p1 -d "$out/share/quickshell/dms" < ${./patches/dms-qml-disable-unauthenticated-unlock.patch}
+          ${pkgsLinux.patch}/bin/patch -p1 -d "$out/share/quickshell/dms" < ${./patches/dms-qml-pin-pam-auth-boundary.patch}
+          ${pkgsLinux.patch}/bin/patch -p1 -d "$out/share/quickshell/dms" < ${./patches/dms-qml-pin-lock-control.patch}
+        '';
+      });
+
       opencodePkgsDarwin = import nixpkgs {
         system = darwinSystem;
         config.allowUnfree = true;
@@ -258,6 +277,7 @@
           system = linuxSystem;
           specialArgs = {
             inherit inputs;
+            inherit dmsPackage;
             opencodePackage = opencodePackageLinux;
           };
           modules = [
@@ -300,13 +320,67 @@
         system:
         let
           repoPolicyCheck = mkScriptCheck system "repo-policy" "tests/repo-policy.sh";
+          dmsShellPolicyCheck = mkScriptCheck system "dms-shell-policy" "tests/dms-shell-policy.sh";
           steamvrToolsCheck = mkScriptCheck system "steamvr-tools" "tests/steamvr-tools.sh";
+          dmsCodexUsageCheck =
+            let
+              pkgs = mkPkgs system;
+              dmsCodexUsage = import ./home/desktop/dms/codex-usage.nix { inherit pkgs; };
+            in
+            pkgs.runCommand "dms-codex-usage-check" { nativeBuildInputs = [ pkgs.gnugrep ]; } ''
+              ${dmsCodexUsage}/bin/dms-codex-usage --self-test | grep -Fx 'dms-codex-usage self-test: ok'
+              touch "$out"
+            '';
+          dmsSecurityCheck =
+            let
+              pkgs = mkPkgs system;
+            in
+            pkgs.runCommand "dms-security"
+              {
+                nativeBuildInputs = with pkgs; [
+                  binutils
+                  coreutils
+                  gnugrep
+                ];
+              }
+              ''
+                lock_qml="${dmsPackage}/share/quickshell/dms/Modules/Lock/Lock.qml"
+                lock_content_qml="${dmsPackage}/share/quickshell/dms/Modules/Lock/LockScreenContent.qml"
+                pam_qml="${dmsPackage}/share/quickshell/dms/Modules/Lock/Pam.qml"
+                dms_service_qml="${dmsPackage}/share/quickshell/dms/Services/DMSService.qml"
+                idle_service_qml="${dmsPackage}/share/quickshell/dms/Services/IdleService.qml"
+                session_service_qml="${dmsPackage}/share/quickshell/dms/Services/SessionService.qml"
+                wrapped_bin="${dmsPackage}/bin/.dms-wrapped"
+
+                test "$(grep -c 'function unlock()' "$lock_qml")" -eq 1
+                ! grep -n 'forceReset' "$lock_qml"
+                ! grep -n 'loginctl\.unlock' "$dms_service_qml"
+                ! strings "$wrapped_bin" | grep -F 'loginctl.unlock'
+                grep -F 'config: "dankshell"' "$pam_qml"
+                grep -F 'configDirectory: "/etc/pam.d"' "$pam_qml"
+                ! grep -E 'SettingsData\.lock(PamPath|U2fPamPath|PamExternallyManaged|PamInline)' "$pam_qml"
+                ! grep -F 'userPamDir' "$pam_qml"
+                ! grep -F 'resolve-lock' "$pam_qml"
+                ! grep -F 'lockComponent' "$lock_qml" "$idle_service_qml"
+                ! grep -F 'customPowerActionLock' "$lock_qml"
+                ! grep -F 'handleLoginctlCustomLock' "$lock_qml"
+                ! grep -F 'SettingsData.loginctlLockIntegration' "$lock_qml" "$session_service_qml"
+                ! grep -F 'loginctl.lockerReady' "$lock_content_qml"
+                ! grep -E 'loginctl\.(setLockBeforeSuspend|setSleepInhibitorEnabled)' "$session_service_qml"
+                grep -F 'SETTINGS_PROTECTED_KEY' "${dmsPackage}/share/quickshell/dms/DMSShellIPC.qml"
+                ! strings "$wrapped_bin" | grep -E 'loginctl\.(setLockBeforeSuspend|setSleepInhibitorEnabled|lockerReady)'
+
+                touch "$out"
+              '';
         in
         {
           formatting = mkFormattingCheck system;
           repo-policy = repoPolicyCheck;
         }
         // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
+          dms-security = dmsSecurityCheck;
+          dms-codex-usage = dmsCodexUsageCheck;
+          dms-shell-policy = dmsShellPolicyCheck;
           steamvr-tools = steamvrToolsCheck;
         }
       );

@@ -71,9 +71,6 @@
     git
     wget
     alacritty
-    fuzzel
-    waybar
-    swaybg
     wl-clipboard
     wl-clipboard-x11
     xdg-desktop-portal-gnome

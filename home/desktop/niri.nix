@@ -1,9 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 let
   t = config.desktop.ui.tokens;
 in
@@ -15,34 +10,6 @@ in
       binds = {
         "Mod+Return".action.spawn = "alacritty-cwd";
         "Mod+Shift+Return".action.spawn = "zen-beta";
-        "Ctrl+Space".action.spawn = "rofi-launcher";
-        "Mod+Escape".action.spawn = "desktop-power-menu";
-        "Mod+S".action.spawn = "screenshot-instant";
-        "Mod+Shift+S".action.spawn = "screenshot-picker";
-        "Mod+V".action.spawn = "cliphist-picker";
-        "Mod+E".action.spawn = "emoji-picker";
-        "Mod+Alt+L".action.spawn = [ "desktop-lock" ];
-        "Mod+Shift+W".action.spawn = "desktop-wallpaper-menu";
-        "XF86AudioRaiseVolume".action.spawn = [
-          "desktop-volume"
-          "up"
-        ];
-        "XF86AudioLowerVolume".action.spawn = [
-          "desktop-volume"
-          "down"
-        ];
-        "XF86AudioMute".action.spawn = [
-          "desktop-volume"
-          "mute"
-        ];
-        "XF86MonBrightnessUp".action.spawn = [
-          "desktop-brightness"
-          "up"
-        ];
-        "XF86MonBrightnessDown".action.spawn = [
-          "desktop-brightness"
-          "down"
-        ];
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };
 
@@ -96,15 +63,9 @@ in
         }
         {
           matches = [
-            { namespace = "^(rofi|wlogout)$"; }
+            { namespace = "^dms:clipboard.*$"; }
           ];
-          opacity = t.opacity.overlay;
-          geometry-corner-radius = {
-            top-left = t.radii.lg * 1.0;
-            top-right = t.radii.lg * 1.0;
-            bottom-right = t.radii.lg * 1.0;
-            bottom-left = t.radii.lg * 1.0;
-          };
+          block-out-from = "screencast";
         }
       ];
 
@@ -171,34 +132,6 @@ in
       spawn-at-startup = [
         # { command = [ "mako" ]; }
       ];
-    };
-
-    systemd.user.services.cliphist-store-text = {
-      Unit = {
-        Description = "Store clipboard text history";
-        PartOf = [ "graphical-session.target" ];
-      };
-      Service = {
-        ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --type text --watch ${pkgs.cliphist}/bin/cliphist store";
-        Type = "simple";
-        Restart = "on-failure";
-        RestartSec = 2;
-      };
-      Install.WantedBy = [ "graphical-session.target" ];
-    };
-
-    systemd.user.services.cliphist-store-image = {
-      Unit = {
-        Description = "Store clipboard image history";
-        PartOf = [ "graphical-session.target" ];
-      };
-      Service = {
-        ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --type image --watch ${pkgs.cliphist}/bin/cliphist store";
-        Type = "simple";
-        Restart = "on-failure";
-        RestartSec = 2;
-      };
-      Install.WantedBy = [ "graphical-session.target" ];
     };
   };
 }

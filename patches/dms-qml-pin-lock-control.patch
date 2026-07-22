@@ -1,0 +1,277 @@
+diff --git a/Common/SettingsData.qml b/Common/SettingsData.qml
+--- a/Common/SettingsData.qml
++++ b/Common/SettingsData.qml
+@@ -950,7 +950,6 @@
+     property var powerMenuActions: ["reboot", "logout", "poweroff", "lock", "suspend", "restart"]
+     property string powerMenuDefaultAction: "logout"
+     property bool powerMenuGridLayout: false
+-    property string customPowerActionLock: ""
+     property string customPowerActionLogout: ""
+     property string customPowerActionSuspend: ""
+     property string customPowerActionHibernate: ""
+diff --git a/DMSShellIPC.qml b/DMSShellIPC.qml
+--- a/DMSShellIPC.qml
++++ b/DMSShellIPC.qml
+@@ -1012,10 +1012,26 @@
+         function set(key: string, value: string): string {
++            const protectedPrefixes = [
++                "lock",
++                "acLock",
++                "batteryLock",
++                "loginctl",
++                "pam",
++                "fprint",
++                "u2f",
++                "enableFprint",
++                "enableU2F"
++            ];
++            if (protectedPrefixes.some(prefix => key.startsWith(prefix))) {
++                log.warn("Refusing to mutate security-sensitive setting:", key);
++                return "SETTINGS_PROTECTED_KEY";
++            }
++
+             if (!(key in SettingsData)) {
+                 log.warn("Cannot set property, not found:", key);
+                 return "SETTINGS_INVALID_KEY";
+             }
+ 
+             const typeName = typeof SettingsData?.[key];
+ 
+             try {
+                 switch (typeName) {
+diff --git a/Modules/Lock/Lock.qml b/Modules/Lock/Lock.qml
+--- a/Modules/Lock/Lock.qml
++++ b/Modules/Lock/Lock.qml
+@@ -43,7 +43,6 @@
+     property bool pendingLock: false
+     property bool lockPowerOffArmed: false
+     property bool lockWakeAllowed: false
+-    property bool customLockerSpawned: false
+     readonly property bool powerOffOnLock: SettingsData.lockScreenPowerOffMonitorsOnLock || IdleService.lockPowerOffRequested
+     property real powerOffFadeTarget: 0
+     property bool powerOffFadeInstant: false
+@@ -78,19 +77,18 @@
+     }
+ 
+     Component.onCompleted: {
+-        IdleService.lockComponent = this;
+         if (SettingsData.lockAtStartup)
+             lock();
+     }
+ 
+     function notifyLockedHint(locked: bool) {
+-        if (!SettingsData.loginctlLockIntegration || !DMSService.isConnected)
++        if (!DMSService.isConnected)
+             return;
+         DMSService.setLockedHint(locked, () => {});
+     }
+ 
+     function notifyLoginctl(lockAction: bool) {
+-        if (!SettingsData.loginctlLockIntegration || !DMSService.isConnected)
++        if (!DMSService.isConnected)
+             return;
+         if (lockAction)
+             DMSService.lockSession(() => {});
+@@ -101,29 +99,7 @@
+             DMSService.unlockSession(() => {});
+     }
+ 
+-    function spawnCustomLocker() {
+-        IdleService.lockPowerOffRequested = false;
+-        Quickshell.execDetached(["sh", "-c", SettingsData.customPowerActionLock]);
+-        // The custom locker manages its own surface; DMS never engages
+-        // WlSessionLock here, so isShellLocked stays false and the fade
+-        // overlay would never be dismissed. Hand off by dismissing it now.
+-        IdleService.dismissFadeToLock();
+-        customLockerSpawned = true;
+-    }
+-
+-    function handleLoginctlCustomLock(): bool {
+-        if (!(SettingsData.customPowerActionLock?.length > 0))
+-            return false;
+-        if (!customLockerSpawned)
+-            spawnCustomLocker();
+-        return true;
+-    }
+-
+     function lock() {
+-        if (SettingsData.customPowerActionLock?.length > 0) {
+-            spawnCustomLocker();
+-            return;
+-        }
+         if (shouldLock || pendingLock)
+             return;
+ 
+@@ -130,7 +106,7 @@
+         lockInitiatedLocally = true;
+         lockPowerOffArmed = powerOffOnLock;
+ 
+-        if (!SessionService.active && SessionService.loginctlAvailable && SettingsData.loginctlLockIntegration) {
++        if (!SessionService.active && SessionService.loginctlAvailable) {
+             pendingLock = true;
+             notifyLoginctl(true);
+             return;
+@@ -174,9 +150,7 @@
+         function onSessionLocked() {
+             if (shouldLock || pendingLock)
+                 return;
+-            if (handleLoginctlCustomLock())
+-                return;
+-            if (!SessionService.active && SessionService.loginctlAvailable && SettingsData.loginctlLockIntegration) {
++            if (!SessionService.active && SessionService.loginctlAvailable) {
+                 pendingLock = true;
+                 lockInitiatedLocally = false;
+                 return;
+@@ -189,7 +163,6 @@
+         }
+ 
+         function onSessionUnlocked() {
+-            customLockerSpawned = false;
+             if (pendingLock) {
+                 pendingLock = false;
+                 lockInitiatedLocally = false;
+@@ -209,7 +182,5 @@
+             }
+             if (SessionService.locked && !shouldLock && !pendingLock) {
+-                if (handleLoginctlCustomLock())
+-                    return;
+                 lockInitiatedLocally = false;
+                 lockPowerOffArmed = powerOffOnLock;
+                 shouldLock = true;
+diff --git a/Modules/Lock/LockScreenContent.qml b/Modules/Lock/LockScreenContent.qml
+--- a/Modules/Lock/LockScreenContent.qml
++++ b/Modules/Lock/LockScreenContent.qml
+@@ -116,14 +116,6 @@
+         if (root.unlocking)
+             return;
+         lockerReadySent = true;
+-        if (SessionService.loginctlAvailable && DMSService.apiVersion >= 2) {
+-            DMSService.sendRequest("loginctl.lockerReady", null, resp => {
+-                if (resp?.error)
+-                    log.warn("lockerReady failed:", resp.error);
+-                else
+-                    log.debug("lockerReady sent (afterAnimating/afterRendering)");
+-            });
+-        }
+     }
+ 
+     function maybeSend() {
+diff --git a/Modules/Settings/PowerSleepTab.qml b/Modules/Settings/PowerSleepTab.qml
+--- a/Modules/Settings/PowerSleepTab.qml
++++ b/Modules/Settings/PowerSleepTab.qml
+@@ -541,11 +541,6 @@
+                 Repeater {
+                     model: [
+                         {
+-                            key: "customPowerActionLock",
+-                            label: I18n.tr("Custom Lock Command"),
+-                            placeholder: "/usr/bin/myLock.sh"
+-                        },
+-                        {
+                             key: "customPowerActionLogout",
+                             label: I18n.tr("Custom Logout Command"),
+                             placeholder: "/usr/bin/myLogout.sh"
+diff --git a/Services/IdleService.qml b/Services/IdleService.qml
+--- a/Services/IdleService.qml
++++ b/Services/IdleService.qml
+@@ -64,7 +64,6 @@
+     signal requestMonitorOn
+     signal requestSuspend
+ 
+-    property var lockComponent: null
+     property bool monitorsOff: false
+     property bool isShellLocked: false
+     property bool lockPowerOffRequested: false
+diff --git a/Services/SessionService.qml b/Services/SessionService.qml
+--- a/Services/SessionService.qml
++++ b/Services/SessionService.qml
+@@ -59,10 +59,6 @@
+             detectSystemctlProcess.running = true;
+             detectHibernateProcess.running = true;
+             detectPrimeRunProcess.running = true;
+-            if (!SettingsData.loginctlLockIntegration) {
+-                log.debug("loginctl lock integration disabled by user");
+-                return;
+-            }
+             if (socketPath && socketPath.length > 0) {
+                 checkDMSCapabilities();
+             } else {
+@@ -467,34 +463,8 @@
+     Connections {
+-        target: SettingsData
+-
+-        function onLoginctlLockIntegrationChanged() {
+-            if (SettingsData.loginctlLockIntegration) {
+-                if (socketPath && socketPath.length > 0 && loginctlAvailable) {
+-                    if (!stateInitialized) {
+-                        stateInitialized = true;
+-                        getLoginctlState();
+-                        syncLockBeforeSuspend();
+-                    }
+-                }
+-            } else {
+-                stateInitialized = false;
+-            }
+-            syncSleepInhibitor();
+-        }
+-
+-        function onLockBeforeSuspendChanged() {
+-            if (SettingsData.loginctlLockIntegration) {
+-                syncLockBeforeSuspend();
+-            }
+-            syncSleepInhibitor();
+-        }
+-    }
+-
+-    Connections {
+         target: DMSService
+-        enabled: SettingsData.loginctlLockIntegration
++        enabled: DMSService.isConnected
+ 
+         function onLoginctlStateUpdate(data) {
+             updateLoginctlState(data);
+         }
+     }
+@@ -510,7 +480,7 @@
+ 
+         if (DMSService.capabilities.includes("loginctl")) {
+             loginctlAvailable = true;
+-            if (SettingsData.loginctlLockIntegration && !stateInitialized) {
++            if (!stateInitialized) {
+                 stateInitialized = true;
+                 getLoginctlState();
+                 syncLockBeforeSuspend();
+@@ -587,33 +557,9 @@
+     }
+ 
+     function syncLockBeforeSuspend() {
+-        if (!loginctlAvailable)
+-            return;
+-        DMSService.sendRequest("loginctl.setLockBeforeSuspend", {
+-            enabled: SettingsData.lockBeforeSuspend
+-        }, response => {
+-            if (response.error) {
+-                log.warn("Failed to sync lock before suspend:", response.error);
+-            } else {
+-                log.debug("Synced lock before suspend:", SettingsData.lockBeforeSuspend);
+-            }
+-        });
+     }
+ 
+     function syncSleepInhibitor() {
+-        if (!loginctlAvailable)
+-            return;
+-        if (!DMSService.apiVersion || DMSService.apiVersion < 4)
+-            return;
+-        DMSService.sendRequest("loginctl.setSleepInhibitorEnabled", {
+-            enabled: SettingsData.loginctlLockIntegration && SettingsData.lockBeforeSuspend
+-        }, response => {
+-            if (response.error) {
+-                log.warn("Failed to sync sleep inhibitor:", response.error);
+-            } else {
+-                log.debug("Synced sleep inhibitor:", SettingsData.loginctlLockIntegration);
+-            }
+-        });
+     }
+ 
+     function updateLoginctlState(state) {

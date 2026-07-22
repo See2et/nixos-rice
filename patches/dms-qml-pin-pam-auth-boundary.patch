@@ -1,0 +1,167 @@
+diff --git a/Modules/Lock/Pam.qml b/Modules/Lock/Pam.qml
+--- a/Modules/Lock/Pam.qml
++++ b/Modules/Lock/Pam.qml
+@@ -90,24 +90,9 @@
+         fprint.checkAvail();
+     }
+ 
+-    readonly property bool customPamActive: SettingsData.lockPamPath !== "" && customPamWatcher.loaded
+-    readonly property bool fprintSuppressedByPrimaryPam: SettingsData.lockPamExternallyManaged || (customPamActive && SettingsData.lockPamInlineFprint)
+-    readonly property bool u2fSuppressedByPrimaryPam: SettingsData.lockPamExternallyManaged || (customPamActive && SettingsData.lockPamInlineU2f)
+-    readonly property bool customU2fPamActive: SettingsData.lockU2fPamPath !== "" && customU2fPamWatcher.loaded
+-
+-    FileView {
+-        id: customPamWatcher
+-
+-        path: SettingsData.lockPamPath !== "" ? SettingsData.lockPamPath : ""
+-        printErrors: false
+-    }
+-
+-    FileView {
+-        id: dankshellConfigWatcher
+-
+-        path: "/etc/pam.d/dankshell"
+-        printErrors: false
+-    }
++    readonly property bool fprintSuppressedByPrimaryPam: true
++    readonly property bool u2fSuppressedByPrimaryPam: true
++
+ 
+     FileView {
+         id: u2fConfigWatcher
+@@ -117,70 +102,11 @@
+         printErrors: false
+     }
+ 
+-    FileView {
+-        id: customU2fPamWatcher
+-
+-        path: SettingsData.lockU2fPamPath !== "" ? SettingsData.lockU2fPamPath : ""
+-        printErrors: false
+-    }
+-
+-    // Fallback stack written by `dms auth resolve-lock` when no managed
+-    // /etc/pam.d/dankshell exists. See #2789.
+-    readonly property string userPamDir: Paths.strip(Paths.state) + "/pam"
+-
+-    FileView {
+-        id: userPamWatcher
+-
+-        path: root.userPamDir + "/dankshell"
+-        printErrors: false
+-    }
+-
+-    Process {
+-        id: resolveUserPam
+-
+-        command: ["dms", "auth", "resolve-lock", "--quiet"]
+-        running: false
+-        onExited: exitCode => {
+-            if (exitCode === 0)
+-                userPamWatcher.reload();
+-        }
+-    }
+-
+-    function ensureUserPamConfig(): void {
+-        if (SettingsData.lockPamExternallyManaged || resolveUserPam.running)
+-            return;
+-        resolveUserPam.running = true;
+-    }
+-
+-    Component.onCompleted: ensureUserPamConfig()
+-
+     PamContext {
+         id: passwd
+ 
+-        config: {
+-            if (root.customPamActive)
+-                return SettingsData.lockPamPath.slice(SettingsData.lockPamPath.lastIndexOf("/") + 1);
+-            if (SettingsData.lockPamExternallyManaged)
+-                return "login";
+-            if (dankshellConfigWatcher.loaded)
+-                return "dankshell";
+-            if (userPamWatcher.loaded)
+-                return "dankshell";
+-            return "login";
+-        }
+-        configDirectory: {
+-            if (root.customPamActive) {
+-                const idx = SettingsData.lockPamPath.lastIndexOf("/");
+-                return idx > 0 ? SettingsData.lockPamPath.slice(0, idx) : "/";
+-            }
+-            if (SettingsData.lockPamExternallyManaged)
+-                return "/etc/pam.d";
+-            if (dankshellConfigWatcher.loaded)
+-                return "/etc/pam.d";
+-            if (userPamWatcher.loaded)
+-                return root.userPamDir;
+-            return Quickshell.shellDir + "/assets/pam";
+-        }
++        config: "dankshell"
++        configDirectory: "/etc/pam.d"
+ 
+         onMessageChanged: {
+             // collected by position, not text, so it works in any locale
+@@ -357,18 +283,8 @@
+             start();
+         }
+ 
+-        config: {
+-            if (root.customU2fPamActive)
+-                return SettingsData.lockU2fPamPath.slice(SettingsData.lockU2fPamPath.lastIndexOf("/") + 1);
+-            return u2fConfigWatcher.loaded ? "dankshell-u2f" : "u2f";
+-        }
+-        configDirectory: {
+-            if (root.customU2fPamActive) {
+-                const idx = SettingsData.lockU2fPamPath.lastIndexOf("/");
+-                return idx > 0 ? SettingsData.lockU2fPamPath.slice(0, idx) : "/";
+-            }
+-            return u2fConfigWatcher.loaded ? "/etc/pam.d" : Quickshell.shellDir + "/assets/pam";
+-        }
++        config: u2fConfigWatcher.loaded ? "dankshell-u2f" : "u2f"
++        configDirectory: u2fConfigWatcher.loaded ? "/etc/pam.d" : Quickshell.shellDir + "/assets/pam"
+ 
+         onMessageChanged: {
+             if (message.toLowerCase().includes("touch"))
+@@ -487,8 +403,6 @@
+         root.attemptInfoMessages = [];
+         root.lockoutAnnouncedThisAttempt = false;
+         root.resetAuthFlows();
+-        if (!SettingsData.lockPamExternallyManaged && !dankshellConfigWatcher.loaded && !userPamWatcher.loaded)
+-            ensureUserPamConfig();
+         // FileView cannot watch a path that does not exist yet; re-read so a
+         // dedicated service created after startup is used on the next lock.
+         u2fConfigWatcher.reload();
+@@ -512,32 +426,6 @@
+         }
+ 
+         function onLockU2fReadyChanged(): void {
+-            u2f.checkAvail();
+-        }
+-
+-        function onLockPamPathChanged(): void {
+-            fprint.checkAvail();
+-            u2f.checkAvail();
+-        }
+-
+-        function onLockPamInlineFprintChanged(): void {
+-            fprint.checkAvail();
+-        }
+-
+-        function onLockPamInlineU2fChanged(): void {
+-            u2f.checkAvail();
+-        }
+-
+-        function onLockPamExternallyManagedChanged(): void {
+-            root.resetAuthFlows();
+-            if (!SettingsData.lockPamExternallyManaged)
+-                root.ensureUserPamConfig();
+-            fprint.checkAvail();
+-            u2f.checkAvail();
+-        }
+-
+-        function onLockU2fPamPathChanged(): void {
+-            u2f.abort();
+             u2f.checkAvail();
+         }
+ 

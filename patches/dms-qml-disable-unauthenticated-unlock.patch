@@ -1,0 +1,69 @@
+diff --git a/Modules/Lock/Lock.qml b/Modules/Lock/Lock.qml
+--- a/Modules/Lock/Lock.qml
++++ b/Modules/Lock/Lock.qml
+@@ -94,8 +94,6 @@
+             return;
+         if (lockAction)
+             DMSService.lockSession(() => {});
+-        else
+-            DMSService.unlockSession(() => {});
+     }
+ 
+     function spawnCustomLocker() {
+@@ -151,17 +149,7 @@
+         if (!shouldLock)
+             return;
+         lockInitiatedLocally = false;
+-        notifyLoginctl(false);
+         shouldLock = false;
+-    }
+-
+-    function forceReset() {
+-        lockInitiatedLocally = false;
+-        pendingLock = false;
+-        shouldLock = false;
+-        customLockerSpawned = false;
+-        resetPowerOffFade();
+-        IdleService.lockPowerOffRequested = false;
+     }
+ 
+     function activate() {
+@@ -193,9 +181,6 @@
+                 lockInitiatedLocally = false;
+                 return;
+             }
+-            if (!shouldLock || lockInitiatedLocally)
+-                return;
+-            shouldLock = false;
+         }
+ 
+         function onLoginctlStateChanged() {
+@@ -347,14 +332,6 @@
+             root.lockAndOutputsOff();
+         }
+ 
+-        function unlock() {
+-            root.unlock();
+-        }
+-
+-        function forceReset() {
+-            root.forceReset();
+-        }
+-
+         function demo() {
+             demoWindow.showDemo();
+         }
+diff --git a/Services/DMSService.qml b/Services/DMSService.qml
+--- a/Services/DMSService.qml
++++ b/Services/DMSService.qml
+@@ -617,10 +617,6 @@
+         sendRequest("loginctl.lock", null, callback);
+     }
+ 
+-    function unlockSession(callback) {
+-        sendRequest("loginctl.unlock", null, callback);
+-    }
+-
+     function setLockedHint(locked, callback) {
+         sendRequest("loginctl.setLockedHint", {
+             "locked": locked

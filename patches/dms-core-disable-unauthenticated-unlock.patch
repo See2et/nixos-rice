@@ -1,0 +1,99 @@
+diff --git a/internal/server/loginctl/handlers.go b/internal/server/loginctl/handlers.go
+--- a/internal/server/loginctl/handlers.go
++++ b/internal/server/loginctl/handlers.go
+@@ -15,8 +15,6 @@
+		handleGetState(conn, req, manager)
+	case "loginctl.lock":
+		handleLock(conn, req, manager)
+-	case "loginctl.unlock":
+-		handleUnlock(conn, req, manager)
+	case "loginctl.activate":
+		handleActivate(conn, req, manager)
+	case "loginctl.setIdleHint":
+@@ -48,14 +46,6 @@
+		return
+	}
+	models.Respond(conn, req.ID, models.SuccessResult{Success: true, Message: "locked"})
+-}
+-
+-func handleUnlock(conn net.Conn, req models.Request, manager *Manager) {
+-	if err := manager.Unlock(); err != nil {
+-		models.RespondError(conn, req.ID, err.Error())
+-		return
+-	}
+-	models.Respond(conn, req.ID, models.SuccessResult{Success: true, Message: "unlocked"})
+ }
+ 
+ func handleActivate(conn net.Conn, req models.Request, manager *Manager) {
+diff --git a/internal/server/loginctl/handlers_test.go b/internal/server/loginctl/handlers_test.go
+--- a/internal/server/loginctl/handlers_test.go
++++ b/internal/server/loginctl/handlers_test.go
+@@ -153,57 +153,6 @@
+	})
+ }
+ 
+-func TestHandleUnlock(t *testing.T) {
+-	t.Run("successful unlock", func(t *testing.T) {
+-		mockSessionObj := mockdbus.NewMockBusObject(t)
+-		mockCall := &dbus.Call{Err: nil}
+-		mockSessionObj.EXPECT().Call("org.freedesktop.login1.Session.Unlock", dbus.Flags(0)).Return(mockCall)
+-
+-		manager := &Manager{
+-			state:      &SessionState{},
+-			stateMutex: sync.RWMutex{},
+-			sessionObj: mockSessionObj,
+-		}
+-
+-		conn := newMockNetConn()
+-		req := models.Request{ID: 123, Method: "loginctl.unlock"}
+-		handleUnlock(conn, req, manager)
+-
+-		var resp models.Response[models.SuccessResult]
+-		err := json.NewDecoder(conn.writeBuf).Decode(&resp)
+-		require.NoError(t, err)
+-
+-		assert.Equal(t, 123, resp.ID)
+-		assert.Empty(t, resp.Error)
+-		require.NotNil(t, resp.Result)
+-		assert.True(t, resp.Result.Success)
+-		assert.Equal(t, "unlocked", resp.Result.Message)
+-	})
+-
+-	t.Run("unlock fails", func(t *testing.T) {
+-		mockSessionObj := mockdbus.NewMockBusObject(t)
+-		mockCall := &dbus.Call{Err: assert.AnError}
+-		mockSessionObj.EXPECT().Call("org.freedesktop.login1.Session.Unlock", dbus.Flags(0)).Return(mockCall)
+-
+-		manager := &Manager{
+-			state:      &SessionState{},
+-			stateMutex: sync.RWMutex{},
+-			sessionObj: mockSessionObj,
+-		}
+-
+-		conn := newMockNetConn()
+-		req := models.Request{ID: 123, Method: "loginctl.unlock"}
+-		handleUnlock(conn, req, manager)
+-
+-		var resp models.Response[models.SuccessResult]
+-		err := json.NewDecoder(conn.writeBuf).Decode(&resp)
+-		require.NoError(t, err)
+-
+-		assert.Equal(t, 123, resp.ID)
+-		assert.Contains(t, resp.Error, "failed to unlock session")
+-	})
+-}
+-
+ func TestHandleActivate(t *testing.T) {
+	t.Run("successful activate", func(t *testing.T) {
+		mockSessionObj := mockdbus.NewMockBusObject(t)
+diff --git a/internal/server/server.go b/internal/server/server.go
+--- a/internal/server/server.go
++++ b/internal/server/server.go
+@@ -1454,7 +1454,6 @@
+		log.Info("Loginctl:")
+		log.Info(" loginctl.getState           - Get current session state")
+		log.Info(" loginctl.lock               - Lock session")
+-		log.Info(" loginctl.unlock             - Unlock session")
+		log.Info(" loginctl.activate           - Activate session")
+		log.Info(" loginctl.setIdleHint        - Set idle hint (params: idle)")
+		log.Info(" loginctl.setLockBeforeSuspend - Set lock before suspend (params: enabled)")

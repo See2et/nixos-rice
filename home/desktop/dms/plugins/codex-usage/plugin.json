@@ -1,0 +1,22 @@
+{
+  "id": "codexUsage",
+  "name": "Codex Usage",
+  "description": "Show remaining Codex usage in the bar",
+  "version": "1.0.0",
+  "author": "see2et",
+  "type": "widget",
+  "capabilities": [
+    "dankbar-widget",
+    "monitoring"
+  ],
+  "component": "./CodexUsageWidget.qml",
+  "icon": "terminal",
+  "requires_dms": ">=1.5.2",
+  "dependencies": [
+    "dms-codex-usage"
+  ],
+  "permissions": [
+    "process",
+    "network"
+  ]
+}

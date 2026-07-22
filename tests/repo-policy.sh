@@ -97,29 +97,7 @@ check_present_many() {
 
 check_absent_many "operational laptop output/files/refs must be gone" 'nixosConfigurations\.laptop|#laptop|hosts[/-]laptop|home[/-]laptop|modules/.*/laptop|hardware-configuration-laptop|hardware-laptop|WSL/Laptop' '*.nix' '*.md' '*.jsonc'
 
-check_absent "desktop wallpaper must not use the removed swww command names" 'pkgs\.swww|/bin/swww(-daemon)?\b|swww-daemon' '*.nix'
-
-check_present "desktop wallpaper must use the awww package" 'pkgs\.awww' 'wallpaper.nix'
-
-check_present "desktop wallpaper must invoke the awww client" '/bin/awww[[:space:]]+(query|img)' 'wallpaper.nix'
-
-check_present "desktop wallpaper must invoke the awww daemon" '/bin/awww-daemon\b' 'wallpaper.nix'
-
-check_absent "Waybar must not use the image module that blocks 26.05 startup" 'image#logo|^[[:space:]]*interval[[:space:]]*=[[:space:]]*0;' 'waybar.nix'
-
-check_present "Waybar must keep a lightweight text logo module" 'custom/logo' 'waybar.nix'
-
-check_absent "Waybar must not leave an empty playback group" 'group/playback' 'waybar.nix'
-
-check_present "Waybar music module must render only with an active player" '"?exec-if"?[[:space:]]*=[[:space:]]*"playerctl status' 'waybar.nix'
-
-check_absent "desktop Waybar must not include laptop-only status modules" 'power-profiles-daemon|^[[:space:]]*(backlight|battery)[[:space:]]*=' 'waybar.nix'
-
 check_absent_many "26.05 package aliases must not remain in local configuration" 'nixfmt-rfc-style|xfce\.(thunar|thunar-archive-plugin|thunar-volman)|youtube-music|xorg\.(libX11|libXcursor|libXrandr|libXi|libXrender|libXfixes|libXcomposite|libXdamage|libxcb|libXtst|libXScrnSaver)' '*.nix'
-
-check_absent "swayidle must not use the legacy list-form events schema" 'events[[:space:]]*=[[:space:]]*\[' 'idle.nix'
-
-check_present "swayidle must use the 26.05 attrset events schema" 'events[[:space:]]*=[[:space:]]*\{' 'idle.nix'
 
 check_present "GTK4 legacy theme behavior must be explicit" 'gtk4\.theme[[:space:]]*=[[:space:]]*config\.gtk\.theme' 'theme.nix'
 
@@ -133,7 +111,7 @@ check_present "Zsh dotDir compatibility must be explicit" 'dotDir[[:space:]]*=[[
 
 check_absent "home.activation must not mutate SteamVR/VRChat/Oyasumi/ALVR state" 'home\.activation\.[A-Za-z0-9_]*(steamVr|vrchat|oyasumi|alvr)[A-Za-z0-9_]*' '*.nix'
 
-check_absent "localconfig.vdf or ALVR session.json must not be mutated by Home Manager" 'localconfig\.vdf|session\.json' '*.nix'
+check_absent "localconfig.vdf or ALVR session.json must not be mutated by Home Manager" 'localconfig\.vdf|[Aa][Ll][Vv][Rr][^[:cntrl:]]*session\.json|session\.json[^[:cntrl:]]*[Aa][Ll][Vv][Rr]' '*.nix'
 
 check_absent_many "Home Manager must not generate OpenXR active runtime" 'active_runtime(\.x86_64)?\.json' '*.nix' '*.md' '*.jsonc'
 

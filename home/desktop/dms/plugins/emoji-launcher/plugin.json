@@ -1,0 +1,16 @@
+{
+  "id": "emojiLauncher",
+  "name": "Emoji Launcher",
+  "description": "Search and copy common emojis from the launcher",
+  "version": "1.0.0",
+  "author": "see2et",
+  "type": "launcher",
+  "capabilities": [
+    "launcher",
+    "clipboard"
+  ],
+  "component": "./EmojiLauncher.qml",
+  "trigger": ":",
+  "icon": "sentiment_satisfied",
+  "requires_dms": ">=1.5.2"
+}

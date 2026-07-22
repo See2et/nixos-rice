@@ -30,7 +30,7 @@ flake.nix                         # Single entry point — all outputs defined h
 ├── home/
 │   ├── common/                   # Shared HM: git, gh, gpg, zsh, packages, session
 │   ├── linux/default.nix         # Linux-only HM packages (wl-clipboard, xclip, libnotify)
-│   ├── desktop/                  # Desktop HM: niri, waybar, xdg, desktop packages
+│   ├── desktop/                  # Desktop HM: niri, DMS shell, XDG, desktop packages
 │   ├── wsl/                      # WSL HM: /mnt/c PATH, notifier files
 │   └── darwin/default.nix        # Darwin HM: placeholder + isDarwin assertion
 ├── hardware-configuration.nix    # Desktop hardware — imported ONLY by hosts/desktop
@@ -122,7 +122,7 @@ nix eval .#darwinConfigurations.darwin.system.stateVersion             # Darwin 
 ### Desktop rice QA checklist (T3-2)
 
 Run this lightweight checklist after any desktop theme/token/wallpaper change:
-- Typography: Waybar, launcher, notifications, and lock/power UI use consistent font family/scale (no accidental fallback fonts).
+- Typography: DMS bar, launcher, notifications, and lock/power UI use consistent font family/scale (no accidental fallback fonts).
 - Spacing: paddings, gaps, and corner radii remain visually consistent across bar, launcher, notifications, and lock/power surfaces.
 - Contrast: text/icons stay readable for normal + urgent states against the current wallpaper/background.
 - Interaction latency: launcher, power menu, lock, and OSD feedback appear quickly and without visible stutter.
