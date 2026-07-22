@@ -84,6 +84,12 @@ let
     ankiAddonReviewHeatmap
   ];
 
+  pearDesktopPatched = pkgs.pear-desktop.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [
+      ../../patches/pear-desktop-window-lifecycle.patch
+    ];
+  });
+
   alacrittyCwd = pkgs.writeShellScriptBin "alacritty-cwd" ''
     focusedWindowJson="$(${pkgs.niri}/bin/niri msg --json focused-window 2>/dev/null || true)"
     focusedAppId="$(printf '%s' "$focusedWindowJson" | ${pkgs.jq}/bin/jq -r '
@@ -207,7 +213,7 @@ in
         slack
         zoom-us
         figma-linux
-        pear-desktop
+        pearDesktopPatched
         yubioath-flutter
       ]
     )

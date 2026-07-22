@@ -1,0 +1,39 @@
+diff --git a/src/index.ts b/src/index.ts
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -356,7 +356,7 @@ async function createMainWindow() {
+     minWidth: 325,
+     minHeight: 425,
+     backgroundColor: '#000',
+-    show: false,
++    show: config.get('options.appVisible'),
+     webPreferences: {
+       contextIsolation: true,
+       preload: path.join(__dirname, '..', 'preload', 'preload.cjs'),
+@@ -479,11 +479,23 @@ async function createMainWindow() {
+   app.on('render-process-gone', (_event, _webContents, details) => {
+     showUnresponsiveDialog(win, details);
+   });
+ 
++  const showMainWindow = () => {
++    if (config.get('options.appVisible') && !win.isVisible()) {
++      win.show();
++    }
++  };
++
++  const showFallback = setTimeout(showMainWindow, 5_000);
++
+   win.once('ready-to-show', () => {
+-    if (config.get('options.appVisible')) {
+-      win.show();
+-    }
++    clearTimeout(showFallback);
++    showMainWindow();
++  });
++
++  win.webContents.once('did-finish-load', () => {
++    clearTimeout(showFallback);
++    showMainWindow();
+   });
+ 
+   removeContentSecurityPolicy();

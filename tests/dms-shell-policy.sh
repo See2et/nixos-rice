@@ -224,6 +224,12 @@ check_present "desktop DMS service PATH must retain the root-owned system profil
 check_present "desktop DMS service PATH must resolve user-profile desktop entry commands" 'config\.home\.profileDirectory.*/bin' 'home/desktop/dank-material-shell.nix'
 check_absent "desktop Slack entry must not launch in silent mode" 'Exec=.*[[:space:]]-s([[:space:]]|$)' 'home/desktop/packages.nix'
 check_present "desktop Slack entry must bypass the crashing GPU process" 'Exec=\$\{lib\.getExe pkgs\.slack\}[[:space:]]+--disable-gpu[[:space:]]+%U' 'home/desktop/packages.nix'
+check_file_exists "Pear package must carry the window lifecycle patch" 'patches/pear-desktop-window-lifecycle.patch'
+check_present "desktop packages must patch Pear at the package lifecycle layer" 'pearDesktopPatched[[:space:]]*=[[:space:]]*pkgs\.pear-desktop\.overrideAttrs' 'home/desktop/packages.nix'
+check_present_pcre "patched Pear package must apply the lifecycle patch during source build" '(?s)patches[[:space:]]*=[[:space:]]*\(old\.patches or \[[[:space:]]*\]\).*?pear-desktop-window-lifecycle\.patch' 'home/desktop/packages.nix'
+check_absent "patched Pear package must not repack generated ASAR output" 'asar[[:space:]]+(extract|pack)' 'home/desktop/packages.nix'
+check_present "desktop package list must use the patched Pear package" 'pearDesktopPatched' 'home/desktop/packages.nix'
+check_present "Pear lifecycle patch must create visible windows eagerly when configured visible" "show:[[:space:]]+config\.get\('options\.appVisible'\)" 'patches/pear-desktop-window-lifecycle.patch'
 
 check_present "desktop system DMS module must define a root-owned dankshell PAM service" 'security\.pam\.services\.dankshell' 'modules/nixos/desktop/dank-material-shell.nix'
 check_present "desktop system DMS PAM service must reject null passwords" 'allowNullPassword[[:space:]]*=[[:space:]]*false[[:space:]]*;' 'modules/nixos/desktop/dank-material-shell.nix'
