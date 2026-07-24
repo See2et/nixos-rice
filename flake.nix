@@ -4,8 +4,6 @@
     # Unity 2022.x requires libxml2.so.2 compatibility for nix-ld.
     nixpkgs-compat.url = "github:NixOS/nixpkgs/nixos-24.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-steam.url = "github:NixOS/nixpkgs/75563f8f5237c44ed7b8a51fd870ed3d6a11eb82";
-
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";

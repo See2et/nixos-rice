@@ -212,6 +212,8 @@ check_absent "home/desktop/vr/alvr.nix wrappers must not exec pkgs.alvr directly
 
 check_absent "home/desktop/vr/alvr.nix wrappers must not depend on pkgs.alvr directly" 'runtimeInputs\s*=\s*\[\s*pkgs\.alvr\s*\]' 'alvr.nix'
 
+check_absent_many "Steam must use the base nixpkgs ABI closure instead of a separate nixpkgs-steam pin" 'nixpkgs-steam|steamPkgs' '*.nix'
+
 check_present "ALVR quality profile command must be packaged" 'name\s*=\s*"alvr-quality-profile"' 'tools.nix'
 
 check_present "ALVR quality profile command must load its dedicated tool" 'builtins\.readFile\s+\./tools/alvr-quality-profile' 'tools.nix'
