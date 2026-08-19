@@ -33,6 +33,7 @@ return {
 		}
 		local servers = vim.list_extend(vim.deepcopy(mason_servers), {
 			"nixd",
+			"basedpyright",
 		})
 
 		mason.setup({

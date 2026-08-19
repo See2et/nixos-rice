@@ -61,10 +61,11 @@ return {
 
 		lint.linters_by_ft = {
 			markdown = { "markdownlint-cli2" },
+			python = { "ruff" },
 		}
 
 		local group = vim.api.nvim_create_augroup("nvim_lint_autocmd", { clear = true })
-		vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {
+		vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
 			group = group,
 			callback = function(args)
 				if vim.bo[args.buf].buftype ~= "" then

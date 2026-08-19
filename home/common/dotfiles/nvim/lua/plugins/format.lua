@@ -5,6 +5,7 @@ return {
 	opts = {
 		formatters_by_ft = {
 			nix = { "nixfmt" },
+			python = { "ruff_organize_imports", "ruff_format" },
 			rust = { "rustfmt" },
 			javascript = { "deno_fmt" },
 			javascriptreact = { "deno_fmt" },

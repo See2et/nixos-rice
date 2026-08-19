@@ -10,6 +10,7 @@ return {
 					"markdown",
 					"markdown_inline",
 					"lua",
+					"python",
 					"typescript",
 					"rust",
 				},

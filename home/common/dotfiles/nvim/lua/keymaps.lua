@@ -73,6 +73,57 @@ wk.add({
 	-- Docs / Hover
 	{ "<leader>d", "<cmd>Lspsaga hover_doc<cr>", desc = "Show [D]ocumentation" },
 
+	{ "<leader>b", group = "Debug" },
+	{
+		"<leader>bc",
+		function()
+			require("dap").continue()
+		end,
+		desc = "Debug [C]ontinue",
+	},
+	{
+		"<leader>bb",
+		function()
+			require("dap").toggle_breakpoint()
+		end,
+		desc = "Toggle [B]reakpoint",
+	},
+	{
+		"<leader>bo",
+		function()
+			require("dap").step_over()
+		end,
+		desc = "Step [O]ver",
+	},
+	{
+		"<leader>bi",
+		function()
+			require("dap").step_into()
+		end,
+		desc = "Step [I]nto",
+	},
+	{
+		"<leader>bu",
+		function()
+			require("dap").step_out()
+		end,
+		desc = "Step O[u]t",
+	},
+	{
+		"<leader>br",
+		function()
+			require("dap").repl.toggle()
+		end,
+		desc = "Debug [R]EPL",
+	},
+	{
+		"<leader>bx",
+		function()
+			require("dap").terminate()
+		end,
+		desc = "Terminate Debug Session",
+	},
+
 	-- Goto
 	{ "<leader>g", group = "Goto" },
 	{ "<leader>gd", "<cmd>Lspsaga goto_definition<cr>", desc = "[G]oto [D]efinition" },

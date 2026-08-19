@@ -9,11 +9,17 @@
 }:
 let
   pencil-cli = pkgs.callPackage ../../packages/pencil-cli { };
+  python-debug = pkgs.python3.withPackages (ps: [ ps.debugpy ]);
 in
 {
   home.packages =
     (with pkgs; [
-      python3
+      python-debug
+      (writeShellScriptBin "python-debugpy" ''
+        exec "${python-debug}/bin/python" "$@"
+      '')
+      basedpyright
+      ruff
       zsh
       gcc
       unzip

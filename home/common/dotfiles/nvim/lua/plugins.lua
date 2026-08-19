@@ -14,6 +14,7 @@ require("lazy").setup({
 	require("plugins.lsp"),
 	require("plugins.format"),
 	require("plugins.lint"),
+	require("plugins.dap"),
 	require("plugins.misc"),
 	require("plugins.ts"),
 }, {
