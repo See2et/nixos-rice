@@ -1,32 +1,63 @@
+local parsers = {
+	"markdown",
+	"markdown_inline",
+	"lua",
+	"python",
+	"typescript",
+	"rust",
+}
+
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
-		branch = "master",
+		branch = "main",
 		lazy = false,
-		build = ":TSUpdate",
+		build = function()
+			local treesitter = require("nvim-treesitter")
+			assert(
+				type(treesitter.install) == "function",
+				"nvim-treesitter main API missing during build; run :Lazy sync and restart Neovim."
+			)
+
+			treesitter.install(parsers):wait(300000)
+		end,
 		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
+			local treesitter = require("nvim-treesitter")
+
+			if type(treesitter.install) ~= "function" then
+				vim.schedule(function()
+					vim.notify_once(
+						"nvim-treesitter is on a stale checkout; run :Lazy sync and restart Neovim.",
+						vim.log.levels.WARN,
+						{ title = "nvim-treesitter" }
+					)
+				end)
+				return
+			end
+
+			treesitter.setup({})
+
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = {
 					"markdown",
-					"markdown_inline",
 					"lua",
 					"python",
 					"typescript",
 					"rust",
 				},
-				highlight = {
-					enable = true,
-					auto_install = true,
-				},
-				sync_install = true,
-				indent = {
-					enable = true,
-				},
-				autotag = {
-					enable = true,
-				},
+				callback = function()
+					vim.treesitter.start()
+					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				end,
 			})
 		end,
-		dependencies = { "windwp/nvim-ts-autotag" },
+		dependencies = {
+			{
+				"windwp/nvim-ts-autotag",
+				config = function()
+					require("nvim-ts-autotag").setup()
+				end,
+			},
+		},
 	},
 }
