@@ -13,6 +13,7 @@
     ./niri.nix
     ./nvidia.nix
     ./audio.nix
+    ./android.nix
     ./adb.nix
     ./vr.nix
     ./firewall.nix

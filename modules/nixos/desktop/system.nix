@@ -44,6 +44,7 @@
     extraGroups = [
       "wheel"
       "networkmanager"
+      "kvm"
       "realtime"
       "video"
       "input"

@@ -4,6 +4,7 @@
     ./dank-material-shell.nix
     ./niri.nix
     ./ui-tokens.nix
+    ./android.nix
     ./packages.nix
     ./lazydocker.nix
     ./obs.nix
