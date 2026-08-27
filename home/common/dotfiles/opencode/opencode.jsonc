@@ -7,7 +7,7 @@
   ],
   "default_agent": "sisyphus",
   "plugin": [
-    "oh-my-openagent@4.19.0",
+    "oh-my-openagent@4.19.4",
     "opencode-skill-creator"
   ],
   "lsp": {},

@@ -1,5 +1,10 @@
 { ... }:
 {
+  home.file.".omo/omo.jsonc" = {
+    source = ../dotfiles/opencode/omo.jsonc;
+    force = true;
+  };
+
   xdg.configFile = {
     "opencode/opencode.json" = {
       source = ../dotfiles/opencode/opencode.jsonc;
@@ -13,8 +18,14 @@
       source = ../dotfiles/opencode/AGENTS.md;
       force = true;
     };
-    "opencode/oh-my-openagent.jsonc" = {
-      source = ../dotfiles/opencode/oh-my-openagent.jsonc;
+    "opencode/skills/domain-contract-design" = {
+      source = ../dotfiles/opencode/skills/domain-contract-design;
+      recursive = true;
+      force = true;
+    };
+    "opencode/skills/executable-specification" = {
+      source = ../dotfiles/opencode/skills/executable-specification;
+      recursive = true;
       force = true;
     };
     "opencode/agents/chiron (deep tutor).md" = {

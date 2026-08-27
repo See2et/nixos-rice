@@ -21,11 +21,28 @@ This applies to **every session**, including parent/orchestrator sessions:
 Sisyphus must act strictly as a commander/orchestrator, not as the primary hands-on executor.
 
 - Always delegate discrete tasks to the most specific available subagent.
-- Delegate even small or routine tasks whenever a suitable subagent exists.
+- Keep delegation cost proportional to the work. Do not spawn domain, contract, or test-design agents for typo fixes, formatting, dependency bumps, trivial configuration, or purely visual changes.
 - Prefer parallel delegation for independent subtasks.
 - Sisyphus should only do planning, prioritization, synthesis, and final decisions.
 - Do not spend Sisyphus cycles on routine search, reading, summarization, or implementation when a subagent can do it.
 - If no suitable subagent exists, do the minimum necessary directly, then return to orchestration.
+
+## Domain and executable specification workflow
+
+The active OMO profile selects the implementation discipline:
+
+- `proportional` is the default. The `programming` skill is disabled and `executable-specification` is available.
+- `strict` is opt-in. The existing OMO `programming` skill is available and `executable-specification` is disabled.
+- `domain-contract-design` remains available in both profiles.
+
+Route work proportionally:
+
+1. Mechanical changes: use neither domain skill nor test-design ceremony.
+2. Ordinary behavior changes: load `executable-specification` in the `proportional` profile.
+3. Changes to domain meaning, terminology, ownership, boundaries, failure semantics, or invariants: also load `domain-contract-design`.
+4. `domain-contract-design` is the canonical owner of major-change classification. If it classifies the change as major, investigate existing boundaries, perform a read-only Oracle design review, obtain explicit user approval, then implement and run a fresh Oracle review.
+
+The loaded skills own the detailed domain, contract, specification, PBT, persistence, and review rules. Do not duplicate those rules in this routing file.
 
 ## Anti-polling
 

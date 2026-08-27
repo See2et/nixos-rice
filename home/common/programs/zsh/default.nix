@@ -17,6 +17,10 @@
     enable = true;
     dotDir = config.home.homeDirectory;
 
+    shellAliases = {
+      "opencode-strict" = "OMO_PROFILE=strict opencode";
+    };
+
     initContent =
       let
         zshConfigEarlyInit = lib.mkOrder 500 ''

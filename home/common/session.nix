@@ -6,6 +6,7 @@
     EDITOR = "nvim";
     VISUAL = "nvim";
     SUDO_EDITOR = "nvim";
+    OMO_PROFILE = "proportional";
     UV_TOOL_DIR = "${config.xdg.dataHome}/uv/tools";
     UV_TOOL_BIN_DIR = "${config.xdg.dataHome}/uv/tools/bin";
     PKG_CONFIG_PATH = "${config.home.profileDirectory}/lib/pkgconfig:${config.home.profileDirectory}/share/pkgconfig";
