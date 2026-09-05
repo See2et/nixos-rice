@@ -221,15 +221,14 @@
         '';
 
       opencodePackageLinux = mkOpencodeReleasePackage linuxSystem {
-        url = "https://github.com/anomalyco/opencode/releases/download/v1.17.9/opencode-linux-x64-baseline.tar.gz";
-        hash = "sha256-aqnYgO8KgQBx02ZYZ6rsLhDjn6CktiR4BdElgpJ5ovc=";
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.29/opencode-linux-x64-baseline.tar.gz";
+        hash = "sha256-F5aQJVj3u3i36etjRkGfzhX9MFO5LieeSLqA2n2jeWk=";
       };
 
-      # Newer OpenCode revisions currently segfault on this WSL2 kernel.
-      # Keep WSL on the known-good 1.3.13 binary without rebuilding it with newer Bun versions.
+      # Use the same v1.18.29 baseline as Desktop.
       opencodePackageWsl = mkOpencodeReleasePackage linuxSystem {
-        url = "https://github.com/anomalyco/opencode/releases/download/v1.3.13/opencode-linux-x64-baseline.tar.gz";
-        hash = "sha256-K/uBgByhR7igNy8u4t/07mifoPyAJ98Toy68MmubCls=";
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.29/opencode-linux-x64-baseline.tar.gz";
+        hash = "sha256-F5aQJVj3u3i36etjRkGfzhX9MFO5LieeSLqA2n2jeWk=";
       };
 
       dmsPackage = inputs.dms.packages.${linuxSystem}.default.overrideAttrs (oldAttrs: {
