@@ -32,7 +32,7 @@ normal change でも、domain meaning が動くなら使う。大げさな再設
 - formatting
 - 意味が変わらない機械的な rename
 - contract を保ったままの plumbing
-- local で完結する小さな修正
+- local で完結し、規則・所有権・failure の意味を変えない小さな修正
 - 規則、所有権、failure の意味に触れない実装詳細
 
 やり方だけが変わるなら、その場で閉じる。何を意味するかが変わらないなら、設計論を拡張しない。
@@ -67,10 +67,10 @@ normal change でも、domain meaning が動くなら使う。大げさな再設
 
 次のどちらかに振る。
 
-- normal change: 同じ domain、同じ ownership、local な contract 更新
-- major change: boundary か ownership が動く。明示的な domain design が必要
+- normal change: 同じ domain・ownership 内で閉じ、既存データや利用者の契約、他の境界の保証を壊さない contract 更新
+- major change: boundary・ownership が動く、または既存の意味・互換性・整合性への影響から明示的な domain design が必要な変更。下記のトリガーで判定する
 
-すぐに決められないなら、contract が曖昧だという合図である。
+判定には変更対象の利用箇所・公開契約・保存データの制約など、関係する根拠を使う。影響が不明なら、その不明点に絞って確認する。未確認を「影響なし」と扱わず、不明という理由だけで major にもしない。
 
 ### 3. contract を抜き出す
 
@@ -118,15 +118,19 @@ major change では、
 
 - Subdomain または Bounded Context を追加、分割、統合する
 - Aggregate boundary、data owner、identity model を移動または変更する
-- 以前は有効だった state を無効にする、またはその逆となる invariant 変更を行う
+- invariant 変更により、既存の保存データ・進行中の処理の有効性、利用者に約束した入力・結果・失敗の意味、または他の境界が依存する保証が変わる
 - public API、command、query、event の Domain 上の意味や互換性を変える
 - Context 間 integration を追加または変更する
 - Aggregate をまたぐ transaction、整合性、並行性 policy を変える
 - Domain 上の意味を伴う persistence migration を行う
 
-major はコード量のことではない。Domain の境界、有効状態、所有権、公開された意味が動くことを指す。
+major はコード量や「invariant を変更した」というラベルではなく、Domain の構造と既存の約束への影響で判断する。
 
-contract の曖昧さ、rule の複数所有、expected failure と impossible state の混同は設計リスクだが、それだけでは major としない。まず normal change の範囲で owner と contract を明確にし、その解消に上記の構造変更が必要な場合だけ major へ上げる。
+局所的な制約変更は、同じ owner の内部に閉じ、既存データの再解釈・移行も、利用者の契約変更も、他の境界との調整も不要と確認できれば normal とする。たとえば、既存データや外部への契約を持たない内部の一時値に範囲制約を追加する変更が該当する。既存 API が受理していた入力を拒否したり、保存済み状態を無効にしたりする変更は、一行でも major になり得る。
+
+既存契約どおりに不正入力を拒否するバグ修正と、契約自体を厳しくする変更は区別する。ただし、バグで生じた保存データの移行や利用者への互換性対応が必要なら、その影響も分類に含める。normal でも変更した contract と failure は明示し、必要な実行可能仕様で保証する。
+
+contract の曖昧さ、rule の複数所有、expected failure と impossible state の混同は設計リスクだが、それだけでは major としない。owner と contract を明確にし、その解消が上記トリガーに該当する場合に major へ上げる。
 
 ## transient handoff の形式
 
