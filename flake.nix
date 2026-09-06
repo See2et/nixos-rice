@@ -318,6 +318,14 @@
         let
           repoPolicyCheck = mkScriptCheck system "repo-policy" "tests/repo-policy.sh";
           dmsShellPolicyCheck = mkScriptCheck system "dms-shell-policy" "tests/dms-shell-policy.sh";
+          niriPipWorkspaceFollowerCheck =
+            let
+              service =
+                self.nixosConfigurations.desktop.config.home-manager.users.see2et.systemd.user.services.niri-pip-workspace-follower.Service;
+            in
+            assert service.Restart == "always";
+            assert service.RestartSec == 1;
+            mkScriptCheck system "niri-pip-workspace-follower" "tests/niri-pip-workspace-follower.sh";
           steamvrToolsCheck = mkScriptCheck system "steamvr-tools" "tests/steamvr-tools.sh";
           dmsCodexUsageCheck =
             let
@@ -378,6 +386,7 @@
           dms-security = dmsSecurityCheck;
           dms-codex-usage = dmsCodexUsageCheck;
           dms-shell-policy = dmsShellPolicyCheck;
+          niri-pip-workspace-follower = niriPipWorkspaceFollowerCheck;
           steamvr-tools = steamvrToolsCheck;
         }
       );

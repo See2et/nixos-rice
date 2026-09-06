@@ -1,9 +1,39 @@
-{ lib, config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   t = config.desktop.ui.tokens;
+  pipWorkspaceFollower = pkgs.writeShellApplication {
+    name = "niri-pip-workspace-follower";
+    runtimeInputs = [
+      config.programs.niri.package
+      pkgs.jq
+      pkgs.socat
+    ];
+    text = builtins.readFile ./niri-pip-workspace-follower;
+  };
 in
 {
   config = lib.mkIf config.programs.niri.enable {
+    home.packages = [ pipWorkspaceFollower ];
+
+    systemd.user.services.niri-pip-workspace-follower = {
+      Unit = {
+        Description = "Keep browser picture-in-picture windows on the focused niri workspace";
+        After = [ "graphical-session.target" ];
+        PartOf = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = lib.getExe pipWorkspaceFollower;
+        Restart = "always";
+        RestartSec = 1;
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
+
     programs.niri.settings = {
       prefer-no-csd = true;
 

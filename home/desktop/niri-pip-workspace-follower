@@ -1,0 +1,73 @@
+set -euo pipefail
+
+niri_command=${NIRI_COMMAND:-niri}
+socat_command=${SOCAT_COMMAND:-socat}
+: "${NIRI_SOCKET:?NIRI_SOCKET must be set}"
+
+move_window_to_workspace() {
+  local window_id=$1
+  local workspace_id=$2
+  local request
+  local reply
+
+  request=$(jq -cn \
+    --argjson window_id "$window_id" \
+    --argjson workspace_id "$workspace_id" \
+    '{Action: {MoveWindowToWorkspace: {window_id: $window_id, reference: {Id: $workspace_id}, focus: false}}}')
+  reply=$(printf '%s\n' "$request" | "$socat_command" - "UNIX-CONNECT:$NIRI_SOCKET")
+  jq -e '. == {"Ok": "Handled"}' >/dev/null <<<"$reply"
+}
+
+sync_once() {
+  local focused_workspace_id
+  local windows
+  local window_id
+
+  focused_workspace_id=$("$niri_command" msg --json workspaces | jq -er '
+    [.[] | select(.is_focused == true) | .id]
+    | if length == 1 then .[0] else error("expected exactly one focused workspace") end
+  ')
+  windows=$("$niri_command" msg --json windows)
+
+  while IFS= read -r window_id; do
+    move_window_to_workspace "$window_id" "$focused_workspace_id"
+  done < <(
+    jq -r --argjson focused_workspace_id "$focused_workspace_id" '
+      .[]
+      | select(
+          (
+            .title == "Picture-in-Picture"
+            or .title == "Picture in Picture"
+            or .title == "Picture in picture"
+          )
+          and .workspace_id != $focused_workspace_id
+        )
+      | .id
+    ' <<<"$windows"
+  )
+}
+
+case ${1-} in
+  '')
+    sync_once
+    "$niri_command" msg --json event-stream | while IFS= read -r event; do
+      if jq -e '
+        has("WorkspacesChanged")
+        or has("WindowsChanged")
+        or (.WorkspaceActivated.focused? == true)
+        or (.WindowOpenedOrChanged.window.title? == "Picture-in-Picture")
+        or (.WindowOpenedOrChanged.window.title? == "Picture in Picture")
+        or (.WindowOpenedOrChanged.window.title? == "Picture in picture")
+      ' >/dev/null <<<"$event"; then
+        sync_once
+      fi
+    done
+    ;;
+  --sync-once)
+    sync_once
+    ;;
+  *)
+    printf 'usage: niri-pip-workspace-follower [--sync-once]\n' >&2
+    exit 64
+    ;;
+esac
