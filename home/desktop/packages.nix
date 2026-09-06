@@ -208,8 +208,8 @@ in
       with pkgs;
       [
         google-chrome
-        discord
-        discord-canary
+        pkgsUnstable.discord
+        pkgsUnstable.discord-canary
         slack
         zoom-us
         figma-linux
