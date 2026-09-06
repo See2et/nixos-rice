@@ -6,6 +6,14 @@
     "AGENTS.md"
   ],
   "default_agent": "sisyphus",
+  "agent": {
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    }
+  },
   "plugin": [
     "oh-my-openagent@4.19.4",
     "opencode-skill-creator"

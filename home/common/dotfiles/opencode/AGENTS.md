@@ -8,6 +8,14 @@
 - Review findings must distinguish blocking acceptance failures or concrete regressions from optional improvements. Optional improvements do not expand the task or prevent completion.
 - Once acceptance conditions and required checks/reviews pass, finish. Reopen investigation or review only for a changed diff, a failed check, or new evidence of a concrete risk; keep the follow-up scoped to that trigger. Preserve the major-change approval and fresh Oracle review below and repository safety gates.
 
+## OmO planning routing
+
+- Never invoke OpenCode's built-in `plan` agent through `task(subagent_type="plan")`.
+- For ambiguous or open-ended work that needs pre-planning analysis, use OmO's `metis` agent.
+- Use OmO's `prometheus` planning workflow only when the user explicitly asks for a plan before implementation.
+- For ordinary multi-step implementation with clear requirements, self-plan and delegate implementation through the appropriate category; do not invoke a planning subagent.
+- Use `momus` only to review an existing plan artifact under `.omo/plans/`.
+
 ## Frontend visual routing
 
 - Use the `visual-engineering` category for frontend implementation and routine browser iteration.
