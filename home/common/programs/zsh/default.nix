@@ -317,7 +317,7 @@
                     bindkey "^[b" fzf-git-worktree-widget
 
           function git-codex-commit() {
-            local diff prompt msg tmp_output cc_pattern
+            local diff prompt msg tmp_output tmp_error cc_pattern
 
                       git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
                         print -u2 "git-codex-commit: not in a git repository"
@@ -351,15 +351,22 @@
               return 1
             }
 
-            printf "%s\n\n--- STAGED DIFF ---\n%s\n" "$prompt" "$diff" \
-            | codex exec --color never --output-last-message "$tmp_output" --model gpt-5.4 -c model_reasoning_effort=\"low\" -s read-only - >/dev/null 2>&1 || {
+            tmp_error=$(mktemp) || {
               rm -f "$tmp_output"
+              print -u2 "git-codex-commit: failed to create error file"
+              return 1
+            }
+
+            printf "%s\n\n--- STAGED DIFF ---\n%s\n" "$prompt" "$diff" \
+            | codex exec --color never --output-last-message "$tmp_output" --model gpt-5.6-luna -s read-only - >/dev/null 2>"$tmp_error" || {
+              cat "$tmp_error" >&2
+              rm -f "$tmp_output" "$tmp_error"
               print -u2 "git-codex-commit: codex failed"
               return 1
             }
 
             msg=$(sed -n '/[^[:space:]]/ { p; q; }' "$tmp_output")
-            rm -f "$tmp_output"
+            rm -f "$tmp_output" "$tmp_error"
 
             msg=$(printf "%s" "$msg" | tr -d '\r' | sed -E 's/^`+//; s/`+$//; s/^[[:space:]]+//; s/[[:space:]]+$//')
 
