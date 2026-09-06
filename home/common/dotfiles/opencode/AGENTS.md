@@ -8,6 +8,14 @@
 - Review findings must distinguish blocking acceptance failures or concrete regressions from optional improvements. Optional improvements do not expand the task or prevent completion.
 - Once acceptance conditions and required checks/reviews pass, finish. Reopen investigation or review only for a changed diff, a failed check, or new evidence of a concrete risk; keep the follow-up scoped to that trigger. Preserve the major-change approval and fresh Oracle review below and repository safety gates.
 
+## Frontend visual routing
+
+- Use the `visual-engineering` category for frontend implementation and routine browser iteration.
+- Invoke `visual-director` for consequential frontend work at no more than two checkpoints: before implementation when a redesign or new interface needs a visual direction, and after implementation when rendered evidence is ready for final review.
+- Consequential work includes changes to layout systems, visual hierarchy, navigation, design tokens, typography, responsive behavior, motion, or styling across multiple components. Skip `visual-director` for copy-only edits, isolated one-property fixes, and mechanical component changes.
+- Before the final `visual-director` review, run the normal visual QA workflow and provide desktop and mobile screenshots plus the primary changed interaction state. Source-only review does not satisfy this gate.
+- `visual-director` is read-only. Return its blocking findings to `visual-engineering` for implementation, then request another Astra review only when the rendered diff changed to address those findings.
+
 ## Domain and executable specification workflow
 
 The active OMO profile selects the implementation discipline:

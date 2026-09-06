@@ -32,5 +32,9 @@
       source = ../dotfiles/opencode/agents/chiron.md;
       force = true;
     };
+    "opencode/agents/visual-director.md" = {
+      source = ../dotfiles/opencode/agents/visual-director.md;
+      force = true;
+    };
   };
 }
