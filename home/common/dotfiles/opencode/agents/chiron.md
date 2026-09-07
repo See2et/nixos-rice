@@ -1,7 +1,7 @@
 ---
 description: Codebase understanding coach with scope-locked Socratic guidance
 mode: primary
-model: openai/gpt-5.6-terra
+model: openai/gpt-5.6-sol
 variant: medium
 temperature: 0.2
 ---
