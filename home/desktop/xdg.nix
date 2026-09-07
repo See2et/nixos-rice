@@ -59,27 +59,27 @@
         "video/webm" = [ "mpv.desktop" ];
         "video/x-matroska" = [ "mpv.desktop" ];
         "application/xhtml+xml" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "text/html" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/about" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/figma" = [
           "figma-url.desktop"
         ];
         "x-scheme-handler/http" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/https" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/steam" = [
           "steam.desktop"
@@ -88,8 +88,8 @@
           "steam.desktop"
         ];
         "x-scheme-handler/unknown" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
       };
       defaultApplications = {
@@ -107,27 +107,27 @@
         "video/webm" = [ "mpv.desktop" ];
         "video/x-matroska" = [ "mpv.desktop" ];
         "application/xhtml+xml" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "text/html" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/about" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/figma" = [
           "figma-url.desktop"
         ];
         "x-scheme-handler/http" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/https" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
         "x-scheme-handler/steam" = [
           "steam.desktop"
@@ -139,8 +139,8 @@
           "steam.desktop"
         ];
         "x-scheme-handler/unknown" = [
+          "zen-twilight.desktop"
           "zen-url.desktop"
-          "zen-beta.desktop"
         ];
       };
     };
@@ -188,10 +188,10 @@
       zen-url = {
         name = "Zen Browser URL Handler";
         genericName = "Web Browser";
-        exec = "/etc/profiles/per-user/${config.home.username}/bin/zen-beta --name zen-beta %U";
+        exec = "/etc/profiles/per-user/${config.home.username}/bin/zen-twilight --name zen-twilight %U";
         terminal = false;
         type = "Application";
-        icon = "zen-browser";
+        icon = "zen-twilight";
         categories = [
           "Network"
           "WebBrowser"
