@@ -85,82 +85,98 @@
     },
     "categories": {
       "visual-engineering": {
-        "model": "openai/gpt-5.6-sol",
-        "reasoning": "medium",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-5.6-sol",
+            "reasoning": "medium"
+          },
           {
             "model": "openai/gpt-5.6-terra",
-            "variant": "high"
+            "reasoning": "high"
           }
         ]
       },
       "ultrabrain": {
-        "model": "openai/gpt-6-astra",
-        "reasoning": "xhigh",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-6-astra",
+            "reasoning": "xhigh"
+          },
           {
             "model": "openai/gpt-5.6-sol",
-            "variant": "xhigh"
+            "reasoning": "xhigh"
           }
         ]
       },
       "deep": {
-        "model": "openai/gpt-5.6-sol",
-        "reasoning": "medium",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-5.6-sol",
+            "reasoning": "medium"
+          },
           {
             "model": "openai/gpt-5.6-terra",
-            "variant": "high"
+            "reasoning": "high"
           }
         ]
       },
       "artistry": {
-        "model": "openai/gpt-6-astra",
-        "reasoning": "high",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-6-astra",
+            "reasoning": "high"
+          },
           {
             "model": "openai/gpt-5.6-terra",
-            "variant": "high"
+            "reasoning": "high"
           }
         ]
       },
       "quick": {
-        "model": "openai/gpt-5.6-luna",
-        "reasoning": "low",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-5.6-luna",
+            "reasoning": "low"
+          },
           {
             "model": "openai/gpt-5.6-terra",
-            "variant": "medium"
+            "reasoning": "medium"
           }
         ]
       },
       "unspecified-low": {
-        "model": "openai/gpt-5.6-terra",
-        "reasoning": "high",
-        "fallback_models": [
+        "models": [
           {
             "model": "openai/gpt-5.6-terra",
-            "variant": "medium"
+            "reasoning": "high"
+          },
+          {
+            "model": "openai/gpt-5.6-terra",
+            "reasoning": "medium"
           }
         ]
       },
       "unspecified-high": {
-        "model": "openai/gpt-5.6-sol",
-        "reasoning": "high",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-5.6-sol",
+            "reasoning": "high"
+          },
           {
             "model": "openai/gpt-5.6-terra",
-            "variant": "high"
+            "reasoning": "high"
           }
         ]
       },
       "writing": {
-        "model": "openai/gpt-5.6-terra",
-        "reasoning": "medium",
-        "fallback_models": [
+        "models": [
+          {
+            "model": "openai/gpt-5.6-terra",
+            "reasoning": "medium"
+          },
           {
             "model": "openai/gpt-5.6-luna",
-            "variant": "low"
+            "reasoning": "low"
           }
         ]
       }
