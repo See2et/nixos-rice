@@ -27,7 +27,7 @@
     onActivation = {
       autoUpdate = true;
       upgrade = true;
-      cleanup = "zap";
+      cleanup = "uninstall";
     };
     brews = [
       "mas"
@@ -59,7 +59,7 @@
       "tailscale"
       "wezterm"
       "yubico-authenticator"
-      "zen"
+      "zen@twilight"
       "zoom"
       "raycast"
       "notion"
