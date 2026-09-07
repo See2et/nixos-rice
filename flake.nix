@@ -50,6 +50,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+    voxtype = {
+      url = "github:peteonrails/voxtype/v1.0.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     opencode.url = "github:anomalyco/opencode";
   };
