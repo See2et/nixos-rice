@@ -39,7 +39,7 @@ in
 
       binds = {
         "Mod+Return".action.spawn = "alacritty-cwd";
-        "Mod+Shift+Return".action.spawn = "zen-beta";
+        "Mod+Shift+Return".action.spawn = "zen-twilight";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };
 
@@ -139,7 +139,7 @@ in
         {
           matches = [
             {
-              "app-id" = "^(discord|discordcanary|Slack|slack|firefox|zen|zen-beta)$";
+              "app-id" = "^(discord|discordcanary|Slack|slack|firefox|zen|zen-twilight)$";
               "is-active" = false;
             }
           ];
