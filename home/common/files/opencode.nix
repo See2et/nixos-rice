@@ -28,6 +28,16 @@
       recursive = true;
       force = true;
     };
+    "opencode/skills/review-work" = {
+      source = ../dotfiles/opencode/skills/review-work;
+      recursive = true;
+      force = true;
+    };
+    "opencode/skills/visual-qa" = {
+      source = ../dotfiles/opencode/skills/visual-qa;
+      recursive = true;
+      force = true;
+    };
     "opencode/agents/chiron (deep tutor).md" = {
       source = ../dotfiles/opencode/agents/chiron.md;
       force = true;
