@@ -1,5 +1,5 @@
 { ... }:
 
 {
-  environment.etc."codex/config.toml".source = ../shared/codex/config.toml;
+  imports = [ ../shared/codex ];
 }
