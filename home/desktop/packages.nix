@@ -218,6 +218,7 @@ in
       ]
     )
     ++ lib.optionals (hostId == "desktop") [
+      (import ./chatgpt.nix { inherit pkgs; })
       pkgs.bambu-studio
       pkgsUnstable.zmk-studio
     ];
