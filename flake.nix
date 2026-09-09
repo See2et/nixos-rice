@@ -225,14 +225,14 @@
         '';
 
       opencodePackageLinux = mkOpencodeReleasePackage linuxSystem {
-        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.29/opencode-linux-x64-baseline.tar.gz";
-        hash = "sha256-F5aQJVj3u3i36etjRkGfzhX9MFO5LieeSLqA2n2jeWk=";
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.30/opencode-linux-x64-baseline.tar.gz";
+        hash = "sha256-cB72253PPAD6+r/7K9HeWQA6oT7F0u+Xazf/QASB3RM=";
       };
 
-      # Use the same v1.18.29 baseline as Desktop.
+      # Use the same v1.18.30 baseline as Desktop.
       opencodePackageWsl = mkOpencodeReleasePackage linuxSystem {
-        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.29/opencode-linux-x64-baseline.tar.gz";
-        hash = "sha256-F5aQJVj3u3i36etjRkGfzhX9MFO5LieeSLqA2n2jeWk=";
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.18.30/opencode-linux-x64-baseline.tar.gz";
+        hash = "sha256-cB72253PPAD6+r/7K9HeWQA6oT7F0u+Xazf/QASB3RM=";
       };
 
       dmsPackage = inputs.dms.packages.${linuxSystem}.default.overrideAttrs (oldAttrs: {
