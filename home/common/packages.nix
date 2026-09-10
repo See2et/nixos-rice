@@ -47,6 +47,7 @@ in
       tree-sitter
       yt-dlp
       ripgrep
+      jq
       fd
       ffmpeg
       tinymist
