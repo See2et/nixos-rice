@@ -11,6 +11,7 @@
     ./programs/gh.nix
     ./programs/gpg.nix
     ./programs/neovim.nix
+    ./programs/yazi.nix
     ./programs/zellij.nix
     ./programs/zsh
     ./packages.nix
