@@ -46,6 +46,7 @@
       # Docker CLI discovery is configured via home/darwin/default.nix.
       "docker"
       "figma"
+      "firefox"
       "ghostty"
       "godot"
       "google-chrome"
