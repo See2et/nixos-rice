@@ -14,6 +14,7 @@ in
       port = sunshinePort;
       capture = "wlr";
       encoder = "nvenc";
+      system_tray = "disabled";
       upnp = "disabled";
       origin_web_ui_allowed = "pc";
     };
@@ -25,6 +26,8 @@ in
       }
     ];
   };
+
+  systemd.user.services.sunshine.environment.LD_LIBRARY_PATH = "/run/opengl-driver/lib";
 
   networking.firewall.interfaces."tailscale0" = {
     allowedTCPPorts = [

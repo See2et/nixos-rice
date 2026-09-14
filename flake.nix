@@ -359,6 +359,9 @@
             in
             assert sunshine.enable && !sunshine.openFirewall && !sunshine.capSysAdmin;
             assert sunshine.settings.capture == "wlr";
+            assert sunshine.settings.system_tray == "disabled";
+            assert
+              desktop.systemd.user.services.sunshine.environment.LD_LIBRARY_PATH == "/run/opengl-driver/lib";
             assert sunshine.settings.origin_web_ui_allowed == "pc";
             assert !(builtins.elem 47990 desktop.networking.firewall.interfaces.tailscale0.allowedTCPPorts);
             assert desktop.users.users.see2et.linger;

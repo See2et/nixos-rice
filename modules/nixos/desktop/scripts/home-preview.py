@@ -197,13 +197,20 @@ def tailscale_json(arguments: list[str]) -> dict:
     return value
 
 
-def node_dns_name() -> str:
+def node_dns_name(require_https: bool = False) -> str:
     status = tailscale_json(["status", "--json"])
     self_status = status.get("Self")
     dns_name = self_status.get("DNSName") if isinstance(self_status, dict) else None
     if not isinstance(dns_name, str) or not dns_name.strip("."):
         raise PreviewError("tailscale status does not contain Self.DNSName")
-    return dns_name.rstrip(".")
+    dns_name = dns_name.rstrip(".")
+    if require_https and dns_name not in (status.get("CertDomains") or []):
+        raise PreviewError(
+            "HTTPS certificates are not enabled for this node. "
+            "Enable HTTPS Certificates at https://login.tailscale.com/admin/dns "
+            "and retry. This does not enable Funnel or public access."
+        )
+    return dns_name
 
 
 def serve_status() -> dict:
@@ -315,7 +322,7 @@ def add_preview(registry_path: Path, registry: dict, args: argparse.Namespace) -
     )
     if name in registry["previews"]:
         raise PreviewError(f"preview {name!r} already exists")
-    dns_name = node_dns_name()
+    dns_name = node_dns_name(require_https=True)
     status = serve_status()
     https_port = (
         requested_https_port
@@ -408,7 +415,7 @@ def remove_preview(registry_path: Path, registry: dict, name: str) -> None:
 
 
 def apply_previews(registry: dict) -> None:
-    dns_name = node_dns_name()
+    dns_name = node_dns_name(require_https=True)
     initial_status = serve_status()
     missing = []
     for name, preview in sorted(registry["previews"].items()):

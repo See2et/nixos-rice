@@ -32,7 +32,10 @@ with log_path.open("a", encoding="utf-8") as log:
     log.write(json.dumps(args) + "\n")
 
 if args == ["status", "--json"]:
-    print(json.dumps({"Self": {"DNSName": "desktop.example.ts.net."}}))
+    print(json.dumps({
+        "Self": {"DNSName": "desktop.example.ts.net."},
+        "CertDomains": None if os.environ.get("FAKE_TAILSCALE_NO_HTTPS") else ["desktop.example.ts.net"],
+    }))
     raise SystemExit(0)
 if args == ["serve", "status", "--json"]:
     bad_status_marker = os.environ.get("FAKE_TAILSCALE_BAD_STATUS_MARKER")
@@ -162,6 +165,17 @@ class HomePreviewTests(unittest.TestCase):
             self.calls(),
         )
         self.assertIn(["serve", "--yes", "--https=8443", "off"], self.calls())
+
+    def test_https_setup_is_reported_before_any_serve_mutation(self):
+        for command in [("add", "site", 3000), ("apply",)]:
+            with self.subTest(command=command):
+                result = self.run_cli(*command, success=False,
+                                      extra_environment={"FAKE_TAILSCALE_NO_HTTPS": "1"})
+                self.assertIn("https://login.tailscale.com/admin/dns", result.stderr)
+                self.assertIn("HTTPS", result.stderr)
+        self.assertTrue(all(call == ["status", "--json"] for call in self.calls()))
+        self.assertFalse((self.state_dir / "registry.json").exists())
+        self.assertEqual(self.serve(), {})
 
     def test_reapply_restores_only_missing_registered_ports(self):
         self.run_cli("add", "site", 3000, 8444)

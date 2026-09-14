@@ -49,6 +49,7 @@ height = "60%"
 
 [ui]
 prompt_new_tab_name = false
+mouse_capture = false
 
 [experimental]
 pane_history = false

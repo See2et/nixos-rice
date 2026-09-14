@@ -107,6 +107,8 @@ Herdr全体UIは`Ctrl+b`を押して離してから操作するone-shot prefix�
 | `?` | ヘルプ |
 
 literal `Ctrl+b`は`Ctrl+b Ctrl+b`。Mosh固有の`Ctrl+^`予約は別に残る。
+Herdrのマウス捕捉は無効にし、通常の文字選択は外側のTerminalで行う。
+アプリがマウスを捕捉する場合、AlacrittyではShiftを押しながらドラッグし、Ctrl+Shift+Cでコピーできる。
 Moshは画像転送や高度なkeyboard protocolを通常のローカルTerminal同様には扱わないため、Yaziの画像preview等は保証しない。
 設定変更後は`herdr config check`、`herdr server reload-config`。session snapshot/historyはHome Managerで上書きしない。
 
@@ -127,6 +129,7 @@ home-preview apply
 ```
 
 HTTPSポートは8443..8499から自動割当。`add NAME UPSTREAM_PORT HTTPS_PORT`で明示指定できる。
+HTTPS未有効の場合は管理画面の案内を表示し、Serveを変更しない。まずDNS設定のHTTPS Certificatesを有効化する。
 Macのブラウザで表示された`https://nixos.taile209b8.ts.net:8443/`等を開く。
 URLにHTTPSポートを含める。Moshによるport forwardingは不要。
 
@@ -149,6 +152,8 @@ MacのMoonlightに`nixos.taile209b8.ts.net`をAdd PCし、PINを自宅の管理U
 
 - Moonlightの開始設定: Desktop、1080p、60fps、SDR、H.264。
 - captureは`wlr`、encoderは`nvenc`。KMS権限を自動追加しない。
+- Sunshineのuser serviceに限り`/run/opengl-driver/lib`をライブラリ検索先に設定する。NVENCの動的ロードに必要な`libcuda.so.1`と`libnvidia-encode.so.1`をここから読む。
+- Sunshineのトレイアイコンと通知を無効にする。配信開始時のSVGアイコン更新に伴うQuickshellクラッシュの回避策で、映像・音声配信は無効にしない。
 - `tailscale ping homeの実ホスト名`でdirect/relayを確認する。relay時は画質・遅延が悪化し得る。
 - 自宅の物理画面にも同じ内容が表示され得る。プライベートな独立デスクトップではない。
 - 画面ロックを維持し、ロック状態からの表示・通常認証・入力を実機確認する。自動unlockはしない。
