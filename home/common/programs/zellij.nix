@@ -1,4 +1,4 @@
-{ ... }:
+{ hostId, ... }:
 {
-  programs.zellij.enable = true;
+  programs.zellij.enable = hostId == "wsl";
 }

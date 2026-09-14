@@ -218,11 +218,11 @@
   fadeToDpmsGracePeriod = 5;
   acLockTimeout = 240;
   acMonitorTimeout = 0;
-  acPostLockMonitorTimeout = 30;
+  acPostLockMonitorTimeout = 0;
   acSuspendTimeout = 0;
   batteryLockTimeout = 240;
   batteryMonitorTimeout = 0;
-  batteryPostLockMonitorTimeout = 30;
+  batteryPostLockMonitorTimeout = 0;
   batterySuspendTimeout = 0;
 
   wallpaperFillMode = "Fill";

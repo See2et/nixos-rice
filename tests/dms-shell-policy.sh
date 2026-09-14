@@ -238,11 +238,13 @@ check_present "desktop system DMS module must enable geoclue" 'services\.geoclue
 check_present "desktop system DMS module must enable power profiles" 'services\.power-profiles-daemon\.enable[[:space:]]*=[[:space:]]*true[[:space:]]*;' 'modules/nixos/desktop/dank-material-shell.nix'
 check_absent "desktop system DMS module must not own programs.dank-material-shell" 'programs\.dank-material-shell' 'modules/nixos/desktop/dank-material-shell.nix'
 
-check_present "desktop profile must keep packages import for custom alacritty-cwd" '\./packages\.nix' 'home/desktop/default.nix'
+check_present "desktop profile must keep desktop packages import" '\./packages\.nix' 'home/desktop/default.nix'
 check_present "desktop profile must keep VR import ownership" '\./vr' 'home/desktop/default.nix'
 check_present "desktop profile must keep Zen import ownership" '\./zen-browser\.nix' 'home/desktop/default.nix'
 check_present "desktop profile must keep XDG import ownership" '\./xdg\.nix' 'home/desktop/default.nix'
-check_present "custom alacritty-cwd wrapper must remain defined" 'alacrittyCwd[[:space:]]*=[[:space:]]*pkgs\.writeShellScriptBin[[:space:]]*"alacritty-cwd"' 'home/desktop/packages.nix'
+check_present "desktop profile must import persistent Herdr terminal ownership" '\./herdr\.nix' 'home/desktop/default.nix'
+check_present "niri terminal launcher must use the Herdr CWD-aware window entrypoint" '"Mod\+Return"\.action\.spawn[[:space:]]*=[[:space:]]*"herdr-new-window"' 'home/desktop/niri.nix'
+check_present "Herdr window helper must be packaged" 'name[[:space:]]*=[[:space:]]*"herdr-home"' 'home/desktop/herdr.nix'
 
 check_absent "desktop profile must stop importing HM bluetooth ownership" '\./bluetooth\.nix' 'home/desktop/default.nix'
 check_absent "desktop profile must stop importing HM wallpaper ownership" '\./wallpaper\.nix' 'home/desktop/default.nix'

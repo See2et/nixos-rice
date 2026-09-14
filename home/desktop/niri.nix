@@ -38,7 +38,7 @@ in
       prefer-no-csd = true;
 
       binds = {
-        "Mod+Return".action.spawn = "alacritty-cwd";
+        "Mod+Return".action.spawn = "herdr-new-window";
         "Mod+Shift+Return".action.spawn = "zen-twilight";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };

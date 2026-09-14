@@ -3,6 +3,8 @@
 {
   services.tailscale.enable = true;
 
+  users.users.see2et.linger = true;
+
   services.openssh = {
     enable = true;
     openFirewall = false;

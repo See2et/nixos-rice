@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   xdg.enable = true;
 
@@ -18,7 +23,7 @@
     }
 
     migrate_recursive_dir "$HOME/.config/nvim"
-    migrate_recursive_dir "$HOME/.config/zellij"
+    ${lib.optionalString config.programs.zellij.enable ''migrate_recursive_dir "$HOME/.config/zellij"''}
   '';
 
   xdg.configFile = {
@@ -27,7 +32,7 @@
       recursive = true;
       force = true;
     };
-    "zellij" = {
+    "zellij" = lib.mkIf config.programs.zellij.enable {
       source = ./dotfiles/zellij;
       recursive = true;
       force = true;

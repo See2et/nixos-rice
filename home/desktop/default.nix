@@ -6,6 +6,7 @@
     ./ui-tokens.nix
     ./android.nix
     ./packages.nix
+    ./herdr.nix
     ./lazydocker.nix
     ./obs.nix
     ./voxtype.nix

@@ -1,5 +1,7 @@
 # nixos-rice
 
+常時稼働開発ホスト（Herdr / Mosh / Web Preview / Sunshine）の導入・運用は [remote-development.md](docs/remote-development.md) を参照。
+
 1つのリポジトリで、以下3ターゲットを管理する統合Nix flakeです。
 
 - `nixosConfigurations.desktop`（NixOSデスクトップ）

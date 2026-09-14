@@ -19,5 +19,7 @@
     ./firewall.nix
     ./docker.nix
     ./remote-dev.nix
+    ./remote-desktop.nix
+    ./web-preview.nix
   ];
 }

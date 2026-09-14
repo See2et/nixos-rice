@@ -56,6 +56,7 @@
     };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     opencode.url = "github:anomalyco/opencode";
+    herdr.url = "github:herdrdev/herdr/v0.9.0";
   };
 
   outputs =
@@ -321,6 +322,24 @@
         system:
         let
           repoPolicyCheck = mkScriptCheck system "repo-policy" "tests/repo-policy.sh";
+          antidoteCacheCheck =
+            let
+              pkgs = mkPkgs system;
+            in
+            pkgs.runCommand "antidote-cache-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.bash
+                  pkgs.zsh
+                  pkgs.coreutils
+                  pkgs.diffutils
+                ];
+                ANTIDOTE_SOURCE = "${pkgs.antidote}/share/antidote/antidote.zsh";
+              }
+              ''
+                bash ${self}/tests/antidote-cache.sh
+                touch "$out"
+              '';
           dmsShellPolicyCheck = mkScriptCheck system "dms-shell-policy" "tests/dms-shell-policy.sh";
           niriPipWorkspaceFollowerCheck =
             let
@@ -331,6 +350,38 @@
             assert service.RestartSec == 1;
             mkScriptCheck system "niri-pip-workspace-follower" "tests/niri-pip-workspace-follower.sh";
           steamvrToolsCheck = mkScriptCheck system "steamvr-tools" "tests/steamvr-tools.sh";
+          remoteDevCheck =
+            let
+              pkgs = mkPkgs system;
+              desktop = self.nixosConfigurations.desktop.config;
+              home = desktop.home-manager.users.see2et;
+              sunshine = desktop.services.sunshine;
+            in
+            assert sunshine.enable && !sunshine.openFirewall && !sunshine.capSysAdmin;
+            assert sunshine.settings.capture == "wlr";
+            assert sunshine.settings.origin_web_ui_allowed == "pc";
+            assert !(builtins.elem 47990 desktop.networking.firewall.interfaces.tailscale0.allowedTCPPorts);
+            assert desktop.users.users.see2et.linger;
+            assert !home.programs.zellij.enable;
+            assert self.nixosConfigurations.wsl.config.home-manager.users.nixos.programs.zellij.enable;
+            pkgs.runCommand "remote-development-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.python3
+                  pkgs.bash
+                  pkgs.fzf
+                ];
+                HERDR_BIN = "${inputs.herdr.packages.${system}.default}/bin/herdr";
+              }
+              ''
+                export HOME="$TMPDIR"
+                export XDG_CONFIG_HOME="$TMPDIR/config"
+                export XDG_STATE_HOME="$TMPDIR/state"
+                HERDR_CONFIG_PATH=${./home/desktop/dotfiles/herdr/config.toml} "$HERDR_BIN" config check
+                python3 ${self}/tests/herdr-home.py
+                python3 ${self}/tests/home-preview.py
+                touch "$out"
+              '';
           dmsCodexUsageCheck =
             let
               pkgs = mkPkgs system;
@@ -385,6 +436,7 @@
         {
           formatting = mkFormattingCheck system;
           repo-policy = repoPolicyCheck;
+          antidote-cache = antidoteCacheCheck;
         }
         // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
           dms-security = dmsSecurityCheck;
@@ -392,9 +444,24 @@
           dms-shell-policy = dmsShellPolicyCheck;
           niri-pip-workspace-follower = niriPipWorkspaceFollowerCheck;
           steamvr-tools = steamvrToolsCheck;
+          remote-development = remoteDevCheck;
         }
       );
 
       formatter = forAllSystems mkFormatter;
+
+      packages.${linuxSystem} = {
+        herdr = inputs.herdr.packages.${linuxSystem}.default;
+        herdr-home =
+          let
+            home = self.nixosConfigurations.desktop.config.home-manager.users.see2et;
+          in
+          builtins.head (builtins.filter (p: (p.name or "") == "herdr-home") home.home.packages);
+        home-preview = builtins.head (
+          builtins.filter (
+            p: (p.name or "") == "home-preview"
+          ) self.nixosConfigurations.desktop.config.environment.systemPackages
+        );
+      };
     };
 }

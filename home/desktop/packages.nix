@@ -90,65 +90,6 @@ let
     ];
   });
 
-  alacrittyCwd = pkgs.writeShellScriptBin "alacritty-cwd" ''
-    focusedWindowJson="$(${pkgs.niri}/bin/niri msg --json focused-window 2>/dev/null || true)"
-    focusedAppId="$(printf '%s' "$focusedWindowJson" | ${pkgs.jq}/bin/jq -r '
-      .Ok.FocusedWindow.app_id
-      // .Ok.Window.app_id
-      // .FocusedWindow.app_id
-      // .Window.app_id
-      // .app_id
-      // .["app-id"]
-      // empty
-    ' 2>/dev/null || true)"
-    focusedPid="$(printf '%s' "$focusedWindowJson" | ${pkgs.jq}/bin/jq -r '
-      .Ok.FocusedWindow.pid
-      // .Ok.Window.pid
-      // .FocusedWindow.pid
-      // .Window.pid
-      // .pid
-      // empty
-    ' 2>/dev/null || true)"
-
-    if ! [[ "$focusedPid" =~ ^[0-9]+$ ]]; then
-      windowsJson="$(${pkgs.niri}/bin/niri msg -j windows 2>/dev/null || true)"
-      focusedAppId="$(printf '%s' "$windowsJson" | ${pkgs.jq}/bin/jq -r '
-        first(
-          (if type == "array" then .[] else .Ok.Windows[]? end)
-          | select((.is_focused // .["is-focused"] // false) == true)
-        )
-        | (.app_id // .["app-id"] // empty)
-      ' 2>/dev/null || true)"
-      focusedPid="$(printf '%s' "$windowsJson" | ${pkgs.jq}/bin/jq -r '
-        first(
-          (if type == "array" then .[] else .Ok.Windows[]? end)
-          | select((.is_focused // .["is-focused"] // false) == true)
-        )
-        | (.pid // empty)
-      ' 2>/dev/null || true)"
-    fi
-
-    focusedAppIdLower="$(printf '%s' "$focusedAppId" | ${pkgs.coreutils}/bin/tr '[:upper:]' '[:lower:]')"
-
-    if [ "$focusedAppIdLower" = "alacritty" ] && [[ "$focusedPid" =~ ^[0-9]+$ ]]; then
-      shellPid=""
-      if [ -r "/proc/$focusedPid/task/$focusedPid/children" ]; then
-        IFS=' ' read -r shellPid _ < "/proc/$focusedPid/task/$focusedPid/children"
-      fi
-
-      for candidatePid in "$shellPid" "$focusedPid"; do
-        if [[ "$candidatePid" =~ ^[0-9]+$ ]]; then
-          focusedCwd="$(${pkgs.coreutils}/bin/readlink -f "/proc/$candidatePid/cwd" 2>/dev/null || true)"
-          if [ -n "$focusedCwd" ] && [ -d "$focusedCwd" ]; then
-            exec ${pkgs.alacritty}/bin/alacritty --working-directory "$focusedCwd"
-          fi
-        fi
-      done
-    fi
-
-    exec ${pkgs.alacritty}/bin/alacritty --working-directory "$HOME"
-  '';
-
 in
 {
   home.sessionVariables = {
@@ -175,7 +116,6 @@ in
   home.packages =
     (with pkgs; [
       alacritty
-      alacrittyCwd
       ghostty
       kitty
       wezterm

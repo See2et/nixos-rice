@@ -58,6 +58,7 @@
       "rowboat"
       "slack"
       "tailscale"
+      "moonlight"
       "wezterm"
       "yubico-authenticator"
       "zen@twilight"
