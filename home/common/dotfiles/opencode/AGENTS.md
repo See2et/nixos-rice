@@ -32,6 +32,11 @@
 
 ## Domain and executable specification workflow
 
+Shared `domain-contract-design` and `executable-specification` skills are maintained in
+`https://github.com/See2et/agent-skills`, checked out at `~/.agents/skills` on each host.
+OpenCode discovers that directory directly; do not copy or symlink these skills into
+`~/.config/opencode/skills`. Home Manager does not provision this separate checkout.
+
 The active OMO profile selects the implementation discipline:
 
 - `proportional` is the default. The `programming` skill is disabled and `executable-specification` is available.

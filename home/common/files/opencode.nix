@@ -5,6 +5,9 @@
     force = true;
   };
 
+  # Shared domain/specification skills live in the independently managed
+  # ~/.agents/skills checkout (https://github.com/See2et/agent-skills).
+  # OpenCode discovers them directly; do not deploy duplicate copies here.
   xdg.configFile = {
     "opencode/opencode.json" = {
       source = ../dotfiles/opencode/opencode.jsonc;
@@ -16,16 +19,6 @@
     };
     "opencode/AGENTS.md" = {
       source = ../dotfiles/opencode/AGENTS.md;
-      force = true;
-    };
-    "opencode/skills/domain-contract-design" = {
-      source = ../dotfiles/opencode/skills/domain-contract-design;
-      recursive = true;
-      force = true;
-    };
-    "opencode/skills/executable-specification" = {
-      source = ../dotfiles/opencode/skills/executable-specification;
-      recursive = true;
       force = true;
     };
     "opencode/skills/review-work" = {
