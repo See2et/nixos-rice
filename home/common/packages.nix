@@ -22,6 +22,7 @@ in
       ruff
       zsh
       gcc
+      zip
       unzip
       cargo
       biome
