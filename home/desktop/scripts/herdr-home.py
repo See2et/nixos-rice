@@ -2,17 +2,22 @@
 """Local views of Herdr terminals; only explicit project removal stops their processes."""
 
 import argparse
+from contextlib import contextmanager
 import errno
+import glob
 import fcntl
+from functools import lru_cache
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import readline
 import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import termios
 import time
 
@@ -31,15 +36,166 @@ def cli(*args):
     return data["result"]
 
 
-def runtime_dir():
-    # Keep controllers for distinct Herdr namespaces separate, including test sessions.
+def namespace_id():
     namespace = "|".join(os.environ.get(key, "") for key in (
         "HERDR_SOCKET_PATH", "HERDR_CONFIG_PATH", "HERDR_SESSION"))
+    return hashlib.sha256(namespace.encode()).hexdigest()[:12]
+
+
+def runtime_dir():
     root = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
-    path = root / "herdr-home" / hashlib.sha256(namespace.encode()).hexdigest()[:12]
+    path = root / "herdr-home" / namespace_id()
     path.mkdir(parents=True, exist_ok=True, mode=0o700)
     path.chmod(0o700)
     return path
+
+
+def directory(value):
+    path = Path(value).expanduser().resolve(strict=True)
+    if not path.is_dir():
+        raise ValueError(f"Not a directory: {path}")
+    return str(path)
+
+
+@lru_cache(maxsize=1)
+def server_status():
+    result = subprocess.run([HERDR, "status", "--json"], capture_output=True,
+                            text=True, check=True, timeout=15)
+    return json.loads(result.stdout)["server"]
+
+
+def state_namespace():
+    config_root = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config")))
+    config = Path(os.environ.get("HERDR_CONFIG_PATH", str(config_root / "herdr/config.toml")))
+    identity = [os.path.abspath(server_status()["socket"]), os.path.abspath(config.expanduser())]
+    return hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:12]
+
+
+@contextmanager
+def directory_state(write=False):
+    root = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    root = root / "herdr-home" / state_namespace()
+    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    path = root / "directories.json"
+    with (root / "directories.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX if write else fcntl.LOCK_SH)
+        try:
+            state = json.loads(path.read_text())
+            if (state.get("version") != 1 or not isinstance(state.get("defaults"), dict)
+                    or any(not isinstance(state.get(k), list)
+                           or any(not isinstance(p, str) for p in state[k])
+                           for k in ("favorites", "recent"))
+                    or any(not isinstance(k, str) or not isinstance(v, str)
+                           for k, v in state["defaults"].items())):
+                raise ValueError("invalid schema")
+        except FileNotFoundError:
+            state = {"version": 1, "defaults": {}, "favorites": [], "recent": []}
+        except (ValueError, AttributeError) as error:
+            raise RuntimeError(f"Invalid directory state {path}; preserved for repair: {error}") from error
+        yield state
+        if write:
+            temporary = None
+            try:
+                with tempfile.NamedTemporaryFile(mode="w", dir=root, delete=False) as out:
+                    temporary = Path(out.name)
+                    json.dump(state, out, ensure_ascii=False, indent=2)
+                    out.flush()
+                    os.fsync(out.fileno())
+                os.replace(temporary, path)
+            finally:
+                if temporary:
+                    temporary.unlink(missing_ok=True)
+
+
+def workspace_key(workspace):
+    # w1/w2 IDs are recycled after restart. Bind defaults to this socket incarnation.
+    stat = Path(server_status()["socket"]).stat()
+    return f"{stat.st_dev}:{stat.st_ino}:{stat.st_ctime_ns}:{workspace}"
+
+
+def remember(state, path):
+    state["recent"] = [path] + [p for p in state["recent"] if p != path][:19]
+
+
+def save_directory(workspace, path):
+    key = workspace_key(workspace)
+    with directory_state(write=True) as state:
+        incarnation = key.rsplit(":", 1)[0] + ":"
+        state["defaults"] = {k: v for k, v in state["defaults"].items()
+                             if k.startswith(incarnation)}
+        state["defaults"][key] = path
+        remember(state, path)
+
+
+def create_project(path, label):
+    # Check state before creating anything; malformed state must never be overwritten.
+    with directory_state():
+        pass
+    created = cli("workspace", "create", "--cwd", path, "--label", label)
+    save_directory(created["workspace"]["workspace_id"], path)
+    return created
+
+
+def directory_choice():
+    paths = {}
+    def add(path, source):
+        try:
+            path = directory(path)
+        except (OSError, ValueError):
+            return
+        paths.setdefault(path, []).append(source)
+    add(Path.cwd(), "current")
+    with directory_state() as state:
+        for kind in ("favorites", "recent"):
+            for path in state[kind]:
+                add(path, kind)
+    try:
+        result = subprocess.run(["ghq", "list", "-p"], capture_output=True,
+                                text=True, timeout=10)
+        if result.returncode:
+            print("ghq lookup failed; other directories are still available.", file=sys.stderr)
+        else:
+            for path in result.stdout.splitlines():
+                add(path, "ghq")
+    except FileNotFoundError:
+        pass
+    except subprocess.TimeoutExpired:
+        print("ghq lookup timed out; other directories are still available.", file=sys.stderr)
+    choices = list(paths)
+    selected = pick([(str(i), f"{path} ({', '.join(paths[path])})")
+                     for i, path in enumerate(choices)]
+                    + [("manual", "Enter a path... (Tab completion)")], "Directory > ")
+    if selected is None:
+        return None
+    if selected != "manual":
+        return directory(choices[int(selected)])
+    def complete(text, index):
+        matches = sorted(p + "/" for p in glob.glob(os.path.expanduser(text) + "*")
+                         if os.path.isdir(p))
+        return matches[index] if index < len(matches) else None
+    previous = readline.get_completer()
+    delimiters = readline.get_completer_delims()
+    try:
+        readline.set_completer(complete)
+        readline.set_completer_delims("")
+        readline.parse_and_bind("tab: complete")
+        value = prompt_input("Directory (blank to cancel): ")
+    finally:
+        readline.set_completer(previous)
+        readline.set_completer_delims(delimiters)
+    return directory(value) if value else None
+
+
+def context_workspace(data):
+    # The invoking shell is stronger evidence than whichever window has UI focus.
+    pane_id = os.environ.get("HERDR_PANE_ID")
+    workspace = os.environ.get("HERDR_WORKSPACE_ID")
+    if any(p["pane_id"] == pane_id and p["workspace_id"] == workspace
+           for p in data["panes"]):
+        return workspace
+    terminal = focused_terminal()
+    return next((p["workspace_id"] for p in data["panes"]
+                 if p["terminal_id"] == terminal), None)
 
 
 def snapshot():
@@ -70,7 +226,7 @@ def ensure_server():
 
 def pick(rows, prompt):
     if not rows:
-        raise RuntimeError("No workspaces yet. Run: herdr-home project PATH [--label NAME]")
+        raise RuntimeError("No workspaces yet. Run: herdr-home project [PATH] [--label NAME]")
     # Labels are presentation only; select by an opaque ID, never interpolate into a shell.
     lines = [key + "\t" + re.sub(r"[\x00-\x1f\x7f]", " ", label) for key, label in rows]
     result = subprocess.run(["fzf", "--delimiter=\t", "--with-nth=2..", "--no-multi",
@@ -118,30 +274,31 @@ def project_menu(data, allow_shell=False):
         if allow_shell:
             rows.append(("action:shell", "Open plain shell (without Herdr)"))
         if data["workspaces"]:
+            rows.append(("action:directory", "Set project start directory..."))
             rows.append(("action:remove", "Remove project... (stop its processes; keep files)"))
         selected = pick(rows, "Project > ")
         if selected == "action:shell":
             plain_shell()
             return None, False
         if selected == "action:new":
-            value = prompt_input("Existing project directory (blank to cancel): ")
-            if value is None:
-                return None, False
-            if not value:
-                continue
-            try:
-                path = Path(value).expanduser().resolve(strict=True)
-                if not path.is_dir():
-                    raise ValueError("Project path must be a directory")
-            except (OSError, ValueError) as error:
-                print(error, file=sys.stderr)
-                continue
-            label = prompt_input(f"Project name [{path.name or str(path)}]: ")
+            default_label = Path.cwd().name or str(Path.cwd())
+            label = prompt_input(f"Project name [{default_label}]: ")
             if label is None:
                 return None, False
-            created = cli("workspace", "create", "--cwd", str(path), "--label",
-                          label or path.name or str(path))
+            path = directory_choice()
+            if path is None:
+                return None, False
+            created = create_project(path, label or default_label)
             return created["workspace"]["workspace_id"], True
+        if selected == "action:directory":
+            workspace = workspace_choice(data)
+            if workspace:
+                path = directory_choice()
+                if path:
+                    save_directory(workspace, path)
+                    print(f"Start directory: {path} (existing terminals unchanged)")
+            data = snapshot()
+            continue
         if selected == "action:remove":
             workspace = workspace_choice(data)
             if workspace:
@@ -275,8 +432,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     create = commands.add_parser("project", help="create a project workspace (does not open a window)")
-    create.add_argument("path", type=Path)
+    create.add_argument("path", type=Path, nargs="?", default=Path.cwd())
     create.add_argument("--label")
+    setting = commands.add_parser("set-directory", help="set the start directory for future terminals")
+    setting.add_argument("path", type=Path, nargs="?")
+    setting.add_argument("--workspace")
+    setting.add_argument("--choose", action="store_true", help="choose a directory interactively")
+    favorite = commands.add_parser("favorite", help="add a directory to picker favorites")
+    favorite.add_argument("path", type=Path, nargs="?", default=Path.cwd())
     new = commands.add_parser("new", help="new tab/window, inheriting the focused managed terminal")
     new.add_argument("--workspace")
     new.add_argument("--cwd", type=Path)
@@ -310,16 +473,33 @@ def main():
                 path.unlink(missing_ok=True)
         print(f"Detached {count} local view(s). All Herdr pane processes are untouched.")
         return 0
+    if args.command == "favorite":
+        path = directory(args.path)
+        with directory_state(write=True) as state:
+            if path not in state["favorites"]:
+                state["favorites"].append(path)
+        print(path)
+        return 0
+    if args.command == "set-directory" and args.path and args.choose:
+        parser.error("set-directory accepts PATH or --choose, not both")
     data = ensure_server()
     if args.command == "list":
         print(json.dumps(data, ensure_ascii=False, indent=2))
         return 0
     if args.command == "project":
-        path = args.path.expanduser().resolve(strict=True)
-        if not path.is_dir():
-            raise RuntimeError("Project path must be a directory")
-        print(json.dumps(cli("workspace", "create", "--cwd", str(path), "--label",
-                             args.label or path.name), ensure_ascii=False))
+        path = directory(args.path)
+        print(json.dumps(create_project(path, args.label or Path(path).name or path), ensure_ascii=False))
+        return 0
+    if args.command == "set-directory":
+        workspace = args.workspace or context_workspace(data) or workspace_choice(data)
+        if workspace is None:
+            return 0
+        if workspace not in {w["workspace_id"] for w in data["workspaces"]}:
+            raise RuntimeError("Unknown workspace")
+        path = directory_choice() if args.choose else directory(args.path or Path.cwd())
+        if path:
+            save_directory(workspace, path)
+            print(f"Start directory: {path} (existing terminals unchanged)")
         return 0
     if args.command == "pick":
         workspace, _ = project_menu(data)
@@ -349,6 +529,7 @@ def main():
     created = False
     if args.command == "new" and args.choose:
         workspace = None
+        source = None
     if not workspace:
         workspace, created = project_menu(data, allow_shell=args.command == "new")
         data = snapshot()
@@ -361,13 +542,16 @@ def main():
         open_window(panes[0]["terminal_id"])
         return 0
     if args.command == "new":
-        origin = source if source and source["workspace_id"] == workspace else next(iter(panes), {})
-        cwd = args.cwd or origin.get("foreground_cwd") or origin.get("cwd")
+        origin = source if source and source["workspace_id"] == workspace else {}
+        key = workspace_key(workspace)
+        with directory_state() as state:
+            default = state["defaults"].get(key)
+        legacy = next(iter(panes), {})
+        cwd = (args.cwd or origin.get("foreground_cwd") or origin.get("cwd") or default
+               or legacy.get("foreground_cwd") or legacy.get("cwd"))
         if not cwd:
             raise RuntimeError("No project CWD available; pass --cwd")
-        cwd = Path(cwd).expanduser().resolve(strict=True)
-        if not cwd.is_dir():
-            raise RuntimeError("CWD must be a directory")
+        cwd = directory(cwd)
         command = ["tab", "create", "--workspace", workspace, "--cwd", str(cwd), "--no-focus"]
         if args.label:
             command += ["--label", args.label]

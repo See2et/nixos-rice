@@ -12,6 +12,7 @@ let
       herdr
       pkgs.python3
       pkgs.fzf
+      pkgs.ghq
       pkgs.alacritty
       config.programs.niri.package
     ];
@@ -37,6 +38,8 @@ let
     };
 in
 {
+  programs.zsh.shellAliases.hh = "herdr-home";
+
   home.packages = [
     herdr
     helper
@@ -45,7 +48,7 @@ in
   ];
   xdg.configFile."herdr/config.toml".source = ./dotfiles/herdr/config.toml;
   xdg.desktopEntries.herdr-projects = {
-    name = "Herdr: Projects (Create / Remove)";
+    name = "Herdr: Projects (Create / Configure / Remove)";
     exec = "alacritty -e ${helper}/bin/herdr-home new --choose";
     terminal = false;
     categories = [ "Development" ];

@@ -65,10 +65,14 @@ SSHはMoshの初回認証にも必要。公開鍵を確認できるまでは現�
 
 ## Terminalの日常操作
 
-`Mod+Return` のproject選択画面から `+ Create project` を選び、実在する自宅側ディレクトリと名前を入力する。
-projectがまだなくても作成できる。CLIから登録する場合:
+`Mod+Return` のproject選択画面から `+ Create project` を選び、名前を入力する。
+開始ディレクトリは現在地をそのまま選べるほか、ghqリポジトリ・お気に入り・最近使った場所から検索できる。
+ghq配下である必要はない。パスを手入力する場合はTab補完が使える。
+projectがまだなくても作成できる。CLIではパスを省略すると現在地を使う:
 
 ```bash
+herdr-home project --label my-project
+# 以前のパス指定も利用可能
 herdr-home project ~/Projects/my-project --label my-project
 ```
 
@@ -76,7 +80,7 @@ herdr-home project ~/Projects/my-project --label my-project
 |---|---|
 | 新しいTerminal Window | `Mod+Return` |
 | 今回だけ通常のシェル（Herdrを使わない） | `Mod+Ctrl+Return`、またはlauncherの「Terminal: Plain Shell (without Herdr)」 |
-| projectを作成・削除する | launcherの「Herdr: Projects (Create / Remove)」 |
+| projectを作成・設定・削除する | launcherの「Herdr: Projects (Create / Configure / Remove)」 |
 | Window移動 | 既存のniri `Mod+h/j/k/l` |
 | 既存Terminalを開く | launcherの「Herdr: Restore Terminal」 |
 | projectの全Terminalを開く | `herdr-home restore --workspace w1 --all` |
@@ -89,6 +93,29 @@ herdr-home project ~/Projects/my-project --label my-project
 選択画面には新規作成、`Open plain shell (without Herdr)`、`Remove project...`も表示する。
 Herdr内からでも上記launcher、または`herdr-home new --choose`で選択画面を開ける。
 `herdr-home new --workspace ID --cwd PATH --label NAME`で明示指定もできる。
+
+開始ディレクトリは後から登録できる。たとえばdotfilesの場所をお気に入りに追加し、
+既存projectの開始ディレクトリを現在地に変更する場合:
+
+```bash
+cd /etc/nixos
+herdr-home favorite
+herdr-home set-directory --workspace w1
+# ghq・お気に入り・最近使った場所から選ぶ
+herdr-home set-directory --workspace w1 --choose
+```
+
+`set-directory`はパス省略時に現在地を使い、projectメニューからも開始場所を選び直せる。
+既存端末の作業ディレクトリや実行中プロセスは変更しない。
+新しい端末の開始場所は、明示した`--cwd`、同じprojectのフォーカス中端末の現在地、
+登録した開始ディレクトリの順で決まる。未登録の既存projectでは従来どおり既存ペインの場所を使う。
+`new --choose`でprojectを選び直した場合は、元の端末の現在地を引き継がず登録先を使う。
+この設定は`herdr-home`から作る端末に適用される。
+開始場所・お気に入り・最近使った場所は`$XDG_STATE_HOME/herdr-home`（未設定なら
+`~/.local/state/herdr-home`）に保存する。Herdrのsocket/config/sessionごとに分離し、
+開始場所のprojectへの紐付けはサーバー稼働中のみ有効とする。
+Herdrサーバーの再起動後は`set-directory`で再登録する。お気に入り・最近使った場所は残る。
+これは再利用されるproject IDに別projectの開始場所を適用しないため。
 
 `Remove project...`は対象を選んだ後、表示されたworkspace IDを入力すると削除する。
 対象project内の全Terminalと実行中プロセスを終了し、Herdrの一覧から取り除く。
