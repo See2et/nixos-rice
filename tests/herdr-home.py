@@ -119,14 +119,18 @@ sys.exit(result.returncode)
             plain_env["FZF_DEFAULT_OPTS"] = "--filter=Open\\ plain\\ shell"
             assert "PLAIN_SHELL" in run(helper + ["new", "--choose"], plain_env)
             assert not api("api", "snapshot")["workspaces"]
-            create_env = dict(env, FZF_DEFAULT_OPTS="--filter=Create\\ project")
-            run(helper + ["new", "--choose"], create_env, input_text=None)
-            assert not api("api", "snapshot")["workspaces"], "EOF at name prompt created a project"
+            create_env = dict(env, FZF_DEFAULT_OPTS="--filter=Create\\ project",
+                              QA_DIRECTORY="manual")
+            run(helper + ["new", "--choose"], create_env, input_text="")
+            assert not api("api", "snapshot")["workspaces"], "EOF at directory prompt created a project"
+            project_directory = root / "directory-named-project"
+            project_directory.mkdir()
             run(helper + ["new", "--choose"], create_env,
-                input_text="menu-project\n")
+                input_text=str(project_directory) + "\n")
             menu_state = api("api", "snapshot")
             menu_workspace = menu_state["workspaces"][0]["workspace_id"]
-            assert menu_state["workspaces"][0]["label"] == "menu-project"
+            assert menu_state["workspaces"][0]["label"] == project_directory.name
+            assert menu_state["panes"][0]["cwd"] == str(project_directory)
             assert len(menu_state["tabs"]) == 1, "creation opened an extra tab"
             created = json.loads(run(helper + ["project", folder, "--label", "project-alpha"], env))
             workspace = created["workspace"]["workspace_id"]
@@ -213,7 +217,7 @@ sys.exit(result.returncode)
             saved = state_file.read_text()
             cancel_env = dict(create_env, QA_DIRECTORY="NO-MATCH")
             count = len(api("api", "snapshot")["workspaces"])
-            run(helper + ["new", "--choose"], cancel_env, input_text="cancelled\n")
+            run(helper + ["new", "--choose"], cancel_env, input_text="")
             assert len(api("api", "snapshot")["workspaces"]) == count
             run(helper + ["set-directory", str(root / "missing"), "--workspace", workspace], env, ok=False)
             assert state_file.read_text() == saved

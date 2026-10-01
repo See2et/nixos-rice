@@ -281,14 +281,10 @@ def project_menu(data, allow_shell=False):
             plain_shell()
             return None, False
         if selected == "action:new":
-            default_label = Path.cwd().name or str(Path.cwd())
-            label = prompt_input(f"Project name [{default_label}]: ")
-            if label is None:
-                return None, False
             path = directory_choice()
             if path is None:
                 return None, False
-            created = create_project(path, label or default_label)
+            created = create_project(path, Path(path).name or path)
             return created["workspace"]["workspace_id"], True
         if selected == "action:directory":
             workspace = workspace_choice(data)
