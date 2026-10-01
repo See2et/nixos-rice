@@ -24,8 +24,9 @@ HELPER = ROOT / "home/desktop/scripts/herdr-home.py"
 HERDR = os.environ.get("HERDR_BIN", "herdr")
 
 
-def run(args, env, ok=True):
-    result = subprocess.run(args, env=env, text=True, capture_output=True, timeout=20)
+def run(args, env, ok=True, input_text=None):
+    result = subprocess.run(args, env=env, text=True, capture_output=True, timeout=20,
+                            input=input_text)
     if ok:
         assert result.returncode == 0, (args, result.stdout, result.stderr)
     else:
@@ -65,11 +66,39 @@ def main():
         try:
             run(helper + ["--help"], env)
             run(helper + ["unknown"], env, ok=False)
+            shell = shim_dir / "plain-shell"
+            shell.write_text('#!/bin/sh\nprintf "PLAIN_SHELL\\n"\n')
+            shell.chmod(0o700)
+            plain_env = dict(env, SHELL=str(shell))
+            assert "PLAIN_SHELL" in run(helper + ["shell"], plain_env)
+            assert not (root / "api.sock").exists(), "plain shell started Herdr"
+            # Even an empty server offers creation and opt-out.
+            plain_env["FZF_DEFAULT_OPTS"] = "--filter=Open\\ plain\\ shell"
+            assert "PLAIN_SHELL" in run(helper + ["new", "--choose"], plain_env)
+            assert not api("api", "snapshot")["workspaces"]
+            create_env = dict(env, FZF_DEFAULT_OPTS="--filter=Create\\ project")
+            run(helper + ["new", "--choose"], create_env, input_text=folder + "\n")
+            assert not api("api", "snapshot")["workspaces"], "EOF at name prompt created a project"
+            run(helper + ["new", "--choose"], create_env,
+                input_text=folder + "\nmenu-project\n")
+            menu_state = api("api", "snapshot")
+            menu_workspace = menu_state["workspaces"][0]["workspace_id"]
+            assert menu_state["workspaces"][0]["label"] == "menu-project"
+            assert len(menu_state["tabs"]) == 1, "creation opened an extra tab"
             created = json.loads(run(helper + ["project", folder, "--label", "project-alpha"], env))
             workspace = created["workspace"]["workspace_id"]
             pane = created["root_pane"]
             terminal = pane["terminal_id"]
-            assert api("api", "snapshot")["workspaces"][0]["label"] == "project-alpha"
+            run(helper + ["remove", "--workspace", menu_workspace], env, input_text="\n")
+            assert len(api("api", "snapshot")["workspaces"]) == 2
+            run(helper + ["remove", "--workspace", menu_workspace], env, input_text="wrong\n")
+            assert len(api("api", "snapshot")["workspaces"]) == 2
+            run(helper + ["remove", "--workspace", menu_workspace], env,
+                input_text=menu_workspace + "\n")
+            remaining = api("api", "snapshot")
+            assert [w["workspace_id"] for w in remaining["workspaces"]] == [workspace]
+            assert remaining["panes"][0]["terminal_id"] == terminal
+            assert (root / "config.toml").exists(), "removal deleted project files"
             run(helper + ["new", "--workspace", workspace, "--cwd", folder], env)
             state = api("api", "snapshot")
             assert len(state["tabs"]) == 2, state
@@ -77,6 +106,8 @@ def main():
             run(helper + ["new", "--workspace", "missing"], env, ok=False)
             run(helper + ["pick"], env)
             assert api("api", "snapshot")["focused_workspace_id"] == workspace
+            assert len(api("api", "snapshot")["tabs"]) == 2
+            assert "PLAIN_SHELL" in run(helper + ["new", "--choose"], plain_env)
             assert len(api("api", "snapshot")["tabs"]) == 2
 
             master, slave = pty.openpty()

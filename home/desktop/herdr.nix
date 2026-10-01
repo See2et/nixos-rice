@@ -44,6 +44,18 @@ in
     (pickerWindow "restore")
   ];
   xdg.configFile."herdr/config.toml".source = ./dotfiles/herdr/config.toml;
+  xdg.desktopEntries.herdr-projects = {
+    name = "Herdr: Projects (Create / Remove)";
+    exec = "alacritty -e ${helper}/bin/herdr-home new --choose";
+    terminal = false;
+    categories = [ "Development" ];
+  };
+  xdg.desktopEntries.plain-terminal = {
+    name = "Terminal: Plain Shell (without Herdr)";
+    exec = "alacritty -e ${helper}/bin/herdr-home shell";
+    terminal = false;
+    categories = [ "Development" ];
+  };
   xdg.desktopEntries.herdr-restore = {
     name = "Herdr: Restore Terminal";
     exec = "herdr-restore-window";

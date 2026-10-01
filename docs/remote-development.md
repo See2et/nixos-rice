@@ -65,7 +65,8 @@ SSHはMoshの初回認証にも必要。公開鍵を確認できるまでは現�
 
 ## Terminalの日常操作
 
-最初のprojectを登録する（PATHは実在する自宅側ディレクトリ）:
+`Mod+Return` のproject選択画面から `+ Create project` を選び、実在する自宅側ディレクトリと名前を入力する。
+projectがまだなくても作成できる。CLIから登録する場合:
 
 ```bash
 herdr-home project ~/Projects/my-project --label my-project
@@ -74,6 +75,8 @@ herdr-home project ~/Projects/my-project --label my-project
 | 操作 | 導線 |
 |---|---|
 | 新しいTerminal Window | `Mod+Return` |
+| 今回だけ通常のシェル（Herdrを使わない） | `Mod+Ctrl+Return`、またはlauncherの「Terminal: Plain Shell (without Herdr)」 |
+| projectを作成・削除する | launcherの「Herdr: Projects (Create / Remove)」 |
 | Window移動 | 既存のniri `Mod+h/j/k/l` |
 | 既存Terminalを開く | launcherの「Herdr: Restore Terminal」 |
 | projectの全Terminalを開く | `herdr-home restore --workspace w1 --all` |
@@ -82,8 +85,20 @@ herdr-home project ~/Projects/my-project --label my-project
 
 `w1`は例。実際のIDは一覧から取得する。`restore`は新しいTabを作成せず、既存のmanaged Windowがあればfocusする。
 `Mod+Return`はフォーカス元のmanaged Terminalのprojectと現在のforeground CWDを引き継ぐ。
-別アプリから起動した場合はAlacritty内でprojectをfuzzy選択する。最初のproject登録は先に済ませる。
+別アプリから起動した場合はAlacritty内でprojectをfuzzy選択する。
+選択画面には新規作成、`Open plain shell (without Herdr)`、`Remove project...`も表示する。
+Herdr内からでも上記launcher、または`herdr-home new --choose`で選択画面を開ける。
 `herdr-home new --workspace ID --cwd PATH --label NAME`で明示指定もできる。
+
+`Remove project...`は対象を選んだ後、表示されたworkspace IDを入力すると削除する。
+対象project内の全Terminalと実行中プロセスを終了し、Herdrの一覧から取り除く。
+ディレクトリやソースファイル、他のprojectは削除しない。確認でEnterだけを押すとキャンセルする。
+CLIでは`herdr-home remove`（選択式）、または`herdr-home remove --workspace ID`。どちらも確認がある。
+
+Macでは`mosh home`の接続直後は通常のシェル。作業を再開するときに`herdr`を実行する。
+Herdr全体UIからは`Ctrl+b q`でdetachし、接続先の通常のシェルへ戻れる。
+`Ctrl+b w`のprojectメニューから作成・削除もできる。
+自宅のdirect attach Window内では全体UIのprefix操作を使わず、上記の通常シェル用キーを使う。
 
 Windowを閉じると表示clientのみを終了する。`exit`、Herdrのclose pane/tab、server stopはプロセスを終了する操作なので区別する。
 handoffは今回のhelperで作った表示clientだけにUnix socketで終了を依頼し、PID検索や`pkill`は行わない。
@@ -97,7 +112,7 @@ Herdr全体UIは`Ctrl+b`を押して離してから操作するone-shot prefix�
 |---|---|
 | `h/j/k/l` | Pane移動 |
 | `H/L` | 前/次Tab |
-| `w` | fzfによるWorkspace選択 |
+| `w` | project選択・新規作成・削除 |
 | `N` | Workspace作成 |
 | `c` | Tab作成 |
 | `v` / `-` | 左右/上下分割 |

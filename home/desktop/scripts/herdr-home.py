@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local window views of server-owned Herdr terminals; never kills pane processes."""
+"""Local views of Herdr terminals; only explicit project removal stops their processes."""
 
 import argparse
 import errno
@@ -88,6 +88,72 @@ def pick(rows, prompt):
 
 def workspace_choice(data):
     return pick([(w["workspace_id"], w["label"]) for w in data["workspaces"]], "Project > ")
+
+
+def prompt_input(prompt):
+    try:
+        return input(prompt).strip()
+    except (EOFError, KeyboardInterrupt):
+        return None
+
+
+def remove_project(data, workspace):
+    project = next((w for w in data["workspaces"] if w["workspace_id"] == workspace), None)
+    if project is None:
+        raise RuntimeError("Unknown workspace")
+    label = re.sub(r"[\x00-\x1f\x7f]", " ", project["label"])
+    print(f"Remove project {label} ({workspace})? All its terminal processes will stop.\n"
+          "Project files and directories will NOT be deleted.")
+    if prompt_input(f"Type {workspace} to remove, or Enter to cancel: ") != workspace:
+        return False
+    cli("workspace", "close", workspace)
+    return True
+
+
+def project_menu(data, allow_shell=False):
+    """Return (workspace ID, newly created), or (None, False) on cancellation."""
+    while True:
+        rows = [(w["workspace_id"], w["label"]) for w in data["workspaces"]]
+        rows.append(("action:new", "+ Create project"))
+        if allow_shell:
+            rows.append(("action:shell", "Open plain shell (without Herdr)"))
+        if data["workspaces"]:
+            rows.append(("action:remove", "Remove project... (stop its processes; keep files)"))
+        selected = pick(rows, "Project > ")
+        if selected == "action:shell":
+            plain_shell()
+            return None, False
+        if selected == "action:new":
+            value = prompt_input("Existing project directory (blank to cancel): ")
+            if value is None:
+                return None, False
+            if not value:
+                continue
+            try:
+                path = Path(value).expanduser().resolve(strict=True)
+                if not path.is_dir():
+                    raise ValueError("Project path must be a directory")
+            except (OSError, ValueError) as error:
+                print(error, file=sys.stderr)
+                continue
+            label = prompt_input(f"Project name [{path.name or str(path)}]: ")
+            if label is None:
+                return None, False
+            created = cli("workspace", "create", "--cwd", str(path), "--label",
+                          label or path.name or str(path))
+            return created["workspace"]["workspace_id"], True
+        if selected == "action:remove":
+            workspace = workspace_choice(data)
+            if workspace:
+                remove_project(data, workspace)
+            data = snapshot()
+            continue
+        return selected, False
+
+
+def plain_shell():
+    shell = os.environ.get("SHELL") or "/bin/sh"
+    os.execvp(shell, [shell, "-l"])
 
 
 def focused_terminal():
@@ -215,16 +281,23 @@ def main():
     new.add_argument("--workspace")
     new.add_argument("--cwd", type=Path)
     new.add_argument("--label")
+    new.add_argument("--choose", action="store_true", help="always show the project menu")
     commands.add_parser("launch", help="niri launcher: preserve focus before opening any picker window")
     restore = commands.add_parser("restore", help="open an existing terminal, or all terminals in a project")
     restore.add_argument("--workspace")
     restore.add_argument("--all", action="store_true")
     commands.add_parser("pick", help="fuzzy-select and focus a project in Herdr")
+    commands.add_parser("shell", help="open a plain shell without starting or attaching to Herdr")
+    remove = commands.add_parser("remove", help="stop a project's processes and remove it; keep files")
+    remove.add_argument("--workspace")
     commands.add_parser("list", help="print live workspace/tab/pane state as JSON")
     commands.add_parser("handoff", help="detach ONLY managed local views; keep every pane running")
     view = commands.add_parser("attach", help="internal: supervised direct attach")
     view.add_argument("terminal")
     args = parser.parse_args()
+    if args.command == "shell":
+        plain_shell()
+        return 0
     if args.command == "attach":
         return attach(args.terminal)
     if args.command == "handoff":
@@ -249,9 +322,17 @@ def main():
                              args.label or path.name), ensure_ascii=False))
         return 0
     if args.command == "pick":
-        workspace = workspace_choice(data)
+        workspace, _ = project_menu(data)
         if workspace:
             cli("workspace", "focus", workspace)
+        return 0
+    if args.command == "remove":
+        if not data["workspaces"] and not args.workspace:
+            print("No projects to remove.")
+            return 0
+        workspace = args.workspace or workspace_choice(data)
+        if workspace:
+            remove_project(data, workspace)
         return 0
     focused = focused_terminal()
     source = next((p for p in data["panes"] if p["terminal_id"] == focused), None)
@@ -263,13 +344,22 @@ def main():
         args.workspace = source["workspace_id"]
         args.cwd = None
         args.label = None
+        args.choose = False
     workspace = args.workspace or (source["workspace_id"] if source else None)
-    workspace = workspace or workspace_choice(data)
+    created = False
+    if args.command == "new" and args.choose:
+        workspace = None
+    if not workspace:
+        workspace, created = project_menu(data, allow_shell=args.command == "new")
+        data = snapshot()
     if workspace is None:
         return 0
     if workspace not in {w["workspace_id"] for w in data["workspaces"]}:
         raise RuntimeError("Unknown workspace")
     panes = [p for p in data["panes"] if p["workspace_id"] == workspace]
+    if created:
+        open_window(panes[0]["terminal_id"])
+        return 0
     if args.command == "new":
         origin = source if source and source["workspace_id"] == workspace else next(iter(panes), {})
         cwd = args.cwd or origin.get("foreground_cwd") or origin.get("cwd")

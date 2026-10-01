@@ -39,6 +39,12 @@ in
 
       binds = {
         "Mod+Return".action.spawn = "herdr-new-window";
+        "Mod+Ctrl+Return".action.spawn = [
+          "alacritty"
+          "-e"
+          "herdr-home"
+          "shell"
+        ];
         "Mod+Shift+Return".action.spawn = "zen-twilight";
         "Mod+Shift+Space".action.show-hotkey-overlay = { };
         "Mod+Shift+Slash".action.show-hotkey-overlay = { };
