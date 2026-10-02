@@ -5,8 +5,7 @@
     force = true;
   };
 
-  # Shared domain/specification skills live in the independently managed
-  # ~/.agents/skills checkout (https://github.com/See2et/agent-skills).
+  # Shared skills are deployed by programs/agent-skills.nix to ~/.agents/skills.
   # OpenCode discovers them directly; do not deploy duplicate copies here.
   xdg.configFile = {
     "opencode/opencode.json" = {

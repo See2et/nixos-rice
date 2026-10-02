@@ -9,6 +9,7 @@
     ./programs/direnv.nix
     ./programs/git.nix
     ./programs/gh.nix
+    ./programs/agent-skills.nix
     ./programs/gpg.nix
     ./programs/ssh.nix
     ./programs/neovim.nix

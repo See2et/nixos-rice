@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "agent-skills-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790154098,
+        "narHash": "sha256-SviEpvFefXCPOmQ2b41c4ujE7BzWYJ/h8p/HZNxD2B8=",
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "rev": "dc122af897ab9a685c20ae54c639021619dbbb52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "type": "github"
+      }
+    },
     "brew-src": {
       "flake": false,
       "locked": {
@@ -618,8 +638,24 @@
         "type": "github"
       }
     },
+    "personal-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790836159,
+        "narHash": "sha256-cTEP9wuKC4n5pS8tsA8ab68/Kagee5qUlV14XE3CS70=",
+        "rev": "1dffc661a819a438fcca93d5b90a403329bc9381",
+        "revCount": 28,
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/agent-skills.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/agent-skills.git"
+      }
+    },
     "root": {
       "inputs": {
+        "agent-skills-nix": "agent-skills-nix",
         "codex-cli-nix": "codex-cli-nix",
         "dms": "dms",
         "herdr": "herdr",
@@ -638,6 +674,7 @@
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
         "opencode": "opencode",
+        "personal-skills": "personal-skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"
       }
