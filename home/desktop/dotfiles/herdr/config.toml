@@ -2,12 +2,12 @@ onboarding = false
 
 [keys]
 prefix = "ctrl+b"
-focus_pane_left = "prefix+h"
-focus_pane_down = "prefix+j"
-focus_pane_up = "prefix+k"
-focus_pane_right = "prefix+l"
-previous_tab = "prefix+shift+h"
-next_tab = "prefix+shift+l"
+focus_pane_left = "prefix+shift+h"
+focus_pane_down = "prefix+shift+j"
+focus_pane_up = "prefix+shift+k"
+focus_pane_right = "prefix+shift+l"
+previous_tab = "prefix+h"
+next_tab = "prefix+l"
 new_workspace = "prefix+shift+n"
 new_tab = "prefix+c"
 split_vertical = "prefix+v"
