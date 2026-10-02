@@ -11,6 +11,7 @@
     ./codex.nix
     ./fonts.nix
     ./nixos-repo-permissions.nix
+    ./ssh.nix
   ];
 
   # --- Nix daemon settings ---

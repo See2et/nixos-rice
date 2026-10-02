@@ -10,6 +10,7 @@
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/gpg.nix
+    ./programs/ssh.nix
     ./programs/neovim.nix
     ./programs/yazi.nix
     ./programs/zellij.nix
