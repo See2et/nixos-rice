@@ -10,6 +10,7 @@
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/agent-skills.nix
+    ./programs/codex-plugins.nix
     ./programs/gpg.nix
     ./programs/ssh.nix
     ./programs/neovim.nix

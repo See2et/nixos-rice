@@ -20,6 +20,22 @@
         "type": "github"
       }
     },
+    "astraeus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790824970,
+        "narHash": "sha256-FBDUGnGgyDBfNjN7bxWkCMFR0etz1TZ5mMK9DnPh2tc=",
+        "ref": "refs/heads/main",
+        "rev": "669d3b417d732601ec8917f77c72710d5d6e9354",
+        "revCount": 6,
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/astraeus.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/astraeus.git"
+      }
+    },
     "brew-src": {
       "flake": false,
       "locked": {
@@ -654,6 +670,20 @@
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       }
     },
+    "plugins": {
+      "inputs": {
+        "astraeus": "astraeus"
+      },
+      "locked": {
+        "path": "./plugins",
+        "type": "path"
+      },
+      "original": {
+        "path": "./plugins",
+        "type": "path"
+      },
+      "parent": []
+    },
     "root": {
       "inputs": {
         "agent-skills-nix": "agent-skills-nix",
@@ -675,6 +705,7 @@
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
         "opencode": "opencode",
+        "plugins": "plugins",
         "skills": "skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"

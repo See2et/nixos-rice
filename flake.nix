@@ -61,6 +61,7 @@
     };
     # Group skill repositories so `nix flake update skills` updates them together.
     skills.url = "path:./skills";
+    plugins.url = "path:./plugins";
     opencode.url = "github:anomalyco/opencode";
     herdr.url = "github:herdrdev/herdr/v0.9.0";
   };
@@ -441,6 +442,22 @@
 
                 touch "$out"
               '';
+          codexPluginsCheck =
+            let
+              pkgs = mkPkgs system;
+            in
+            pkgs.runCommand "codex-plugins-check"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+                CODEX_BIN = "${inputs.codex-cli-nix.packages.${system}.codex}/bin/codex";
+                ASTRAEUS_MARKETPLACE =
+                  self.nixosConfigurations.desktop.config.home-manager.users.see2et.home.file.".local/share/codex-nix-marketplaces/astraeus".source;
+              }
+              ''
+                export PYTHONDONTWRITEBYTECODE=1
+                python3 ${self}/tests/codex-plugins.py
+                touch "$out"
+              '';
         in
         {
           formatting = mkFormattingCheck system;
@@ -448,6 +465,7 @@
           antidote-cache = antidoteCacheCheck;
         }
         // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
+          codex-plugins = codexPluginsCheck;
           dms-security = dmsSecurityCheck;
           dms-codex-usage = dmsCodexUsageCheck;
           dms-shell-policy = dmsShellPolicyCheck;
