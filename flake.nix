@@ -59,11 +59,8 @@
       url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    personal-skills = {
-      # Fetch as the invoking user (before sudo), using their SSH configuration.
-      url = "git+ssh://git@github.com/See2et/agent-skills.git";
-      flake = false;
-    };
+    # Group skill repositories so `nix flake update skills` updates them together.
+    skills.url = "path:./skills";
     opencode.url = "github:anomalyco/opencode";
     herdr.url = "github:herdrdev/herdr/v0.9.0";
   };

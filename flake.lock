@@ -641,10 +641,11 @@
     "personal-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1790836159,
-        "narHash": "sha256-cTEP9wuKC4n5pS8tsA8ab68/Kagee5qUlV14XE3CS70=",
-        "rev": "1dffc661a819a438fcca93d5b90a403329bc9381",
-        "revCount": 28,
+        "lastModified": 1790930766,
+        "narHash": "sha256-UFzSmCYydmkHxalSSgb7Cc7V97+stZHK8QZ+t99EW8Q=",
+        "ref": "refs/heads/main",
+        "rev": "e0b3cd381ba265279c17366743b045316494b03c",
+        "revCount": 29,
         "type": "git",
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       },
@@ -674,7 +675,7 @@
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
         "opencode": "opencode",
-        "personal-skills": "personal-skills",
+        "skills": "skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"
       }
@@ -699,6 +700,21 @@
         "repo": "rust-overlay",
         "type": "github"
       }
+    },
+    "skills": {
+      "inputs": {
+        "personal-skills": "personal-skills",
+        "yomiyasu": "yomiyasu"
+      },
+      "locked": {
+        "path": "./skills",
+        "type": "path"
+      },
+      "original": {
+        "path": "./skills",
+        "type": "path"
+      },
+      "parent": []
     },
     "systems": {
       "locked": {
@@ -818,6 +834,22 @@
       "original": {
         "owner": "Supreeeme",
         "repo": "xwayland-satellite",
+        "type": "github"
+      }
+    },
+    "yomiyasu": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790909101,
+        "narHash": "sha256-dZc9NRFBTl4tEKfSLAIE77smW50M5dEbzn5vzTXduRk=",
+        "owner": "nanaism",
+        "repo": "yomiyasu",
+        "rev": "e5c6a8443a427726a472e2e560fc8679125ea2b8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nanaism",
+        "repo": "yomiyasu",
         "type": "github"
       }
     },

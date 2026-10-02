@@ -5,10 +5,17 @@
   programs.agent-skills = {
     enable = true;
     sources.personal = {
-      input = "personal-skills";
+      path = inputs.skills.inputs.personal-skills.outPath;
       # Only discover top-level skills, not evaluation/comparison fixtures.
       filter.maxDepth = 1;
     };
+    sources.yomiyasu = {
+      path = inputs.skills.inputs.yomiyasu.outPath;
+      # Use the packaged skill with its references/assets/scripts, not the root copy.
+      subdir = "skills";
+      filter.maxDepth = 1;
+    };
+    skills.enable = [ "yomiyasu" ];
     skills.enableAll = [ "personal" ];
     # Codex and OpenCode already discover this shared location.
     targets.agents = {
