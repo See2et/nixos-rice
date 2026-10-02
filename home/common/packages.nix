@@ -35,6 +35,7 @@ in
       gh
       ghq
       lazygit
+      claude-code
       zenn-cli
       peco
       zoxide
