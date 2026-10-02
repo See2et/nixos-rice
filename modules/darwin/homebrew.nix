@@ -39,6 +39,7 @@
       "alacritty"
       "anki"
       "adobe-acrobat-reader"
+      "bambu-studio"
       "discord"
       "discord@canary"
       "codex-app"
