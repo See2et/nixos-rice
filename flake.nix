@@ -61,7 +61,7 @@
     };
     # Group skill repositories so `nix flake update skills` updates them together.
     skills.url = "path:./skills";
-    plugins.url = "path:./plugins";
+    codex-plugins.url = "path:./codex-plugins";
     opencode.url = "github:anomalyco/opencode";
     herdr.url = "github:herdrdev/herdr/v0.9.0";
   };

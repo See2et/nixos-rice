@@ -1,5 +1,5 @@
 {
-  description = "Codex plugin sources updated together through the parent plugins input";
+  description = "Codex plugin sources updated together through the parent codex-plugins input";
 
   inputs.astraeus = {
     url = "git+ssh://git@github.com/See2et/astraeus.git";

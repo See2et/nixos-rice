@@ -21,7 +21,7 @@ let
     {
       inherit name root;
     }
-  ) inputs.plugins.marketplaces;
+  ) inputs.codex-plugins.marketplaces;
   manifest = pkgs.writeText "codex-managed-marketplaces.json" (builtins.toJSON marketplaces);
   activation = pkgs.writeShellApplication {
     name = "codex-nix-plugins-activate";

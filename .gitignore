@@ -2,5 +2,5 @@
 result
 result-*
 /skills/flake.lock
-/plugins/flake.lock
+/codex-plugins/flake.lock
 target

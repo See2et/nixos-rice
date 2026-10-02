@@ -170,9 +170,9 @@ Use the `isDarwin` parameter (available via `extraSpecialArgs`):
 ## Agent Skills / Codex Plugins
 
 - Skills は `skills/flake.nix` で取得元、`home/common/programs/agent-skills.nix` で選択を管理する。配布先 `~/.agents/skills` は直接編集せず、編集用 checkout から push する。
-- Plugins は `plugins/flake.nix` の取得元と `marketplaces.<name>.plugins` で管理する。Home Manager 適用時に Codex CLI で自動登録・更新するため、同期コマンドは不要。リストから外すと以前管理した Plugin を削除する。
+- Plugins は `codex-plugins/flake.nix` の取得元と `marketplaces.<name>.plugins` で管理する。Home Manager 適用時に Codex CLI で自動登録・更新するため、同期コマンドは不要。リストから外すと以前管理した Plugin を削除する。
 - Private GitHub は `flake = false` の `git+ssh://git@github.com/<owner>/<repo>.git` を使う。取得には通常ユーザーの `~/.ssh/id_ed25519_personal` と GitHub の read 権限が必要。秘密鍵は Git / Nix Store に入れない。取得内容は Store に入る。
-- revision はルートの `flake.lock` に固定する。`skills/flake.lock` / `plugins/flake.lock` は作成しない。更新は `/etc/nixos` から `nix flake update skills` / `nix flake update plugins`、個別更新は `skills/yomiyasu` / `plugins/astraeus` などを指定する。
+- revision はルートの `flake.lock` に固定する。`skills/flake.lock` / `codex-plugins/flake.lock` は作成しない。更新は `/etc/nixos` から `nix flake update skills` / `nix flake update codex-plugins`、個別更新は `skills/yomiyasu` / `codex-plugins/astraeus` などを指定する。
 - Plugin 更新前に利用中の Codex セッションを終了し、適用後に新しいセッションを開始する（更新時に旧キャッシュが整理される）。無関係な Plugin・設定・認証と編集用 checkout は保持する。
 
 SSH input の取得・ビルドは **sudo なし**で行い、root に鍵を渡さずビルド済み成果物を適用する。

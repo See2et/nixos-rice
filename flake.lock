@@ -72,6 +72,20 @@
         "type": "github"
       }
     },
+    "codex-plugins": {
+      "inputs": {
+        "astraeus": "astraeus"
+      },
+      "locked": {
+        "path": "./codex-plugins",
+        "type": "path"
+      },
+      "original": {
+        "path": "./codex-plugins",
+        "type": "path"
+      },
+      "parent": []
+    },
     "dms": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -670,24 +684,11 @@
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       }
     },
-    "plugins": {
-      "inputs": {
-        "astraeus": "astraeus"
-      },
-      "locked": {
-        "path": "./plugins",
-        "type": "path"
-      },
-      "original": {
-        "path": "./plugins",
-        "type": "path"
-      },
-      "parent": []
-    },
     "root": {
       "inputs": {
         "agent-skills-nix": "agent-skills-nix",
         "codex-cli-nix": "codex-cli-nix",
+        "codex-plugins": "codex-plugins",
         "dms": "dms",
         "herdr": "herdr",
         "home-manager": "home-manager",
@@ -705,7 +706,6 @@
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
         "opencode": "opencode",
-        "plugins": "plugins",
         "skills": "skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"
