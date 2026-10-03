@@ -3,7 +3,7 @@
 
   inputs = {
     personal-skills = {
-      # Fetch as the invoking user (before sudo), using their SSH configuration.
+      # Desktop/Darwin sudo fetch uses system SSH config; the key stays in the user home.
       url = "git+ssh://git@github.com/See2et/agent-skills.git";
       flake = false;
     };

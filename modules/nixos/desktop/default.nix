@@ -3,6 +3,7 @@
 {
   imports = [
     ./system.nix
+    ./github-ssh.nix
     ./dank-material-shell.nix
     ./steam.nix
     ./unity-runtime.nix

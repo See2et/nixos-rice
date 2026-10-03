@@ -171,13 +171,16 @@ Use the `isDarwin` parameter (available via `extraSpecialArgs`):
 
 - Skills は `skills/flake.nix` で取得元、`home/common/programs/agent-skills.nix` で選択を管理する。配布先 `~/.agents/skills` は直接編集せず、編集用 checkout から push する。
 - Plugins は `codex-plugins/flake.nix` の取得元と `marketplaces.<name>.plugins` で管理する。Home Manager 適用時に Codex CLI で自動登録・更新するため、同期コマンドは不要。リストから外すと以前管理した Plugin を削除する。
-- Private GitHub は `flake = false` の `git+ssh://git@github.com/<owner>/<repo>.git` を使う。取得には通常ユーザーの `~/.ssh/id_ed25519_personal` と GitHub の read 権限が必要。秘密鍵は Git / Nix Store に入れない。取得内容は Store に入る。
+- Private GitHub は `flake = false` の `git+ssh://git@github.com/<owner>/<repo>.git` を使う。取得には通常ユーザーの `~/.ssh/id_ed25519_personal` と GitHub の read 権限が必要。秘密鍵は Git / Nix Store に入れず、root のホームにもコピーしない。取得内容は Store に入る。
 - revision はルートの `flake.lock` に固定する。`skills/flake.lock` / `codex-plugins/flake.lock` は作成しない。更新は `/etc/nixos` から `nix flake update skills` / `nix flake update codex-plugins`、個別更新は `skills/yomiyasu` / `codex-plugins/astraeus` などを指定する。
 - Plugin 更新前に利用中の Codex セッションを終了し、適用後に新しいセッションを開始する（更新時に旧キャッシュが整理される）。無関係な Plugin・設定・認証と編集用 checkout は保持する。
 
-SSH input の取得・ビルドは **sudo なし**で行い、root に鍵を渡さずビルド済み成果物を適用する。
+Desktop / Darwin の通常運用では sudo rebuild による SSH input 取得をサポートする。システム SSH 設定が root の GitHub 接続だけに通常ユーザーの鍵パスを指定し、公式 Ed25519 host key を固定する。パスフレーズ付きの鍵はユーザーの agent にロードし、sudo が保持する `SSH_AUTH_SOCK` を使う。通常ユーザーのビルドも可能。WSL はこの sudo SSH 設定の対象外。
+
+**初回適用前**は新しいシステム SSH 設定がまだ有効でないため、通常ユーザーでビルドしてから成果物を手動適用する。鍵作成・公開鍵登録・agent 準備・公式 host fingerprint の確認・sudo SSH 検証は `README.md` を参照。初回の通常ユーザービルドだけ、一時的な `GIT_SSH_COMMAND` で鍵を明示する。通常の sudo rebuild にこの環境変数の保持は不要。Desktop の bootstrap:
 
 ```sh
+export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519_personal -o IdentitiesOnly=yes'
 nix flake check --show-trace
 nix build .#nixosConfigurations.desktop.config.system.build.toplevel --out-link result
 system_path=$(readlink -f result)
@@ -190,9 +193,14 @@ sudo "$system_path/bin/switch-to-configuration" dry-activate
 sudo "$system_path/bin/switch-to-configuration" test
 sudo nix-env --profile /nix/var/nix/profiles/system --set "$system_path"
 sudo "$system_path/bin/switch-to-configuration" switch
+unset GIT_SSH_COMMAND
 ```
 
 `dry-activate` は Home Manager / Plugin の実適用を検証しない。`test` 後に Home Manager の成功を確認する。
+
+Darwin の bootstrap も同じ一時的な `GIT_SSH_COMMAND` を指定し、通常ユーザーで `nix build .#darwinConfigurations.darwin.system --out-link result`、続いて実機ユーザーが `sudo nix-env --profile /nix/var/nix/profiles/system --set "$(readlink -f result)"` で generation を登録し、`sudo ./result/activate` を手動実行する。適用後は `unset GIT_SSH_COMMAND`。エージェントは activation を実行しない。
+
+初回適用後の通常運用は `sudo nixos-rebuild <action> --flake path:/etc/nixos#desktop` / `sudo darwin-rebuild <action> --flake path:/etc/nixos#darwin`。NixOS の `dry-activate` → `test` → `switch` を守り、`test` / `switch` は実機ユーザーだけが手動実行する。
 
 ## Key Parameters in `extraSpecialArgs`
 

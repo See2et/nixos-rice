@@ -2,7 +2,7 @@
 { hostId, lib, ... }:
 let
   rebuildCommands = {
-    desktop = "sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop";
+    desktop = "sudo nixos-rebuild dry-activate --flake path:/etc/nixos#desktop";
   };
 in
 {
