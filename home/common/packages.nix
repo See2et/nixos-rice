@@ -8,6 +8,7 @@
   ...
 }:
 let
+  claudeCode = pkgs.callPackage ../../packages/claude-code { };
   pencil-cli = pkgs.callPackage ../../packages/pencil-cli { };
   python-debug = pkgs.python3.withPackages (ps: [ ps.debugpy ]);
 in
@@ -35,7 +36,7 @@ in
       gh
       ghq
       lazygit
-      claude-code
+      claudeCode
       zenn-cli
       peco
       zoxide
