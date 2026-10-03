@@ -23,11 +23,11 @@
     "astraeus": {
       "flake": false,
       "locked": {
-        "lastModified": 1791033006,
-        "narHash": "sha256-GasFAA5PPwOV/cujSEG4J035aLcLx9fMqZlr/iMFbx4=",
+        "lastModified": 1791042478,
+        "narHash": "sha256-l5wNNQs8dNR9/1wPksrkDtx+vnFZwnAEzfDZvWO6YOA=",
         "ref": "refs/heads/main",
-        "rev": "03940a8b0ef77277421ceb4e6dfe7b8c07223cec",
-        "revCount": 8,
+        "rev": "07f5770c1acfaf1760596703d94287617622a46d",
+        "revCount": 12,
         "type": "git",
         "url": "ssh://git@github.com/See2et/astraeus.git"
       },
