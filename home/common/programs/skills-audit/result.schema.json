@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary", "findings", "unreviewed"],
+  "properties": {
+    "status": {"type": "string", "enum": ["findings", "no_findings", "incomplete"]},
+    "summary": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "file", "line", "evidence", "impact"],
+        "properties": {
+          "source": {"type": "string"},
+          "file": {"type": "string"},
+          "line": {"type": "integer", "minimum": 1},
+          "evidence": {"type": "string"},
+          "impact": {"type": "string"}
+        }
+      }
+    },
+    "unreviewed": {"type": "array", "items": {"type": "string"}}
+  }
+}

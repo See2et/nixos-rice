@@ -1,6 +1,9 @@
 { inputs, lib, ... }:
 {
-  imports = [ inputs.agent-skills-nix.homeManagerModules.default ];
+  imports = [
+    inputs.agent-skills-nix.homeManagerModules.default
+    ./skills-audit
+  ];
 
   programs.agent-skills = {
     enable = true;

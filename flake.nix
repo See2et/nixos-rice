@@ -329,6 +329,14 @@
         system:
         let
           repoPolicyCheck = mkScriptCheck system "repo-policy" "tests/repo-policy.sh";
+          skillsAuditCheck =
+            let
+              pkgs = mkPkgs system;
+            in
+            pkgs.runCommand "skills-audit-check" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+              python3 -B ${self}/tests/skills-audit.py
+              touch "$out"
+            '';
           antidoteCacheCheck =
             let
               pkgs = mkPkgs system;
@@ -466,6 +474,7 @@
         }
         // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
           codex-plugins = codexPluginsCheck;
+          skills-audit = skillsAuditCheck;
           dms-security = dmsSecurityCheck;
           dms-codex-usage = dmsCodexUsageCheck;
           dms-shell-policy = dmsShellPolicyCheck;

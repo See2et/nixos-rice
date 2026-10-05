@@ -2,6 +2,8 @@
 
 常時稼働開発ホスト（Herdr / Mosh / Web Preview / Sunshine）の導入・運用は [remote-development.md](docs/remote-development.md) を参照。
 
+Skills更新時のCodex自動監査と再実行方法は [skills-audit.md](docs/skills-audit.md) を参照。
+
 1つのリポジトリで、以下3ターゲットを管理する統合Nix flakeです。
 
 - `nixosConfigurations.desktop`（NixOSデスクトップ）
