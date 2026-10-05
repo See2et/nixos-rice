@@ -34,6 +34,7 @@ return {
 		local servers = vim.list_extend(vim.deepcopy(mason_servers), {
 			"nixd",
 			"basedpyright",
+			"ruff",
 		})
 
 		mason.setup({
@@ -104,6 +105,9 @@ return {
 					sources = cmp.config.sources({
 						{ name = "nvim_lsp" },
 						{ name = "luasnip" },
+						{ name = "path" },
+					}, {
+						{ name = "buffer" },
 					}),
 					formatting = {
 						format = require("lspkind").cmp_format({
@@ -112,8 +116,6 @@ return {
 							ellipsis_char = "...", -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
 						}),
 					},
-				}, {
-					{ name = "buffer" },
 				})
 
 				cmp.setup.cmdline({ "/", "?" }, {

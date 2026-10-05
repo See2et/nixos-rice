@@ -61,7 +61,6 @@ return {
 
 		lint.linters_by_ft = {
 			markdown = { "markdownlint-cli2" },
-			python = { "ruff" },
 		}
 
 		local group = vim.api.nvim_create_augroup("nvim_lint_autocmd", { clear = true })

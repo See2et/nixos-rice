@@ -871,11 +871,11 @@
     "yomiyasu": {
       "flake": false,
       "locked": {
-        "lastModified": 1790909101,
-        "narHash": "sha256-dZc9NRFBTl4tEKfSLAIE77smW50M5dEbzn5vzTXduRk=",
+        "lastModified": 1791129268,
+        "narHash": "sha256-t5nqoxpJtyd+p4SOsSyYY5nPUrbRsuCqOj70k8M2Vuk=",
         "owner": "nanaism",
         "repo": "yomiyasu",
-        "rev": "e5c6a8443a427726a472e2e560fc8679125ea2b8",
+        "rev": "4075fc34fb0333ca1fe42d32cd619338f4a138ba",
         "type": "github"
       },
       "original": {
