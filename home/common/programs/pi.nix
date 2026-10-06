@@ -48,6 +48,7 @@ in
       })
       [
         "worker"
+        "designer"
         "reviewer"
         "adjudicator"
       ]

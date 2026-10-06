@@ -18,7 +18,7 @@ Pi 起動時には private repo の `pi-astraeus` と `tintinweb/pi-subagents` �
 `nix flake update pi-astraeus pi-subagents` で更新する。`pi-astraeus` は
 `git+ssh` で取得するため、後述の private GitHub 用 SSH 設定を使う。
 validator 用の Python / jsonschema は wrapper の PATH に含まれる。
-Home Manager は `~/.pi/agent/agents/astraeus-{worker,reviewer,adjudicator}.md`
+Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudicator}.md`
 を管理し、その他の agent 定義は引き続き Pi 側で管理できる。
 
 追加の拡張は `packages/pi-extensions/package.json` と `package-lock.json` で
