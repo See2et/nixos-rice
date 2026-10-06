@@ -28,6 +28,12 @@ LSP 用の TypeScript/JavaScript・Python・Rust サーバーを wrapper の PAT
 `/lsp` で状態、`/usage` で利用枠を確認できる。LSP の追加言語・サーバーは
 各プロジェクトの `.pi-lsp.json` または `/lsp-config` で設定する。
 
+`pi-usage` の Codex 利用枠取得には、native `/login openai` とは別に
+`/login openai-codex` で同じ ChatGPT アカウント・workspaceへ補助ログインする。
+推論モデルは `openai/gpt-6.1-sol` のまま維持できる。`Codex:✓` は使用率の
+取得成功ではなく、数値がない状態でも表示される。週だけを返すプランでは
+週の割合とリセットまでの時間だけを表示し、返されない5時間枠を0%にしない。
+
 追加の拡張は `packages/pi-extensions/package.json` と `package-lock.json` で
 バージョン・推移的依存を固定する。現在は `pi-web-access` 0.37.0、
 `pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0 を読み込む。
