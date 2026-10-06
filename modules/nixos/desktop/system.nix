@@ -4,8 +4,6 @@
   networking.networkmanager.enable = true;
 
   time.timeZone = "Asia/Tokyo";
-  # Share a local-time RTC with Windows on this dual-boot desktop.
-  time.hardwareClockInLocalTime = true;
 
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.inputMethod = {
