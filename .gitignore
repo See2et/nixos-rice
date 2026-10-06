@@ -4,3 +4,6 @@ result-*
 /skills/flake.lock
 /codex-plugins/flake.lock
 target
+
+# Local Pi configuration
+/.pi/
