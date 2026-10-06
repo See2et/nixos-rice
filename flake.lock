@@ -700,6 +700,22 @@
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       }
     },
+    "pi-astraeus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791265561,
+        "narHash": "sha256-CbqkBvrhnakZPc+br6H77mBUFic63/lg3jTCgXAK+9k=",
+        "ref": "refs/heads/main",
+        "rev": "562bcc683f500324e2b1d30c549ec36de3fcf5b7",
+        "revCount": 2,
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/pi-astraeus.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/pi-astraeus.git"
+      }
+    },
     "pi-nix": {
       "inputs": {
         "nixpkgs": "nixpkgs_7"
@@ -715,6 +731,22 @@
       "original": {
         "owner": "sadjow",
         "repo": "pi-nix",
+        "type": "github"
+      }
+    },
+    "pi-subagents": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788437417,
+        "narHash": "sha256-U8rQgarY0bpaUNS0W4wY1sc1WSJkkSMtWYB5uU94DLY=",
+        "owner": "tintinweb",
+        "repo": "pi-subagents",
+        "rev": "e955e29c51b7a6cce37e1108cd2d6c57a77e151c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tintinweb",
+        "repo": "pi-subagents",
         "type": "github"
       }
     },
@@ -740,7 +772,9 @@
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
         "opencode": "opencode",
+        "pi-astraeus": "pi-astraeus",
         "pi-nix": "pi-nix",
+        "pi-subagents": "pi-subagents",
         "skills": "skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"

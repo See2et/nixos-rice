@@ -13,6 +13,14 @@ input に固定し、`nix flake update pi-nix` で更新する。Home Manager / 
 外部 CLI は `runtimePackages` に追加する。共有 Skills は既存の
 `~/.agents/skills` を Pi が直接探索する。
 
+Pi 起動時には private repo の `pi-astraeus` と `tintinweb/pi-subagents` を
+読み込む。取得元はルートの `flake.nix`、revision は `flake.lock` で管理し、
+`nix flake update pi-astraeus pi-subagents` で更新する。`pi-astraeus` は
+`git+ssh` で取得するため、後述の private GitHub 用 SSH 設定を使う。
+validator 用の Python / jsonschema は wrapper の PATH に含まれる。
+Home Manager は `~/.pi/agent/agents/astraeus-{worker,reviewer,adjudicator}.md`
+を管理し、その他の agent 定義は引き続き Pi 側で管理できる。
+
 `~/.pi/agent/settings.json`、認証、セッションは Pi が保存する。試す Package は
 `pi -e npm:<package>@<version>` で一時的に読み込み、常用が決まったら Nix 管理へ
 移す。Nix 管理の本体・Package は Nix 側で更新し、認証情報は Nix 式に書かない。
