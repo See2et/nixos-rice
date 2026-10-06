@@ -21,6 +21,23 @@ validator 用の Python / jsonschema は wrapper の PATH に含まれる。
 Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudicator}.md`
 を管理し、その他の agent 定義は引き続き Pi 側で管理できる。
 
+理解支援の TUI SidePane は private repo
+[`See2et/pi-understanding`](https://github.com/See2et/pi-understanding) から
+`pi-understanding` input として取得し、同じ wrapper で読み込む。
+`/understand` で開く。未commit分 / ローカルbranch / コード全体 / Module / Commit / PRと
+参照する版を区別し、実装側とは別の会話で Pi の現在のモデルと認証を使う。
+`/understand scope` では候補を一覧から選べる。学習ペインのCtrl+Tでも対象を変更できる。
+実装側のAIへ自然文で相談すると、候補を調べ、ユーザーの確認後に理解対象を選択できる。
+Ctrl+Alt+Uで実装入力と学習入力を切り替える。fullscreenでは両方の入力欄を
+クリックして移動でき、下書きは保持する。regularではキーボードで切り替える。
+更新は編集用 ghq checkout から push した後、`nix flake update pi-understanding`、
+ビルド、後述の rollout gate の順に行う。checkout の編集だけでは Store 側に反映されない。
+詳しい操作と制限は拡張の README を参照。Git / gh は wrapper の PATH に含めるが、
+GitHub 認証はユーザーの既存設定を使い、Nix には保存しない。
+システム適用前でも `nix build .#pi --out-link result-pi`、`./result-pi/bin/pi` で
+Nix に固定した拡張込みの Pi を起動できる。これは既存の `pi` コマンドの置換や
+システムの activation は行わない。常用コマンドへの反映には rollout gate が必要。
+
 CodeMode は既存のツール選択を保持して有効化する。設定は writable な
 `settings.json` に必要なキーだけマージし、`codemode.mode` の既存値は保持する。
 `pi-lsp-extension` 1.4.0 と `@mtrojnar/pi-usage` 0.2.0 も Nix で固定して読み込む。
@@ -36,10 +53,29 @@ LSP 用の TypeScript/JavaScript・Python・Rust サーバーを wrapper の PAT
 
 追加の拡張は `packages/pi-extensions/package.json` と `package-lock.json` で
 バージョン・推移的依存を固定する。現在は `pi-web-access` 0.37.0、
-`pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0 を読み込む。
+`pi-browser-actions` 1.1.1、`pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0 を読み込む。
 更新時はこのディレクトリで `npm install <package>@<version> --save-exact
 --package-lock-only --ignore-scripts --legacy-peer-deps` を実行し、
 `default.nix` の `npmDepsHash` を更新してビルドする。
+
+browser-actionsの`browser_session`で起動・接続し、`browser`で操作する。
+LinuxではNixのChromiumを既定にする。`PLAYWRIGHT_MCP_EXECUTABLE_PATH`の
+ユーザー指定は優先される。Darwinでは利用できるブラウザーを別途指定する。
+既存のweb-accessの`web_search`を残すため、browser-actions側の検索名は
+`browser_web_search`に変更している。Playwright CLIと画像の縮小処理はwrapperの
+Nodeで実行し、Pi本体のBunとは分離する。Linuxの画像ライブラリに必要な
+libstdc++はwrapperから供給する。検証は
+`python3 packages/pi-extensions/smoke-browser.py ./result-pi/bin/pi`で行える。
+
+miloaはPiのwritableな`~/.pi/agent/mcp.json`に登録する。OpenCodeの認証情報は
+コピーせず、Pi側で独立してOAuth認証する。このホストでは登録済みだが、
+認証は未完了。ユーザーが`./result-pi/bin/pi mcp login miloa`を実行して
+ブラウザーで承認し、`./result-pi/bin/pi mcp list --json`で接続を確認する。
+miloaのURLや認証情報はNixで配布しない。他のホストでは各自のPiに登録する。
+
+SubAgentの完了通知・記録の期限切れ・元セッションの復旧は別の問題として扱う。
+検証結果と改修案は[pi-subagent-recovery.md](docs/pi-subagent-recovery.md)を参照。
+この変更ではSubAgent本体を改修せず、以前の未回収ownerによる受理ブロックも回避しない。
 
 Home Manager 適用時に `piNotify` の有効化・入力待ち通知と `interview` の
 呼び出し通知を設定する。他の Pi 設定と通知イベント・通知対象ツールは保持する。

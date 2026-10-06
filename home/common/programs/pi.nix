@@ -18,15 +18,26 @@ let
     piPackages = [
       subagents
       inputs.pi-astraeus
+      inputs.pi-understanding
       "${extensions}/node_modules/pi-web-access"
+      "${extensions}/node_modules/pi-browser-actions"
       "${extensions}/node_modules/pi-interview"
       "${extensions}/node_modules/@raidou/pi-notify"
       "${extensions}/node_modules/pi-lsp-extension"
       "${extensions}/node_modules/@mtrojnar/pi-usage"
     ];
+    # Use the Nix browser on Linux instead of downloading an unpatched
+    # Playwright browser. User-supplied overrides remain authoritative.
+    environmentDefaults = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+      PLAYWRIGHT_MCP_EXECUTABLE_PATH = lib.getExe pkgs.chromium;
+    };
+    runtimeLibraries = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.cc.lib ];
     # npm is needed for trying packages with Pi's own package manager.
     runtimePackages = [
       pkgs.nodejs_24
+      # Scope resolution uses Git; PR metadata uses the user's existing gh auth.
+      pkgs.git
+      pkgs.gh
       validatorPython
       pkgs.typescript-language-server
       pkgs.typescript

@@ -750,6 +750,22 @@
         "type": "github"
       }
     },
+    "pi-understanding": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791292210,
+        "narHash": "sha256-eLlgreN31rVdxK5UmhUf69MqQJBOGCriGoSb5TLQbCI=",
+        "ref": "refs/heads/main",
+        "rev": "f6fe0bcc01399767256e8936447d88e5e2046952",
+        "revCount": 5,
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/pi-understanding.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/pi-understanding.git"
+      }
+    },
     "root": {
       "inputs": {
         "agent-skills-nix": "agent-skills-nix",
@@ -775,6 +791,7 @@
         "pi-astraeus": "pi-astraeus",
         "pi-nix": "pi-nix",
         "pi-subagents": "pi-subagents",
+        "pi-understanding": "pi-understanding",
         "skills": "skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"

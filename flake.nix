@@ -61,6 +61,10 @@
       url = "git+ssh://git@github.com/See2et/pi-astraeus.git";
       flake = false;
     };
+    pi-understanding = {
+      url = "git+ssh://git@github.com/See2et/pi-understanding.git";
+      flake = false;
+    };
     pi-subagents = {
       url = "github:tintinweb/pi-subagents";
       flake = false;
@@ -496,7 +500,18 @@
 
       formatter = forAllSystems mkFormatter;
 
+      # Build/run the configured Pi without activating a system generation.
+      packages.${darwinSystem}.pi = builtins.head (
+        builtins.filter (
+          p: nixpkgs.lib.hasPrefix "pi-configured-" (p.name or "")
+        ) self.homeConfigurations.darwin.config.home.packages
+      );
       packages.${linuxSystem} = {
+        pi = builtins.head (
+          builtins.filter (
+            p: nixpkgs.lib.hasPrefix "pi-configured-" (p.name or "")
+          ) self.nixosConfigurations.desktop.config.home-manager.users.see2et.home.packages
+        );
         herdr = inputs.herdr.packages.${linuxSystem}.default;
         herdr-home =
           let
