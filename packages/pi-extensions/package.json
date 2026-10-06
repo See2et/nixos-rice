@@ -1,0 +1,10 @@
+{
+  "name": "nixos-pi-extensions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@raidou/pi-notify": "0.8.0",
+    "pi-interview": "0.13.0",
+    "pi-web-access": "0.37.0"
+  }
+}

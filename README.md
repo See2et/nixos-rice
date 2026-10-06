@@ -21,6 +21,22 @@ validator 用の Python / jsonschema は wrapper の PATH に含まれる。
 Home Manager は `~/.pi/agent/agents/astraeus-{worker,reviewer,adjudicator}.md`
 を管理し、その他の agent 定義は引き続き Pi 側で管理できる。
 
+追加の拡張は `packages/pi-extensions/package.json` と `package-lock.json` で
+バージョン・推移的依存を固定する。現在は `pi-web-access` 0.37.0、
+`pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0 を読み込む。
+更新時はこのディレクトリで `npm install <package>@<version> --save-exact
+--package-lock-only --ignore-scripts --legacy-peer-deps` を実行し、
+`default.nix` の `npmDepsHash` を更新してビルドする。
+
+Home Manager 適用時に `piNotify` の有効化・入力待ち通知と `interview` の
+呼び出し通知を設定する。他の Pi 設定と通知イベント・通知対象ツールは保持する。
+Linux の `notify-send` とブラウザー起動用 `xdg-open` は wrapper の PATH に含める。
+適用後は Pi を再起動して `/notify-test` で通知を確認する。
+`Idle` は応答終了の通知であり、非同期質問の未回答や依頼全体の完了を判定しない。
+
+非同期質問を使う場合は Pi に「`interview` を `async: true` で呼び、
+回答待ちの間は回答に依存しない作業を続ける」と指示する。
+
 `~/.pi/agent/settings.json`、認証、セッションは Pi が保存する。試す Package は
 `pi -e npm:<package>@<version>` で一時的に読み込み、常用が決まったら Nix 管理へ
 移す。Nix 管理の本体・Package は Nix 側で更新し、認証情報は Nix 式に書かない。
