@@ -4,6 +4,19 @@
 
 Skills更新時のCodex自動監査と再実行方法は [skills-audit.md](docs/skills-audit.md) を参照。
 
+Pi Coding Agent は Desktop / WSL / Darwin 共通で導入する。本体は `pi-nix`
+input に固定し、`nix flake update pi-nix` で更新する。Home Manager / NixOS の
+リリース更新とは独立している。適用は後述の通常の rollout gate に従う。
+
+`home/common/programs/pi.nix` の `piPackages` に、npm 依存込みでビルドした
+ローカル Package のルートを追加すると、起動 wrapper が `-e` で読み込む。
+外部 CLI は `runtimePackages` に追加する。共有 Skills は既存の
+`~/.agents/skills` を Pi が直接探索する。
+
+`~/.pi/agent/settings.json`、認証、セッションは Pi が保存する。試す Package は
+`pi -e npm:<package>@<version>` で一時的に読み込み、常用が決まったら Nix 管理へ
+移す。Nix 管理の本体・Package は Nix 側で更新し、認証情報は Nix 式に書かない。
+
 1つのリポジトリで、以下3ターゲットを管理する統合Nix flakeです。
 
 - `nixosConfigurations.desktop`（NixOSデスクトップ）

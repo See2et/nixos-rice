@@ -55,6 +55,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
+    # Keep Pi independently updatable without changing the host/HM release.
+    pi-nix.url = "github:sadjow/pi-nix";
     agent-skills-nix = {
       url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";

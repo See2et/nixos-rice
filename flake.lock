@@ -600,6 +600,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_7": {
+      "locked": {
+        "lastModified": 1788690626,
+        "narHash": "sha256-+v4I4LawmRD/mVxO7QIAerRrCkElp3YImzWkkUnvOTg=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c25784012c9982bca5b3e0de87e90bbdac8927d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "noctalia": {
       "inputs": {
         "nixpkgs": [
@@ -684,6 +700,24 @@
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       }
     },
+    "pi-nix": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_7"
+      },
+      "locked": {
+        "lastModified": 1791239438,
+        "narHash": "sha256-88owOGt7hBGfU4e6uQ/UhEUbECi0L8QQQSleLPqlt8M=",
+        "owner": "sadjow",
+        "repo": "pi-nix",
+        "rev": "d2c16d2116b747d139e45301d53aea6e0ff8bf60",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sadjow",
+        "repo": "pi-nix",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agent-skills-nix": "agent-skills-nix",
@@ -706,6 +740,7 @@
         "nixpkgs-xr": "nixpkgs-xr",
         "noctalia": "noctalia",
         "opencode": "opencode",
+        "pi-nix": "pi-nix",
         "skills": "skills",
         "voxtype": "voxtype",
         "zen-browser": "zen-browser"

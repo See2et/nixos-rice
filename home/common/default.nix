@@ -11,6 +11,7 @@
     ./programs/gh.nix
     ./programs/agent-skills.nix
     ./programs/codex-plugins.nix
+    ./programs/pi.nix
     ./programs/gpg.nix
     ./programs/ssh.nix
     ./programs/neovim.nix
