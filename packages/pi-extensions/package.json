@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@mtrojnar/pi-usage": "0.2.0",
     "@raidou/pi-notify": "0.8.0",
     "pi-interview": "0.13.0",
+    "pi-lsp-extension": "1.4.0",
     "pi-web-access": "0.37.0"
   }
 }

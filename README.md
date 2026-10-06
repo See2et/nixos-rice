@@ -21,6 +21,13 @@ validator 用の Python / jsonschema は wrapper の PATH に含まれる。
 Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudicator}.md`
 を管理し、その他の agent 定義は引き続き Pi 側で管理できる。
 
+CodeMode は既存のツール選択を保持して有効化する。設定は writable な
+`settings.json` に必要なキーだけマージし、`codemode.mode` の既存値は保持する。
+`pi-lsp-extension` 1.4.0 と `@mtrojnar/pi-usage` 0.2.0 も Nix で固定して読み込む。
+LSP 用の TypeScript/JavaScript・Python・Rust サーバーを wrapper の PATH に含める。
+`/lsp` で状態、`/usage` で利用枠を確認できる。LSP の追加言語・サーバーは
+各プロジェクトの `.pi-lsp.json` または `/lsp-config` で設定する。
+
 追加の拡張は `packages/pi-extensions/package.json` と `package-lock.json` で
 バージョン・推移的依存を固定する。現在は `pi-web-access` 0.37.0、
 `pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0 を読み込む。

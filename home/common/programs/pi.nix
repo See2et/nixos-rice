@@ -21,11 +21,17 @@ let
       "${extensions}/node_modules/pi-web-access"
       "${extensions}/node_modules/pi-interview"
       "${extensions}/node_modules/@raidou/pi-notify"
+      "${extensions}/node_modules/pi-lsp-extension"
+      "${extensions}/node_modules/@mtrojnar/pi-usage"
     ];
     # npm is needed for trying packages with Pi's own package manager.
     runtimePackages = [
       pkgs.nodejs_24
       validatorPython
+      pkgs.typescript-language-server
+      pkgs.typescript
+      pkgs.pyright
+      pkgs.rust-analyzer
     ]
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       pkgs.libnotify
@@ -38,6 +44,10 @@ in
   # Keep Pi's settings writable; merge only the notification integration we own.
   home.activation.piNotifications = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-notifications.py} \
+      ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/settings.json"}
+  '';
+  home.activation.piCodeMode = lib.hm.dag.entryAfter [ "piNotifications" ] ''
+    run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-codemode.py} \
       ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/settings.json"}
   '';
   home.file = builtins.listToAttrs (
