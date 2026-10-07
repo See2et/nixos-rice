@@ -703,11 +703,11 @@
     "pi-astraeus": {
       "flake": false,
       "locked": {
-        "lastModified": 1791269508,
-        "narHash": "sha256-fbfjP0+b2YjhM/Fq9xOWJCcSKTg86+VKzNMVAskgIps=",
+        "lastModified": 1791334758,
+        "narHash": "sha256-yhuXpEOHxq+n/XNOXkRQaFF5vgFRFebSCuTcKFh7XiM=",
         "ref": "refs/heads/main",
-        "rev": "92640446b21a119509d79bf9dbade78d503bb9ea",
-        "revCount": 5,
+        "rev": "1be9b388291b076b71b43363b199d7a4ca5a01ec",
+        "revCount": 6,
         "type": "git",
         "url": "ssh://git@github.com/See2et/pi-astraeus.git"
       },
