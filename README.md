@@ -21,6 +21,15 @@ validator 用の Python / jsonschema は wrapper の PATH に含まれる。
 Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudicator}.md`
 を管理し、その他の agent 定義は引き続き Pi 側で管理できる。
 
+`pi-astraeus` の generated-output recoveryと厳密なpreparation-failure settlementは、
+公開済みcommit `8b192b4146e518c151565506569cc3c2aad4f096` を `flake.lock` に固定して配布する。
+拡張と4つのagent定義は同じ不変のinputを使い、編集用checkoutや一時パッチは参照しない。
+認証・設定・セッションは変更しない。ビルドとレビュー後、ユーザーが通常のrollout gateに従って
+手動で `nixos-rebuild switch` を実行すると常用Piに反映される。起動中のPiには自動反映されないため、
+新しいwrapperからPiを再起動してから `reconcile_generated` を使う。
+`/reload` は新しいinputのStoreパスをすでに読み込んでいる場合に限る。
+エージェントはactivationを実行しない。
+
 理解支援の TUI SidePane は private repo
 [`See2et/pi-understanding`](https://github.com/See2et/pi-understanding) から
 `pi-understanding` input として取得し、同じ wrapper で読み込む。
