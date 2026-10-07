@@ -111,6 +111,11 @@ npm版のversion・推移的依存は `packages/pi-extensions/package.json` と
 更新コマンドは `npm install --save-exact --package-lock-only --ignore-scripts
 --legacy-peer-deps` を使い、npmのinstall scriptは実行しない。
 
+`pi-browser-actions`の画像処理は、`package.json`のscoped overrideでsharp 0.35.5に
+固定している。これは[GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w)の
+修正を取り込むためで、拡張本体はダウングレードしない。統一更新コマンドでもoverrideは保持する。
+上流が修正版を採用した後は、overrideの解除を依存lock・ビルド・画像処理の確認と合わせて行う。
+
 browser-actionsの`browser_session`で起動・接続し、`browser`で操作する。
 LinuxではNixのChromiumを既定にする。`PLAYWRIGHT_MCP_EXECUTABLE_PATH`の
 ユーザー指定は優先される。Darwinでは利用できるブラウザーを別途指定する。

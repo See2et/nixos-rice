@@ -15,10 +15,10 @@ buildNpmPackage {
     ];
   };
   nodejs = nodejs_24;
-  # Preserve sharp's upstream $ORIGIN RPATHs. Rewriting the 0.35.4 binaries
-  # causes a reproducible load-time crash; the Pi wrapper supplies libstdc++.
+  # Preserve sharp's upstream $ORIGIN RPATHs; the Pi wrapper supplies libstdc++.
+  # The scoped npm override pins patched sharp (GHSA-wq5f-xc86-pv6w).
   dontPatchELF = true;
-  npmDepsHash = "sha256-G1qV15iLKxnCRe0wKpCsvPoHyUX+yQb0TMvSPD2H4GE=";
+  npmDepsHash = "sha256-5DfbUxdeBr1cgMTEhtBA8NxeEGS3I/Ck4Z3pwU1oj5A=";
   npmFlags = [
     "--legacy-peer-deps"
     "--ignore-scripts"
