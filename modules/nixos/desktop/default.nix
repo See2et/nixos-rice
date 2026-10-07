@@ -3,6 +3,7 @@
 {
   imports = [
     ./system.nix
+    ./storage-maintenance.nix
     ./github-ssh.nix
     ./dank-material-shell.nix
     ./steam.nix

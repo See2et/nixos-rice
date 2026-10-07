@@ -14,6 +14,7 @@
     ./zen-browser.nix
     ./xdg.nix
     ./theme.nix
+    ./storage-notification.nix
   ];
 
   options.programs.niri.enable = lib.mkEnableOption "niri";

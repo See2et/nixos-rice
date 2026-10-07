@@ -378,6 +378,41 @@
             assert service.Restart == "always";
             assert service.RestartSec == 1;
             mkScriptCheck system "niri-pip-workspace-follower" "tests/niri-pip-workspace-follower.sh";
+          storageNotificationCheck =
+            let
+              pkgs = mkPkgs system;
+              desktop = self.nixosConfigurations.desktop.config;
+              home = desktop.home-manager.users.see2et;
+              wsl = self.nixosConfigurations.wsl.config;
+            in
+            assert desktop.nix.gc.automatic && desktop.nix.gc.persistent;
+            assert desktop.nix.gc.dates == [ "daily" ] && desktop.nix.gc.options == "";
+            assert desktop.nix.optimise.automatic && desktop.nix.optimise.dates == [ "weekly" ];
+            assert desktop.boot.loader.grub.configurationLimit == 5;
+            assert !wsl.nix.gc.automatic && !wsl.nix.optimise.automatic;
+            assert !(wsl.home-manager.users.nixos.systemd.user.timers ? desktop-storage-notification);
+            assert
+              !(
+                self.darwinConfigurations.darwin.config.home-manager.users.see2et.systemd.user.timers
+                ? desktop-storage-notification
+              );
+            assert
+              home.systemd.user.services.desktop-storage-notification.Unit.Requisite == [
+                "graphical-session.target"
+              ];
+            pkgs.runCommand "storage-notification-check"
+              {
+                nativeBuildInputs = [
+                  pkgs.python3
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.util-linux
+                ];
+              }
+              ''
+                python3 -B ${self}/tests/storage-notification.py
+                touch "$out"
+              '';
           steamvrToolsCheck = mkScriptCheck system "steamvr-tools" "tests/steamvr-tools.sh";
           remoteDevCheck =
             let
@@ -489,6 +524,7 @@
         // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
           codex-plugins = codexPluginsCheck;
           skills-audit = skillsAuditCheck;
+          storage-notification = storageNotificationCheck;
           dms-security = dmsSecurityCheck;
           dms-codex-usage = dmsCodexUsageCheck;
           dms-shell-policy = dmsShellPolicyCheck;
