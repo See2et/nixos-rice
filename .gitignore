@@ -3,6 +3,7 @@ result
 result-*
 /skills/flake.lock
 /codex-plugins/flake.lock
+/pi-extensions/flake.lock
 target
 
 # Local Pi configuration

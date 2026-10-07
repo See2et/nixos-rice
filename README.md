@@ -8,14 +8,58 @@ Pi Coding Agent は Desktop / WSL / Darwin 共通で導入する。本体は `pi
 input に固定し、`nix flake update pi-nix` で更新する。Home Manager / NixOS の
 リリース更新とは独立している。適用は後述の通常の rollout gate に従う。
 
-`home/common/programs/pi.nix` の `piPackages` に、npm 依存込みでビルドした
-ローカル Package のルートを追加すると、起動 wrapper が `-e` で読み込む。
-外部 CLI は `runtimePackages` に追加する。共有 Skills は既存の
-`~/.agents/skills` を Pi が直接探索する。
+拡張の登録場所は `pi-extensions/inventory.json` に統一している。
+配列の順番が読み込み順で、名前・取得元・必要なpackaging・agent定義を記載する。
+`home/common/programs/pi.nix` はこの一覧から `piPackages` を生成し、
+起動wrapperが `-e` で読み込む。`pi-subagents` のnpm依存込みpackagingと、
+Astraeusの拡張・4つのagent定義の同一ソース参照もこの登録から決まる。
+外部CLIは引き続き `runtimePackages` に追加する。共有Skillsは既存の
+`~/.agents/skills` をPiが直接探索する。
 
-Pi 起動時には private repo の `pi-astraeus` と `tintinweb/pi-subagents` を
-読み込む。取得元はルートの `flake.nix`、revision は `flake.lock` で管理し、
-`nix flake update pi-astraeus pi-subagents` で更新する。`pi-astraeus` は
+リポジトリのcheckoutで、Git/npmの区別なく更新する。
+
+```sh
+nix run .#update-pi-extensions                          # 全拡張
+nix run .#update-pi-extensions -- pi-interview          # 1つだけ
+nix run .#update-pi-extensions -- pi-astraeus pi-interview # 複数
+nix run .#update-pi-extensions -- --list                # 使用可能な名前
+nix run .#update-pi-extensions -- --help
+```
+
+現在の名前は `pi-subagents`、`pi-astraeus`、`pi-understanding`、
+`pi-web-access`、`pi-browser-actions`、`pi-interview`、`@raidou/pi-notify`、
+`pi-lsp-extension`、`@mtrojnar/pi-usage`。名前は更新前に全件検証する。
+Git拡張は対象のinputだけ、npm拡張はregistryのlatestを取得してexact versionに更新する。
+未選択の直接依存・無関係なflake inputは保持するが、選択したnpm拡張の推移的依存は変わり得る。
+Pi本体の `pi-nix` は別途更新する。
+
+Gitのstatic input宣言 `pi-extensions/flake.nix` はinventoryから生成する成果物で、
+手で登録を追加しない。生成時の本文checksumをコメントに保存し、宣言の名前・URLを含め、
+本文の手動編集を検出した場合は更新処理の前に停止する。これは誤編集の検出用で、
+悪意ある改変への整合性保証ではない。inventoryだけの変更なら、以前の生成物を検証してから同期する。
+新しい拡張はinventoryだけに登録し、その名前を指定して更新する。
+Gitの登録名はunquoted Nix identifierとして使える `[a-z][a-z0-9_-]*` に限り、
+`if` などのNix予約語も使えない。
+npmの名前は従来どおりscoped名も使える。
+更新時にstatic宣言を同期し、npmの `package.json`・`package-lock.json` と
+`default.nix` の `npmDepsHash` も必要に応じて生成する。これらはversion pinの成果物であり、
+別の登録場所ではない。宣言の同期チェックは `python3 tests/pi-extensions.py` で実行できる。
+inventoryから外した拡張は読み込まれなくなるが、依存成果物の削除はレビューして別途行う。
+未選択・無関係な依存を更新処理が勝手に削除することはない。
+Git revisionはルートの `flake.lock` だけで固定し、`pi-extensions/flake.lock` は作成しない。
+
+更新はstage済み・未stageの変更と新しい非ignoredファイルを含む一時コピーで行う。
+コピー内で `prefetch-npm-deps` によるhash計算と `nix build .#pi --no-link` が成功してから、
+対象の宣言・pin・hashファイルだけを元のcheckoutへ戻す。元のGit indexは変更しない。
+network・認証・hash計算・ビルドの失敗、またはコピー後のソース編集を検出した場合は公開しない。
+既存の `--replace-fail` patchが新版に適用できない場合もビルド失敗として扱う。
+複数ファイルの書き込みは通常の書き込みエラー時に復元するが、process/host crashに対する
+atomic transactionではない。更新中は他の編集を止め、成功後にdiffを確認する。
+更新コマンドはactivationやPiのwritable設定を変更しない。適用はユーザーが
+通常の `dry-activate` → `test` → `switch` のrollout gateを手動で実行する。
+Darwinも実機ユーザーが適用する。エージェントはactivationを実行しない。
+
+`pi-astraeus` と `pi-understanding` は
 `git+ssh` で取得するため、後述の private GitHub 用 SSH 設定を使う。
 validator 用の Python / jsonschema は wrapper の PATH に含まれる。
 Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudicator}.md`
@@ -32,14 +76,14 @@ Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudica
 
 理解支援の TUI SidePane は private repo
 [`See2et/pi-understanding`](https://github.com/See2et/pi-understanding) から
-`pi-understanding` input として取得し、同じ wrapper で読み込む。
+`pi-extensions/pi-understanding` input として取得し、同じ wrapper で読み込む。
 `/understand` で開く。未commit分 / ローカルbranch / コード全体 / Module / Commit / PRと
 参照する版を区別し、実装側とは別の会話で Pi の現在のモデルと認証を使う。
 `/understand scope` では候補を一覧から選べる。学習ペインのCtrl+Tでも対象を変更できる。
 実装側のAIへ自然文で相談すると、候補を調べ、ユーザーの確認後に理解対象を選択できる。
 Ctrl+Alt+Uで実装入力と学習入力を切り替える。fullscreenでは両方の入力欄を
 クリックして移動でき、下書きは保持する。regularではキーボードで切り替える。
-更新は編集用 ghq checkout から push した後、`nix flake update pi-understanding`、
+更新は編集用 ghq checkout から push した後、`nix run .#update-pi-extensions -- pi-understanding`、
 ビルド、後述の rollout gate の順に行う。checkout の編集だけでは Store 側に反映されない。
 詳しい操作と制限は拡張の README を参照。Git / gh は wrapper の PATH に含めるが、
 GitHub 認証はユーザーの既存設定を使い、Nix には保存しない。
@@ -60,12 +104,12 @@ LSP 用の TypeScript/JavaScript・Python・Rust サーバーを wrapper の PAT
 取得成功ではなく、数値がない状態でも表示される。週だけを返すプランでは
 週の割合とリセットまでの時間だけを表示し、返されない5時間枠を0%にしない。
 
-追加の拡張は `packages/pi-extensions/package.json` と `package-lock.json` で
-バージョン・推移的依存を固定する。現在は `pi-web-access` 0.37.0、
-`pi-browser-actions` 1.1.1、`pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0 を読み込む。
-更新時はこのディレクトリで `npm install <package>@<version> --save-exact
---package-lock-only --ignore-scripts --legacy-peer-deps` を実行し、
-`default.nix` の `npmDepsHash` を更新してビルドする。
+npm版のversion・推移的依存は `packages/pi-extensions/package.json` と
+`package-lock.json` に固定する。現在は `pi-web-access` 0.37.0、
+`pi-browser-actions` 1.1.1、`pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0、
+`pi-lsp-extension` 1.4.0、`@mtrojnar/pi-usage` 0.2.0。
+更新コマンドは `npm install --save-exact --package-lock-only --ignore-scripts
+--legacy-peer-deps` を使い、npmのinstall scriptは実行しない。
 
 browser-actionsの`browser_session`で起動・接続し、`browser`で操作する。
 LinuxではNixのChromiumを既定にする。`PLAYWRIGHT_MCP_EXECUTABLE_PATH`の

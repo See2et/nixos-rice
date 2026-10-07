@@ -1,0 +1,57 @@
+[
+  {
+    "name": "pi-subagents",
+    "kind": "git",
+    "url": "github:tintinweb/pi-subagents",
+    "packaging": "pi-subagents"
+  },
+  {
+    "name": "pi-astraeus",
+    "kind": "git",
+    "url": "git+ssh://git@github.com/See2et/pi-astraeus.git",
+    "agents": {
+      "prefix": "astraeus",
+      "roles": [
+        "worker",
+        "designer",
+        "reviewer",
+        "adjudicator"
+      ]
+    }
+  },
+  {
+    "name": "pi-understanding",
+    "kind": "git",
+    "url": "git+ssh://git@github.com/See2et/pi-understanding.git"
+  },
+  {
+    "name": "pi-web-access",
+    "kind": "npm",
+    "package": "pi-web-access"
+  },
+  {
+    "name": "pi-browser-actions",
+    "kind": "npm",
+    "package": "pi-browser-actions"
+  },
+  {
+    "name": "pi-interview",
+    "kind": "npm",
+    "package": "pi-interview"
+  },
+  {
+    "name": "@raidou/pi-notify",
+    "kind": "npm",
+    "package": "@raidou/pi-notify"
+  },
+  {
+    "name": "pi-lsp-extension",
+    "kind": "npm",
+    "package": "pi-lsp-extension"
+  },
+  {
+    "name": "@mtrojnar/pi-usage",
+    "kind": "npm",
+    "package": "@mtrojnar/pi-usage"
+  }
+]

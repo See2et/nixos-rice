@@ -57,18 +57,8 @@
     codex-cli-nix.url = "github:sadjow/codex-cli-nix";
     # Keep Pi independently updatable without changing the host/HM release.
     pi-nix.url = "github:sadjow/pi-nix";
-    pi-astraeus = {
-      url = "git+ssh://git@github.com/See2et/pi-astraeus.git";
-      flake = false;
-    };
-    pi-understanding = {
-      url = "git+ssh://git@github.com/See2et/pi-understanding.git";
-      flake = false;
-    };
-    pi-subagents = {
-      url = "github:tintinweb/pi-subagents";
-      flake = false;
-    };
+    # Generated Git sources; inventory.json owns all extension registrations.
+    pi-extensions.url = "path:./pi-extensions";
     agent-skills-nix = {
       url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -520,6 +510,23 @@
           formatting = mkFormattingCheck system;
           repo-policy = repoPolicyCheck;
           antidote-cache = antidoteCacheCheck;
+          pi-extensions =
+            let
+              pkgs = mkPkgs system;
+            in
+            pkgs.runCommand "pi-extensions-offline-tests"
+              {
+                nativeBuildInputs = [
+                  pkgs.python3
+                  pkgs.git
+                ];
+              }
+              ''
+                export HOME="$TMPDIR"
+                export PYTHONDONTWRITEBYTECODE=1
+                python3 ${self}/tests/pi-extensions.py
+                touch "$out"
+              '';
         }
         // nixpkgs.lib.optionalAttrs (system == linuxSystem) {
           codex-plugins = codexPluginsCheck;
@@ -537,12 +544,20 @@
       formatter = forAllSystems mkFormatter;
 
       # Build/run the configured Pi without activating a system generation.
-      packages.${darwinSystem}.pi = builtins.head (
-        builtins.filter (
-          p: nixpkgs.lib.hasPrefix "pi-configured-" (p.name or "")
-        ) self.homeConfigurations.darwin.config.home.packages
-      );
+      packages.${darwinSystem} = {
+        update-pi-extensions = import ./pi-extensions {
+          pkgs = mkPkgs darwinSystem;
+        };
+        pi = builtins.head (
+          builtins.filter (
+            p: nixpkgs.lib.hasPrefix "pi-configured-" (p.name or "")
+          ) self.homeConfigurations.darwin.config.home.packages
+        );
+      };
       packages.${linuxSystem} = {
+        update-pi-extensions = import ./pi-extensions {
+          pkgs = mkPkgs linuxSystem;
+        };
         pi = builtins.head (
           builtins.filter (
             p: nixpkgs.lib.hasPrefix "pi-configured-" (p.name or "")

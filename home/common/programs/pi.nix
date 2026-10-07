@@ -8,24 +8,34 @@
   ...
 }:
 let
+  extensionInputs = inputs.pi-extensions.inputs;
   extensions = pkgs.callPackage ../../../packages/pi-extensions { };
-  subagents = pkgs.callPackage ../../../packages/pi-subagents {
-    src = inputs.pi-subagents;
-  };
+  inventory = builtins.fromJSON (builtins.readFile ../../../pi-extensions/inventory.json);
+  extensionSource = entry: extensionInputs.${entry.name};
+  extensionPackage =
+    entry:
+    if entry.kind == "npm" then
+      "${extensions}/node_modules/${entry.package}"
+    else if entry.kind == "git" then
+      if entry ? packaging then
+        pkgs.callPackage (../../../packages + "/${entry.packaging}") {
+          src = extensionSource entry;
+        }
+      else
+        extensionSource entry
+    else
+      throw "Unknown Pi extension route: ${entry.kind}";
+  agentFiles = lib.concatMap (
+    entry:
+    map (role: {
+      name = ".pi/agent/agents/${entry.agents.prefix}-${role}.md";
+      value.source = "${extensionSource entry}/agents/${entry.agents.prefix}-${role}.md";
+    }) (entry.agents.roles or [ ])
+  ) inventory;
   validatorPython = pkgs.python3.withPackages (ps: [ ps.jsonschema ]);
   pi = pkgs.callPackage ../../../packages/pi {
     pi = inputs.pi-nix.packages.${pkgs.stdenv.hostPlatform.system}.default;
-    piPackages = [
-      subagents
-      inputs.pi-astraeus
-      inputs.pi-understanding
-      "${extensions}/node_modules/pi-web-access"
-      "${extensions}/node_modules/pi-browser-actions"
-      "${extensions}/node_modules/pi-interview"
-      "${extensions}/node_modules/@raidou/pi-notify"
-      "${extensions}/node_modules/pi-lsp-extension"
-      "${extensions}/node_modules/@mtrojnar/pi-usage"
-    ];
+    piPackages = map extensionPackage inventory;
     # Use the Nix browser on Linux instead of downloading an unpatched
     # Playwright browser. User-supplied overrides remain authoritative.
     environmentDefaults = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
@@ -61,17 +71,5 @@ in
     run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-codemode.py} \
       ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/settings.json"}
   '';
-  home.file = builtins.listToAttrs (
-    map
-      (role: {
-        name = ".pi/agent/agents/astraeus-${role}.md";
-        value.source = "${inputs.pi-astraeus}/agents/astraeus-${role}.md";
-      })
-      [
-        "worker"
-        "designer"
-        "reviewer"
-        "adjudicator"
-      ]
-  );
+  home.file = builtins.listToAttrs agentFiles;
 }
