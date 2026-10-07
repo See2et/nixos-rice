@@ -11,6 +11,9 @@ buildNpmPackage {
   version = (lib.importJSON "${src}/package.json").version;
   inherit src;
   nodejs = nodejs_24;
+  # RPC callers may omit description. Keep completion delivery actionable and
+  # surface synchronous notification failures instead of silently losing them.
+  patches = [ ./completion-notification.patch ];
   # Upstream's development lock entries lack integrity hashes. Retain the
   # exact upstream runtime dependency graph; Pi supplies its own peer APIs.
   postPatch = ''
@@ -24,6 +27,12 @@ buildNpmPackage {
   npmDepsHash = "sha256-w/xgaubF+4hNpFMcoezwXAp2q6akKtMW2p2GUH3d4w8=";
   npmFlags = [ "--omit=dev" ];
   dontNpmBuild = true;
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    node --test ${./notification.test.mjs}
+    runHook postCheck
+  '';
 
   # Pi loads TypeScript directly; retain the package root and runtime modules.
   installPhase = ''
