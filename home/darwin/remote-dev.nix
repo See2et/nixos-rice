@@ -1,4 +1,16 @@
 { inputs, pkgs, ... }:
+let
+  # Share the desktop's declarative settings without importing Linux HM modules.
+  desktopConfig = builtins.fromTOML (builtins.readFile ../desktop/dotfiles/herdr/config.toml);
+  macConfig = desktopConfig // {
+    # Local custom commands are not forwarded by --remote. The desktop popup
+    # uses herdr-home, which is Linux-only; use Herdr's native picker instead.
+    keys = builtins.removeAttrs desktopConfig.keys [ "command" ] // {
+      workspace_picker = "prefix+w";
+      remote_image_paste = "ctrl+v";
+    };
+  };
+in
 {
   home.packages = with pkgs; [
     mosh
@@ -7,14 +19,7 @@
 
   # Runs on the Mac, not inside SSH/Mosh. Keep Cmd+V for terminal text paste;
   # Ctrl+V lets the local Herdr client bridge clipboard images to the host.
-  xdg.configFile."herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-mac-config.toml" {
-    onboarding = false;
-    keys = {
-      prefix = "ctrl+b";
-      remote_image_paste = "ctrl+v";
-    };
-    ui.mouse_capture = false;
-  };
+  xdg.configFile."herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-mac-config.toml" macConfig;
 
   programs.ssh = {
     settings.home = {

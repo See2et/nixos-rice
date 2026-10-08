@@ -64,7 +64,14 @@ mosh home
 Mac側のキー設定を使い、文字の貼り付けはターミナルのCmd+V、画像の貼り付けはCtrl+V。
 スクリーンショットを画像としてクリップボードにコピーした後、画像を扱えるAgentの入力欄でCtrl+Vを押す。
 Herdrが画像を自宅の一時ファイルへ転送し、そのパスを貼り付ける。文字のコピーはターミナルで選択してCmd+Cを使う。
+GhosttyではShiftを押しながらドラッグして選択し、Cmd+Cでコピーする。
 Herdrのcopy modeからコピーする場合は、MacのターミナルのOSC 52対応と許可も確認する。
+
+Mac用Herdr設定は `home/desktop/dotfiles/herdr/config.toml` を共通参照元にして生成する。
+キー設定・UI設定は自宅と同期し、Macだけ画像貼り付けのCtrl+Vを有効にする。
+`Ctrl+b w`は自宅専用の `herdr-home pick` popupではなくHerdr標準のWorkspace選択を開く。
+Macへ自宅用のカスタムコマンドは配布しない。`--remote-keybindings server`は指定せず、
+同期済みのMac側キー設定を使う。
 
 Macでは `nix build .#darwinConfigurations.darwin.system --out-link result` で非破壊ビルドし、
 既存のDarwin反映手順を実機ユーザーが手動で実行する。既存の `~/.config/herdr/config.toml` がある場合は
@@ -145,7 +152,7 @@ CLIでは`herdr-home remove`（選択式）、または`herdr-home remove --work
 
 Macでは通常 `herdr --remote home` で作業を再開する。予備経路の `mosh home` は接続直後が通常のシェルなので、そこで `herdr` を実行する。この経路ではMacの画像クリップボード転送は使えない。
 Herdr全体UIからは`Ctrl+b q`でdetachできる。`--remote`ではMacのローカルシェルへ、Mosh内で起動した場合は接続先の通常のシェルへ戻る。
-`Ctrl+b w`のprojectメニューから作成・削除もできる。
+自宅/Moshでは`Ctrl+b w`のprojectメニューから作成・削除もできる。Macの`--remote`では同じキーでHerdr標準のWorkspace選択を開く。
 自宅のdirect attach Window内では全体UIのprefix操作を使わず、上記の通常シェル用キーを使う。
 
 Windowを閉じると表示clientのみを終了する。`exit`、Herdrのclose pane/tab、server stopはプロセスを終了する操作なので区別する。
@@ -158,9 +165,9 @@ Herdr全体UIは`Ctrl+b`を押して離してから操作するone-shot prefix�
 
 | prefix後 | 動作 |
 |---|---|
-| `h/j/k/l` | Pane移動 |
-| `H/L` | 前/次Tab |
-| `w` | project選択・新規作成・削除 |
+| `H/J/K/L`（Shift付き） | Pane移動 |
+| `h/l` | 前/次Tab |
+| `w` | 自宅/Mosh: projectメニュー。Macの`--remote`: 標準Workspace選択 |
 | `N` | Workspace作成 |
 | `c` | Tab作成 |
 | `v` / `-` | 左右/上下分割 |
