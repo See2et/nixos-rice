@@ -21,6 +21,8 @@ in
   # Ctrl+V lets the local Herdr client bridge clipboard images to the host.
   xdg.configFile."herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-mac-config.toml" macConfig;
 
+  programs.zsh.shellAliases.h = "herdr --remote home --remote-keybindings server";
+
   programs.ssh = {
     settings.home = {
       HostName = "nixos.taile209b8.ts.net";
