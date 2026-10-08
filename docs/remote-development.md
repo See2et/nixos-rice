@@ -3,7 +3,7 @@
 ## 構成と境界
 
 - 自宅: niri + Alacrittyの別WindowからHerdr Terminalへdirect attach。
-- Mac: `mosh home` → `herdr`。自宅と同じUnixユーザー `see2et` のデフォルトsessionを使う。
+- Mac: Macのローカルシェルから `herdr --remote home`。自宅と同じUnixユーザー `see2et` のデフォルトsessionを使う。Moshは予備の接続経路として維持する。
 - Web: Tailscale Serveによるtailnet限定HTTPS。dev serverのupstreamはloopbackのみ。
 - GUI: Moonlight → Tailscale → Sunshine → ログイン済みの同じniriセッション。
 - WSLは変更せずZellijを維持。desktop/Macは宣言上Zellijを外すが、既存のsessionデータを削除しない。
@@ -47,7 +47,7 @@ Tailscale Serveはtailscaled内のlistenerなので、NixOSのinterface firewall
 
 ### 4. Mac
 
-Macの既存Darwin反映手順でbuild/switchする。Mosh、Moonlight、SSH alias `home`が配布される。
+Macの既存Darwin反映手順でbuild/適用する。Herdr v0.9.0、Mosh、Moonlight、SSH alias `home`が配布される。
 `home`は `nixos.taile209b8.ts.net`、ユーザーは `see2et`、鍵は `~/.ssh/id_ed25519`。
 別の鍵を使う場合は`home/darwin/remote-dev.nix`を変更する。
 
@@ -55,8 +55,28 @@ Macの公開鍵を自宅の`~/.ssh/authorized_keys`へ安全に登録し、Mac�
 
 ```bash
 ssh -o BatchMode=yes -o PasswordAuthentication=no home true
+herdr --remote home
+# 回線が不安定なときの予備経路:
 mosh home
 ```
+
+`herdr --remote home`はMacのローカルシェルから実行する。SSH/Moshで自宅へ入ってから実行しない。
+Mac側のキー設定を使い、文字の貼り付けはターミナルのCmd+V、画像の貼り付けはCtrl+V。
+スクリーンショットを画像としてクリップボードにコピーした後、画像を扱えるAgentの入力欄でCtrl+Vを押す。
+Herdrが画像を自宅の一時ファイルへ転送し、そのパスを貼り付ける。文字のコピーはターミナルで選択してCmd+Cを使う。
+Herdrのcopy modeからコピーする場合は、MacのターミナルのOSC 52対応と許可も確認する。
+
+Macでは `nix build .#darwinConfigurations.darwin.system --out-link result` で非破壊ビルドし、
+既存のDarwin反映手順を実機ユーザーが手動で実行する。既存の `~/.config/herdr/config.toml` がある場合は
+内容を退避してからHome Managerの管理へ移行し、手動設定を無断で上書きしない。
+適用後、新しいシェルで `herdr --version` と `herdr config check` を確認する。
+SSH接続、文字のコピペ、画像転送、切断後の再接続をMac実機で確認する。
+このLinuxホスト上のeval/config検証は、Mac実機のビルドや接続検証を代替しない。
+
+接続時にremote binaryのインストールや互換性のためのserver停止を提案された場合は承認せず、
+自宅の既存Herdr v0.9.0が見つかるかを確認する。server停止は全paneを終了させる。
+SSH切断後も自宅のpane内プロセスは残るが、Moshと同じ接続維持ではないため、必要なら再度
+`herdr --remote home`で接続する。server再起動やホスト再起動を跨いだプロセス継続は保証しない。
 
 SSHはMoshの初回認証にも必要。公開鍵を確認できるまでは現在のパスワード認証を維持する。
 確認後、`modules/nixos/desktop/remote-dev.nix`の`services.openssh.settings`へ
@@ -86,7 +106,7 @@ herdr-home project ~/Projects/my-project --label my-project
 | 既存Terminalを開く | launcherの「Herdr: Restore Terminal」 |
 | projectの全Terminalを開く | `herdr-home restore --workspace w1 --all` |
 | Terminal一覧 | `herdr-home list` |
-| MacのTUIへ引き継ぐ | 自宅またはMosh先で`herdr-home handoff`、続けて`herdr` |
+| MacのTUIへ引き継ぐ | 自宅またはSSH先で`herdr-home handoff`、続けてMacのローカルシェルから`herdr --remote home` |
 
 `w1`は例。実際のIDは一覧から取得する。`restore`は新しいTabを作成せず、既存のmanaged Windowがあればfocusする。
 `Mod+Return`はフォーカス元のmanaged Terminalのprojectと現在のforeground CWDを引き継ぐ。
@@ -123,8 +143,8 @@ Herdrサーバーの再起動後は`set-directory`で再登録する。お気に
 ディレクトリやソースファイル、他のprojectは削除しない。確認でEnterだけを押すとキャンセルする。
 CLIでは`herdr-home remove`（選択式）、または`herdr-home remove --workspace ID`。どちらも確認がある。
 
-Macでは`mosh home`の接続直後は通常のシェル。作業を再開するときに`herdr`を実行する。
-Herdr全体UIからは`Ctrl+b q`でdetachし、接続先の通常のシェルへ戻れる。
+Macでは通常 `herdr --remote home` で作業を再開する。予備経路の `mosh home` は接続直後が通常のシェルなので、そこで `herdr` を実行する。この経路ではMacの画像クリップボード転送は使えない。
+Herdr全体UIからは`Ctrl+b q`でdetachできる。`--remote`ではMacのローカルシェルへ、Mosh内で起動した場合は接続先の通常のシェルへ戻る。
 `Ctrl+b w`のprojectメニューから作成・削除もできる。
 自宅のdirect attach Window内では全体UIのprefix操作を使わず、上記の通常シェル用キーを使う。
 
