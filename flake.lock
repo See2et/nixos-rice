@@ -769,11 +769,11 @@
     "pi-understanding": {
       "flake": false,
       "locked": {
-        "lastModified": 1791361824,
-        "narHash": "sha256-vAPRv+Hv7WiIBOTO27gWRnA9NA70oPcP+EmEIP5XOYo=",
+        "lastModified": 1791421547,
+        "narHash": "sha256-9uJDqvYrPUzIg1JNgcxFHLbvX5B6PD/g4ZVihMzyZq4=",
         "ref": "refs/heads/main",
-        "rev": "8c9f0a60f7f45171fd9eac26d1f8ceddd4757358",
-        "revCount": 6,
+        "rev": "4d6b08e53e1ec25725d3dca16dc80f20d734d6ab",
+        "revCount": 7,
         "type": "git",
         "url": "ssh://git@github.com/See2et/pi-understanding.git"
       },
