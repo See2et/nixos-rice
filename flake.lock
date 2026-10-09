@@ -703,11 +703,11 @@
     "pi-astraeus": {
       "flake": false,
       "locked": {
-        "lastModified": 1791380551,
-        "narHash": "sha256-e1jBUWzm3Y8px8KI0o1S7m/vJQTr6MKFREO6ow9HSUc=",
+        "lastModified": 1791520384,
+        "narHash": "sha256-5gh/WQFzpN66ipVM9iNX3vELL7ObNdZsYyTVxrvqoik=",
         "ref": "refs/heads/main",
-        "rev": "29a570cb4e365f9cae0232fd574b06fb2036426d",
-        "revCount": 19,
+        "rev": "39b3fb04bd60dfb3eccede130deb04775673280d",
+        "revCount": 20,
         "type": "git",
         "url": "ssh://git@github.com/See2et/pi-astraeus.git"
       },
@@ -769,11 +769,11 @@
     "pi-understanding": {
       "flake": false,
       "locked": {
-        "lastModified": 1791440619,
-        "narHash": "sha256-AWZdHdgEWNtK7Pozgrkhy21cTyYO0TvvCIzCupsx3xk=",
+        "lastModified": 1791449737,
+        "narHash": "sha256-nPTFO774kkcqnUCiUBBhf2ZK/kOqALcYZIxv0wkd1C0=",
         "ref": "refs/heads/main",
-        "rev": "8c81e6d3ffbe256a6a914f1a665351310c14905a",
-        "revCount": 11,
+        "rev": "9066d3857c2e52042fb88e35adb503543518a3d1",
+        "revCount": 12,
         "type": "git",
         "url": "ssh://git@github.com/See2et/pi-understanding.git"
       },

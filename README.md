@@ -98,6 +98,16 @@ LSP 用の TypeScript/JavaScript・Python・Rust サーバーを wrapper の PAT
 `/lsp` で状態、`/usage` で利用枠を確認できる。LSP の追加言語・サーバーは
 各プロジェクトの `.pi-lsp.json` または `/lsp-config` で設定する。
 
+`@tifan/pi-recap` 0.4.8 は `/recap` でセッションの目的・現在の状態・次の行動を短く表示する。
+5分間のアイドル後やセッション再開時にも要約を生成する。要約には追加のモデル呼び出しが発生する。
+Home Manager 適用時に writable な `~/.pi/agent/extensions/pi-recap.json` の `model` だけを
+`openai-codex/gpt-6.1-sol` に設定し、その他のキー・Pi設定・認証は保持する。
+`/recap config` で一時的に変更できるが、次のHome Manager適用で宣言値へ戻る。
+認証はPiの既存の `openai-codex` 認証を使う。指定モデルが利用不可・未認証なら別モデルへは
+フォールバックしない。適用後に新しいwrapperでPiを起動し、`/recap status` と `/recap` で確認する。
+独自の `PI_CODING_AGENT_DIR` を使う場合は、そのディレクトリの `extensions/pi-recap.json` に
+同じモデル設定を用意する（Home Managerの設定先は上記の標準ディレクトリ）。
+
 `pi-usage` の Codex 利用枠取得には、native `/login openai` とは別に
 `/login openai-codex` で同じ ChatGPT アカウント・workspaceへ補助ログインする。
 推論モデルは `openai/gpt-6.1-sol` のまま維持できる。`Codex:✓` は使用率の
@@ -107,7 +117,7 @@ LSP 用の TypeScript/JavaScript・Python・Rust サーバーを wrapper の PAT
 npm版のversion・推移的依存は `packages/pi-extensions/package.json` と
 `package-lock.json` に固定する。現在は `pi-web-access` 0.37.0、
 `pi-browser-actions` 1.1.1、`pi-interview` 0.13.0、`@raidou/pi-notify` 0.8.0、
-`pi-lsp-extension` 1.4.0、`@mtrojnar/pi-usage` 0.2.0。
+`pi-lsp-extension` 1.4.0、`@mtrojnar/pi-usage` 0.2.0、`@tifan/pi-recap` 0.4.8。
 更新コマンドは `npm install --save-exact --package-lock-only --ignore-scripts
 --legacy-peer-deps` を使い、npmのinstall scriptは実行しない。
 

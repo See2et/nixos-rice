@@ -50,6 +50,11 @@
     "package": "pi-lsp-extension"
   },
   {
+    "name": "@tifan/pi-recap",
+    "kind": "npm",
+    "package": "@tifan/pi-recap"
+  },
+  {
     "name": "@mtrojnar/pi-usage",
     "kind": "npm",
     "package": "@mtrojnar/pi-usage"

@@ -349,6 +349,57 @@ class CommandTests(unittest.TestCase):
         self.assert_preserved()
 
 
+class RecapConfigTests(unittest.TestCase):
+    """Activation changes only the selected model, safely and idempotently."""
+
+    def configure(self, path):
+        return subprocess.run([
+            sys.executable, str(ROOT / "packages/pi-extensions/configure-recap.py"),
+            str(path), "openai-codex/gpt-6.1-sol",
+        ], text=True, capture_output=True)
+
+    def test_model_merge_and_idempotence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            agent = Path(temp)
+            path = agent / "extensions/pi-recap.json"
+            # Ordinary settings and authentication are outside this helper's scope.
+            settings = agent / "settings.json"
+            auth = agent / "auth.json"
+            settings.write_text('{"model": "user-model"}\n')
+            auth.write_text("untouched auth fixture")
+            for existing in (None, {"model": "other/model", "future": {"keep": True}}):
+                with self.subTest(existing=existing):
+                    if existing is not None:
+                        path.write_text(json.dumps(existing))
+                    result = self.configure(path)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(json.loads(path.read_text()), {
+                        **(existing or {}), "model": "openai-codex/gpt-6.1-sol",
+                    })
+                    before = path.stat().st_mtime_ns
+                    result = self.configure(path)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(path.stat().st_mtime_ns, before)
+                    self.assertEqual(settings.read_text(), '{"model": "user-model"}\n')
+                    self.assertEqual(auth.read_text(), "untouched auth fixture")
+
+    def test_invalid_or_symlink_config_is_not_overwritten(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "pi-recap.json"
+            for content in ("invalid JSON", "[]", "null"):
+                with self.subTest(content=content):
+                    path.write_text(content)
+                    self.assertNotEqual(self.configure(path).returncode, 0)
+                    self.assertEqual(path.read_text(), content)
+            target = Path(temp) / "user-config.json"
+            target.write_text('{"model": "user/model"}')
+            path.unlink()
+            path.symlink_to(target)
+            self.assertNotEqual(self.configure(path).returncode, 0)
+            self.assertTrue(path.is_symlink())
+            self.assertEqual(target.read_text(), '{"model": "user/model"}')
+
+
 class ArtifactTests(unittest.TestCase):
     def test_npm_aliases_keep_existing_naming_rules(self):
         with tempfile.TemporaryDirectory() as temp:

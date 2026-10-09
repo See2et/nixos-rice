@@ -71,5 +71,12 @@ in
     run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-codemode.py} \
       ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/settings.json"}
   '';
+  # Own only recap's model, not Pi settings/auth. Keep this writable so
+  # /recap config works; the next HM activation restores the declarative model.
+  home.activation.piRecap = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-recap.py} \
+      ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/extensions/pi-recap.json"} \
+      ${lib.escapeShellArg "openai-codex/gpt-6.1-sol"}
+  '';
   home.file = builtins.listToAttrs agentFiles;
 }
