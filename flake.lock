@@ -687,11 +687,11 @@
     "personal-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1791506115,
-        "narHash": "sha256-N9OVU16AdU/W01TFTCwB9OfWcdci2FnhWNOCkNzvF+U=",
+        "lastModified": 1791534919,
+        "narHash": "sha256-Ml7spO0VNbt8ivFvZL5e90j+MROAJtcLOvhSNwNR6/E=",
         "ref": "refs/heads/main",
-        "rev": "7b6c3f28352570bb59d2911f36e7240666277ae7",
-        "revCount": 34,
+        "rev": "779e6715af34de4a6c1293809e539ae2dd2bc709",
+        "revCount": 35,
         "type": "git",
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       },
