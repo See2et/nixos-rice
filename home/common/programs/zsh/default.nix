@@ -385,6 +385,7 @@
       lib.mkMerge [
         zshConfigEarlyInit
         zshConfig
+        (lib.mkAfter (builtins.readFile ./ghq.zsh))
       ];
   };
 }
