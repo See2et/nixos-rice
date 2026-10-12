@@ -9,6 +9,7 @@
   imports = [
     ./abbreviations.nix
     ./plugins.nix
+    ./nix.nix
   ];
 
   home.file.".p10k.zsh".source = ./p10k.zsh;
