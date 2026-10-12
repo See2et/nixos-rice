@@ -687,11 +687,11 @@
     "personal-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1791534919,
-        "narHash": "sha256-Ml7spO0VNbt8ivFvZL5e90j+MROAJtcLOvhSNwNR6/E=",
+        "lastModified": 1791779363,
+        "narHash": "sha256-gPNVDn4fSp1D5ugt/Rjg7PHmZ1b6mz3SSbhxhjIX4uc=",
         "ref": "refs/heads/main",
-        "rev": "779e6715af34de4a6c1293809e539ae2dd2bc709",
-        "revCount": 35,
+        "rev": "23bca70fda5c6d1dbff56159f8678b4963cc0ea8",
+        "revCount": 36,
         "type": "git",
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       },
@@ -971,11 +971,11 @@
     "yomiyasu": {
       "flake": false,
       "locked": {
-        "lastModified": 1791427304,
-        "narHash": "sha256-t/R2QBoktkTpvPcy88U6URKwW6Qz5Fmc2RjZovHZvXk=",
+        "lastModified": 1791753025,
+        "narHash": "sha256-hBI3qm7wJJAR1xgVWAk/GIIAQZA9SEn2BTIHLoBoFEI=",
         "owner": "nanaism",
         "repo": "yomiyasu",
-        "rev": "c2ffae670994fec96daef92e0bc219f5c1923113",
+        "rev": "602a3690dadd5d620bb21524353b8d192914eabb",
         "type": "github"
       },
       "original": {
