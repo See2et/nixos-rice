@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   command =
     name: mode:
@@ -22,7 +22,9 @@ in
       if [[ "''${1-}" == flake && "''${2-}" == update ]]; then
         command skills-update "$@"
       else
-        command nix "$@"
+        # Nix rewrites SHELL to Bash inside dev shells; use the managed Zsh instead.
+        # Explicit commands and other nix subcommands still pass through unchanged.
+        ${lib.getExe pkgs.nix-your-shell} ${lib.getExe config.programs.zsh.package} nix -- "$@"
       fi
     }
   '';
