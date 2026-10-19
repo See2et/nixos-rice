@@ -135,11 +135,11 @@ Nodeで実行し、Pi本体のBunとは分離する。Linuxの画像ライブラ
 libstdc++はwrapperから供給する。検証は
 `python3 packages/pi-extensions/smoke-browser.py ./result-pi/bin/pi`で行える。
 
-miloaはPiのwritableな`~/.pi/agent/mcp.json`に登録する。OpenCodeの認証情報は
-コピーせず、Pi側で独立してOAuth認証する。このホストでは登録済みだが、
-認証は未完了。ユーザーが`./result-pi/bin/pi mcp login miloa`を実行して
-ブラウザーで承認し、`./result-pi/bin/pi mcp list --json`で接続を確認する。
-miloaのURLや認証情報はNixで配布しない。他のホストでは各自のPiに登録する。
+miloaのURLは共通Home Manager設定から、Piのwritableな
+`~/.pi/agent/mcp.json`へマージする。他のMCPサーバーとmiloaの個別設定は保持する。
+OAuth認証は各ホストで行い、認証情報はNixで配布しない。適用後にユーザーが
+`pi mcp login miloa`を実行してブラウザーで承認し、`pi mcp list`で接続を確認する。
+起動中のPiには`/reload`で反映する。
 
 SubAgentの完了通知・記録の期限切れ・元セッションの復旧は別の問題として扱う。
 検証結果と改修案は[pi-subagent-recovery.md](docs/pi-subagent-recovery.md)を参照。

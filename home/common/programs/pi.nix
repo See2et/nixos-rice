@@ -78,5 +78,11 @@ in
       ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/extensions/pi-recap.json"} \
       ${lib.escapeShellArg "openai-codex/gpt-6.1-sol"}
   '';
+  # Own only the endpoint; Pi keeps OAuth and per-host MCP settings writable.
+  home.activation.piMiloa = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-mcp.py} \
+      ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/mcp.json"} \
+      ${lib.escapeShellArg "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp"}
+  '';
   home.file = builtins.listToAttrs agentFiles;
 }

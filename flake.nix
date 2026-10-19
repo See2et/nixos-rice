@@ -525,6 +525,7 @@
                 export HOME="$TMPDIR"
                 export PYTHONDONTWRITEBYTECODE=1
                 python3 ${self}/tests/pi-extensions.py
+                python3 ${self}/packages/pi-extensions/test-mcp.py
                 touch "$out"
               '';
         }
