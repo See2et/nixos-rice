@@ -7,6 +7,10 @@
       url = "git+ssh://git@github.com/See2et/agent-skills.git";
       flake = false;
     };
+    imozuru = {
+      url = "github:MaryCache/imozuru";
+      flake = false;
+    };
     yomiyasu = {
       url = "github:nanaism/yomiyasu";
       flake = false;

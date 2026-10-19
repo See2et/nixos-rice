@@ -18,7 +18,15 @@
       subdir = "skills";
       filter.maxDepth = 1;
     };
-    skills.enable = [ "yomiyasu" ];
+    sources.imozuru = {
+      path = inputs.skills.inputs.imozuru.outPath;
+      subdir = "skills";
+      filter.maxDepth = 1;
+    };
+    skills.enable = [
+      "yomiyasu"
+      "imozuru"
+    ];
     skills.enableAll = [ "personal" ];
     # Codex and OpenCode already discover this shared location.
     targets.agents = {

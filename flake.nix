@@ -59,6 +59,10 @@
     pi-nix.url = "github:sadjow/pi-nix";
     # Generated Git sources; inventory.json owns all extension registrations.
     pi-extensions.url = "path:./pi-extensions";
+    ax = {
+      url = "github:yusukebe/ax";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     agent-skills-nix = {
       url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";

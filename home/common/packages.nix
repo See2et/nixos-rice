@@ -49,6 +49,8 @@ in
       fastfetch
       tree-sitter
       yt-dlp
+      poppler-utils
+      (tesseract.override { enableLanguages = [ "eng" ]; })
       ripgrep
       jq
       fd
@@ -66,6 +68,7 @@ in
     ])
     ++ [
       rustToolchain
+      inputs.ax.packages.${pkgs.stdenv.hostPlatform.system}.default
       inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex
       opencodePackage
       pencil-cli
