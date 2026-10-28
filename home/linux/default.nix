@@ -13,5 +13,6 @@
     wl-clipboard
     xclip
     libnotify
+    thunderbird
   ];
 }
