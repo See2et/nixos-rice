@@ -22,7 +22,7 @@
   "mcp": {
     "miloa": {
       "type": "remote",
-      "url": "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp",
+      "url": "https://mcp.miloa.io",
       "enabled": true,
       "timeout": 30000
     },

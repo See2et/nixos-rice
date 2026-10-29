@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 SCRIPT = Path(__file__).with_name("configure-mcp.py")
-URL = "https://miloa-beta.comni.pl/w/69f1f3e11d1ab359d844ba89/mcp"
+URL = "https://mcp.miloa.io"
 
 
 class McpConfigTests(unittest.TestCase):
