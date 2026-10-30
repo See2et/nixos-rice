@@ -26,7 +26,7 @@ nix run .#update-pi-extensions -- --list                # 使用可能な名前
 nix run .#update-pi-extensions -- --help
 ```
 
-現在の名前は `pi-subagents`、`pi-astraeus`、`pi-understanding`、
+現在の名前は `pi-subagents`、`pi-astraeus`、`pi-mentor`、
 `pi-web-access`、`pi-browser-actions`、`pi-interview`、`@raidou/pi-notify`、
 `pi-lsp-extension`、`@mtrojnar/pi-usage`。名前は更新前に全件検証する。
 Git拡張は対象のinputだけ、npm拡張はregistryのlatestを取得してexact versionに更新する。
@@ -59,7 +59,7 @@ atomic transactionではない。更新中は他の編集を止め、成功後�
 通常の `dry-activate` → `test` → `switch` のrollout gateを手動で実行する。
 Darwinも実機ユーザーが適用する。エージェントはactivationを実行しない。
 
-`pi-astraeus` と `pi-understanding` は
+`pi-astraeus` と `pi-mentor` は
 `git+ssh` で取得するため、後述の private GitHub 用 SSH 設定を使う。
 validator 用の Python / jsonschema は wrapper の PATH に含まれる。
 Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudicator}.md`
@@ -74,16 +74,13 @@ Home Manager は `~/.pi/agent/agents/astraeus-{worker,designer,reviewer,adjudica
 `/reload` は新しいinputのStoreパスをすでに読み込んでいる場合に限る。
 エージェントはactivationを実行しない。
 
-理解支援の TUI SidePane は private repo
-[`See2et/pi-understanding`](https://github.com/See2et/pi-understanding) から
-`pi-extensions/pi-understanding` input として取得し、同じ wrapper で読み込む。
-`/understand` で開く。未commit分 / ローカルbranch / コード全体 / Module / Commit / PRと
-参照する版を区別し、実装側とは別の会話で Pi の現在のモデルと認証を使う。
-`/understand scope` では候補を一覧から選べる。学習ペインのCtrl+Tでも対象を変更できる。
-実装側のAIへ自然文で相談すると、候補を調べ、ユーザーの確認後に理解対象を選択できる。
-Ctrl+Alt+Uで実装入力と学習入力を切り替える。fullscreenでは両方の入力欄を
-クリックして移動でき、下書きは保持する。regularではキーボードで切り替える。
-更新は編集用 ghq checkout から push した後、`nix run .#update-pi-extensions -- pi-understanding`、
+学習支援の Pi Mentor は private repo
+[`See2et/pi-mentor`](https://github.com/See2et/pi-mentor) から
+`pi-extensions/pi-mentor` input として取得し、同じ wrapper で読み込む。
+`/mentor` で開始・再開し、通常の Pi チャットで現在のモデルと認証を使う。
+フェーズ移動・論点選択・仮説の確認・判断は本人が操作し、AIは提案と記録を行う。
+`/mentor status` で記録を確認し、`/mentor pause` で通常チャットへ戻る。
+更新は編集用 ghq checkout から push した後、`nix run .#update-pi-extensions -- pi-mentor`、
 ビルド、後述の rollout gate の順に行う。checkout の編集だけでは Store 側に反映されない。
 詳しい操作と制限は拡張の README を参照。Git / gh は wrapper の PATH に含めるが、
 GitHub 認証はユーザーの既存設定を使い、Nix には保存しない。

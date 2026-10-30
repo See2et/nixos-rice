@@ -802,8 +802,8 @@
     "pi-extensions": {
       "inputs": {
         "pi-astraeus": "pi-astraeus",
-        "pi-subagents": "pi-subagents",
-        "pi-understanding": "pi-understanding"
+        "pi-mentor": "pi-mentor",
+        "pi-subagents": "pi-subagents"
       },
       "locked": {
         "path": "./pi-extensions",
@@ -814,6 +814,22 @@
         "type": "path"
       },
       "parent": []
+    },
+    "pi-mentor": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793325319,
+        "narHash": "sha256-LbhNejNYxAARZUjfsenHTiLxT3KYXAc565rcMVEubL8=",
+        "ref": "refs/heads/main",
+        "rev": "c26f7c9b13e3186dd0e2abad3cd7b1bab7bc1eda",
+        "revCount": 2,
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/pi-mentor.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/pi-mentor.git"
+      }
     },
     "pi-nix": {
       "inputs": {
@@ -847,22 +863,6 @@
         "owner": "tintinweb",
         "repo": "pi-subagents",
         "type": "github"
-      }
-    },
-    "pi-understanding": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791449737,
-        "narHash": "sha256-nPTFO774kkcqnUCiUBBhf2ZK/kOqALcYZIxv0wkd1C0=",
-        "ref": "refs/heads/main",
-        "rev": "9066d3857c2e52042fb88e35adb503543518a3d1",
-        "revCount": 12,
-        "type": "git",
-        "url": "ssh://git@github.com/See2et/pi-understanding.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/See2et/pi-understanding.git"
       }
     },
     "root": {

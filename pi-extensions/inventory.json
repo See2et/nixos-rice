@@ -20,9 +20,9 @@
     }
   },
   {
-    "name": "pi-understanding",
+    "name": "pi-mentor",
     "kind": "git",
-    "url": "git+ssh://git@github.com/See2et/pi-understanding.git"
+    "url": "git+ssh://git@github.com/See2et/pi-mentor.git"
   },
   {
     "name": "pi-web-access",
