@@ -65,6 +65,7 @@
       "yubico-authenticator"
       "zen@twilight"
       "zoom"
+      "zotero"
       "raycast"
       "notion"
       "notion-calendar"

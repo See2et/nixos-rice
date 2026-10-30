@@ -14,5 +14,6 @@
     xclip
     libnotify
     thunderbird
+    zotero
   ];
 }
