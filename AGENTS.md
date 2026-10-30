@@ -1,238 +1,60 @@
-# AGENTS.md — /etc/nixos Knowledge Base
+# /etc/nixos での作業制約
 
-## Overview
+この checkout は稼働中のシステム設定です。対象は Desktop / WSL / Darwin の3つで、laptop ターゲットはありません。導入・SSH・更新・ロールバックの手順は [README.md](README.md) を参照してください。
 
-This is a unified NixOS flake repo managing three targets from a single source of truth:
-- **Desktop** (`nixosConfigurations.desktop`) — NixOS x86_64-linux workstation
-- **WSL** (`nixosConfigurations.wsl`) — NixOS-WSL under Windows
-- **Darwin** (`darwinConfigurations.darwin`) — nix-darwin + Home Manager + nix-homebrew on aarch64-darwin
+## 適用の安全境界
 
-## Architecture
+- `nix eval` / `nix build` / `nix flake check` で評価・ビルドまで検証できます。これらはシステムを activation しません。
+- NixOS は必ず `dry-activate` → `test` → `switch` の順に進めます。`test` / `switch`（ロールバックを含む）は実機ユーザーだけが手動で実行します。エージェントやサブエージェントは実行しません。
+- エージェントが実行できるのは `dry-activate` までです。dry モードでも activation logic を実行するため、サブエージェントには委任しません。
+- Darwin の activation / `darwin-rebuild switch` も実機ユーザー専用です。
+- `dry-activate` は Home Manager / Plugin の実適用を検証しません。ユーザーの `test` 後に Home Manager の成功も確認します。
+- Desktop の `see2et` には宣言的なパスワードがありません。GDM 再起動でログイン不能にならないよう、適用前にローカルパスワードが設定済みであることをユーザーに確認します。秘密情報や `hashedPasswordFile` の保存先を勝手に作りません。
 
-VR 変更の一次参照は `home/desktop/vr/AGENTS.md`。
-Steam, SteamVR, ALVR, OyasumiVR, WayVR に触る前に必ず読むこと。
-このリポジトリに laptop ターゲットはない。
+## 配置とホスト隔離
 
-```
-flake.nix                         # Single entry point — all outputs defined here
-├── hosts/
-│   ├── desktop/default.nix       # Desktop host wiring (imports hw, desktop modules, niri, nvidia, HM)
-│   ├── darwin/default.nix        # Darwin host wiring (imports darwin modules, HM, nix-homebrew)
-│   └── wsl/default.nix           # WSL host wiring (imports nixos-wsl, HM)
-├── modules/darwin/
-│   ├── default.nix               # Darwin module entrypoint
-│   ├── system.nix                # Darwin baseline system settings
-│   └── homebrew.nix              # nix-homebrew + declarative Homebrew policy
-├── modules/nixos/
-│   ├── common/default.nix        # Shared NixOS baseline (nix settings, zsh, gpg)
-│   ├── desktop/                  # Desktop-only system: system, boot, gdm, nvidia, audio, vr, firewall, niri, filesystems
-│   └── wsl/default.nix           # WSL-only system: nix-ld, usbip, allowUnsupportedSystem
-├── home/
-│   ├── common/                   # Shared HM: git, gh, gpg, zsh, packages, session
-│   ├── linux/default.nix         # Linux-only HM packages (wl-clipboard, xclip, libnotify)
-│   ├── desktop/                  # Desktop HM: niri, DMS shell, XDG, desktop packages
-│   ├── wsl/                      # WSL HM: /mnt/c PATH, notifier files
-│   └── darwin/default.nix        # Darwin HM: placeholder + isDarwin assertion
-├── hardware-configuration.nix    # Desktop hardware — imported ONLY by hosts/desktop
-└── home/                         # Modular Home Manager tree (common/linux/desktop/wsl/darwin)
-```
+`hosts/*/default.nix` は imports とホストの identity を結ぶ場所です。設定は `modules/nixos/*`、`modules/darwin/*`、`home/*` の適切なモジュールへ置き、ルートにモノリスを再導入しません。
 
-## Critical Safety Rules for /etc/nixos
+- `home/common/` は3ターゲット共通で platform-agnostic に保ちます。Linux 共通は `home/linux/`、Desktop / WSL / Darwin 固有は各 `home/<host>/` へ置きます。
+- Desktop は `nixos-wsl`、`modules/nixos/wsl`、`home/wsl` を import しません。
+- WSL は `modules/nixos/desktop`、`home/desktop`、`hardware-configuration.nix` を import しません。
+- `hardware-configuration.nix` は `hosts/desktop` だけが import し、共通モジュールへ移しません。
+- `/mnt/c` の PATH 設定は `home/wsl/session.nix` に限定し、`home/common/` や `modules/nixos/common/` に入れません。
+- Darwin は `modules/nixos/*`、`home/linux`、`home/desktop`、`home/wsl` を import しません。
 
-### 1. NEVER run `nixos-rebuild switch` without the user's explicit manual action
+## 変更時の検証
 
-This repo lives at `/etc/nixos` — the live NixOS system configuration. `switch` and `test` can affect the running system immediately. `dry-activate` is a lower-risk preflight check, but it still executes activation logic in dry mode. During this migration, a subagent ran `nixos-rebuild switch` without authorization, triggering a reboot and login lockout.
-
-VR changes add one more gate, physical HMD QA after build and user activation.
-
-**Mandatory protocol:**
-- Build and eval are always safe: `nix build`, `nix eval`, `nix flake check`
-- Agent automation may run `dry-activate` only (never delegate this to subagents)
-- Activation commands `test` and `switch` are **user-only**
-- Always follow the gate sequence: `dry-activate` → `test` → `switch`
-
-### 2. Generation-based rollback is your safety net
+Git flake は未追跡ファイルを評価対象に含めません。新しいモジュールは `git add path/to/module.nix` で追跡してから評価します。
 
 ```bash
-# Rollback to previous generation (immediate)
-sudo nixos-rebuild switch --profile /nix/var/nix/profiles/system --rollback
-
-# Full restore from pre-unification backup
-sudo cp -a /etc/nixos.pre-unify.20260217-1732 /etc/nixos
-sudo nixos-rebuild switch --flake /etc/nixos#desktop
-```
-
-Current baseline: **Generation 105**. Pre-unification backup exists at `/etc/nixos.pre-unify.20260217-1732`.
-
-### 3. `git add` before `nix eval`/`nix build`
-
-Flakes use the git-tracked working tree. Newly created `.nix` files are invisible to the evaluator until staged:
-```bash
-git add path/to/new/module.nix
-nix eval .#nixosConfigurations.desktop.config.some.option  # now sees the file
-```
-
-This is the most common failure mode when creating new modules. If you see `path '/nix/store/…/module' does not exist`, it means the file isn't staged.
-
-### 4. User `see2et` has no declarative password
-
-`users.users.see2et` in `modules/nixos/desktop/system.nix` uses `isNormalUser = true` without `hashedPassword` or `initialPassword`. If GDM restarts (e.g., during `switch`), the user must already have a password set via `passwd`. Consider adding `hashedPasswordFile` to prevent future lockouts.
-
-## Host Isolation Boundaries
-
-The most important architectural invariant: **hosts must not leak into each other**.
-
-| Rule | Enforced by |
-|------|-------------|
-| Desktop must NOT import `nixos-wsl`, `modules/nixos/wsl`, or `home/wsl` | `hosts/desktop/default.nix` GUARDRAIL comments + structural import graph |
-| WSL must NOT import `modules/nixos/desktop`, `home/desktop`, or `hardware-configuration.nix` | `hosts/wsl/default.nix` import list |
-| `/mnt/c` paths must NOT appear in `home/common/` or `modules/nixos/common/` | WSL PATH is in `home/wsl/session.nix` only |
-| `hardware-configuration.nix` must NOT be in `modules/nixos/common/` | Imported only by `hosts/desktop/default.nix` |
-| Darwin must NOT import Linux host modules (`modules/nixos/*`, `home/linux`, `home/desktop`, `home/wsl`) | `hosts/darwin/default.nix` import list |
-
-**Verification command:**
-```bash
-# Check WSL leakage into desktop
-grep -rn 'modules/nixos/wsl\|home/wsl\|nixos-wsl\|/mnt/c' hosts/desktop/ home/common/ modules/nixos/common/
-# Should return only comments, never actual imports
-```
-
-## Non-Destructive Development Patterns
-
-### Safe verification commands (run freely)
-
-```bash
-nix flake check --show-trace                                          # Validate all outputs
-nix build .#nixosConfigurations.desktop.config.system.build.toplevel  # Build desktop (no activation)
-nix build .#nixosConfigurations.wsl.config.system.build.toplevel      # Build WSL
-nix eval .#nixosConfigurations.desktop.config.services.pipewire.enable # Inspect any option
-nix build .#darwinConfigurations.darwin.system                         # Darwin build (requires aarch64-darwin)
-nix eval .#darwinConfigurations.darwin.system.stateVersion             # Darwin option check
-```
-
-### Module development workflow
-
-1. Create/edit `.nix` files
-2. `git add` new files (required for flake visibility)
-3. `nix flake check --show-trace` — catches type errors, missing imports, option conflicts
-4. `nix eval` specific options to verify behavior
-5. `nix build` toplevel to ensure full system builds
-6. Only then: agent may run `dry-activate`; user manually runs `test` and `switch`
-
-### Desktop rice QA checklist (T3-2)
-
-Run this lightweight checklist after any desktop theme/token/wallpaper change:
-- Typography: DMS bar, launcher, notifications, and lock/power UI use consistent font family/scale (no accidental fallback fonts).
-- Spacing: paddings, gaps, and corner radii remain visually consistent across bar, launcher, notifications, and lock/power surfaces.
-- Contrast: text/icons stay readable for normal + urgent states against the current wallpaper/background.
-- Interaction latency: launcher, power menu, lock, and OSD feedback appear quickly and without visible stutter.
-- Toolkit consistency: check at least one GTK app and one Qt app for icon, cursor, and theme parity.
-- Before/after: capture the same three scenes (idle desktop, launcher open, notification + OSD) and compare side-by-side before accepting changes.
-
-### Adding a new shared module
-
-```nix
-# home/common/programs/new-tool.nix
-{ pkgs, ... }:
-{
-  programs.new-tool.enable = true;
-}
-```
-
-Then import it from `home/common/default.nix`:
-```nix
-imports = [
-  # ... existing imports ...
-  ./programs/new-tool.nix
-];
-```
-
-All three targets (desktop, WSL, darwin) will inherit it automatically.
-
-### Adding a platform-specific module
-
-Place it under the platform directory and import from that platform's `default.nix`:
-- Desktop-only → `home/desktop/` or `modules/nixos/desktop/`
-- WSL-only → `home/wsl/` or `modules/nixos/wsl/`
-- Darwin-only → `home/darwin/`
-- Linux-only (desktop + WSL) → `home/linux/`
-
-### Platform-conditional logic in shared modules
-
-Use the `isDarwin` parameter (available via `extraSpecialArgs`):
-```nix
-{ isDarwin, pkgs, ... }:
-{
-  home.packages = if isDarwin then [ pkgs.darwin-tool ] else [ pkgs.linux-tool ];
-}
-```
-
-## Agent Skills / Codex Plugins
-
-- Skills は `skills/flake.nix` で取得元、`home/common/programs/agent-skills.nix` で選択を管理する。配布先 `~/.agents/skills` は直接編集せず、編集用 checkout から push する。
-- Plugins は `codex-plugins/flake.nix` の取得元と `marketplaces.<name>.plugins` で管理する。Home Manager 適用時に Codex CLI で自動登録・更新するため、同期コマンドは不要。リストから外すと以前管理した Plugin を削除する。
-- Private GitHub は `flake = false` の `git+ssh://git@github.com/<owner>/<repo>.git` を使う。取得には通常ユーザーの `~/.ssh/id_ed25519_personal` と GitHub の read 権限が必要。秘密鍵は Git / Nix Store に入れず、root のホームにもコピーしない。取得内容は Store に入る。
-- revision はルートの `flake.lock` に固定する。`skills/flake.lock` / `codex-plugins/flake.lock` は作成しない。更新は `/etc/nixos` から `nix flake update skills` / `nix flake update codex-plugins`、個別更新は `skills/yomiyasu` / `codex-plugins/astraeus` などを指定する。
-- Plugin 更新前に利用中の Codex セッションを終了し、適用後に新しいセッションを開始する（更新時に旧キャッシュが整理される）。無関係な Plugin・設定・認証と編集用 checkout は保持する。
-
-Desktop / Darwin の通常運用では sudo rebuild による SSH input 取得をサポートする。システム SSH 設定が root の GitHub 接続だけに通常ユーザーの鍵パスを指定し、公式 Ed25519 host key を固定する。パスフレーズ付きの鍵はユーザーの agent にロードし、sudo が保持する `SSH_AUTH_SOCK` を使う。通常ユーザーのビルドも可能。WSL はこの sudo SSH 設定の対象外。
-
-**初回適用前**は新しいシステム SSH 設定がまだ有効でないため、通常ユーザーでビルドしてから成果物を手動適用する。鍵作成・公開鍵登録・agent 準備・公式 host fingerprint の確認・sudo SSH 検証は `README.md` を参照。初回の通常ユーザービルドだけ、一時的な `GIT_SSH_COMMAND` で鍵を明示する。通常の sudo rebuild にこの環境変数の保持は不要。Desktop の bootstrap:
-
-```sh
-export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_ed25519_personal -o IdentitiesOnly=yes'
 nix flake check --show-trace
-nix build .#nixosConfigurations.desktop.config.system.build.toplevel --out-link result
-system_path=$(readlink -f result)
+nix build .#nixosConfigurations.desktop.config.system.build.toplevel
+nix build .#nixosConfigurations.wsl.config.system.build.toplevel
+# aarch64-darwin 実機で実行
+nix build .#darwinConfigurations.darwin.system
 ```
 
-以下は **ユーザーが各段階の結果を確認しながら実行**する。WSL はビルド対象を `wsl` に変更。Darwin は実機の適用手順を使う。
+変更した option の `nix eval` と対象ホストのビルドで確認し、適用は上記の安全境界に従います。
 
-```sh
-sudo "$system_path/bin/switch-to-configuration" dry-activate
-sudo "$system_path/bin/switch-to-configuration" test
-sudo nix-env --profile /nix/var/nix/profiles/system --set "$system_path"
-sudo "$system_path/bin/switch-to-configuration" switch
-unset GIT_SSH_COMMAND
-```
+### VR / Desktop の実機 QA
 
-`dry-activate` は Home Manager / Plugin の実適用を検証しない。`test` 後に Home Manager の成功を確認する。
+Steam、SteamVR、ALVR、OyasumiVR、WayVR に触る前に [home/desktop/vr/AGENTS.md](home/desktop/vr/AGENTS.md) を必ず読みます。VR 変更はビルドとユーザーの適用に加え、実機 HMD QA を通すまで受け入れません。
 
-Darwin の bootstrap も同じ一時的な `GIT_SSH_COMMAND` を指定し、通常ユーザーで `nix build .#darwinConfigurations.darwin.system --out-link result`、続いて実機ユーザーが `sudo nix-env --profile /nix/var/nix/profiles/system --set "$(readlink -f result)"` で generation を登録し、`sudo ./result/activate` を手動実行する。適用後は `unset GIT_SSH_COMMAND`。エージェントは activation を実行しない。
+Desktop の theme / token / wallpaper 変更では、次を確認します。
 
-初回適用後の通常運用は `sudo nixos-rebuild <action> --flake path:/etc/nixos#desktop` / `sudo darwin-rebuild <action> --flake path:/etc/nixos#darwin`。NixOS の `dry-activate` → `test` → `switch` を守り、`test` / `switch` は実機ユーザーだけが手動実行する。
+- DMS bar、launcher、通知、lock / power UI のフォント・スケール、余白・角丸が一貫していること。
+- 通常・urgent 状態の文字とアイコンが、現在の壁紙や背景上で読めること。
+- launcher、power menu、lock、OSD が遅延や目立つ stutter なく表示されること。
+- GTK と Qt のアプリを少なくとも1つずつ開き、icon / cursor / theme の整合を確認すること。
+- 同じ3場面（idle desktop、launcher open、notification + OSD）の変更前後を撮影し、並べて比較してから受け入れること。
 
-## Key Parameters in `extraSpecialArgs`
+## Skills / Plugins / Pi の変更
 
-All HM modules receive these via `extraSpecialArgs`:
-- `inputs` — all flake inputs
-- `isDarwin` — `true` for darwin, `false` for desktop/WSL
-- `hostId` — `"desktop"`, `"wsl"`, or `"darwin"`
-- `rustToolchain` — `pkgs.rustc` for the target platform
+取得元・更新コマンド・失敗条件は [README.md の依存の更新](README.md#依存の更新) を参照してください。
 
-## Maintainability Insights
-
-### What went well
-- **Atomic commits per task** made rollback and debugging trivial
-- **Evidence logs** (`.sisyphus/evidence/task-*`) provided auditable proof at every step
-- **Guardrail comments** at module headers prevent accidental cross-host imports
-- **`nix flake check` as the universal gate** catches option conflicts, missing imports, and type errors before anything touches the system
-- **Scaffolding before migration** — creating empty module structure first, then populating, avoids import graph breakage
-
-### What went wrong
-- **Subagent ran destructive command** — even with explicit MUST NOT instructions. Lesson: never delegate system-affecting commands
-- **Scope creep in Task 9** — dotfile trees were incorrectly included in "common HM modules" scope, requiring cleanup commit
-- **Duplicate option declarations** (Task 10) — importing a module AND setting the same option causes flake check failure. Always let the module own its options
-- **Stale imports** (Task 14) — `home.nix` was still imported after its contents were migrated, causing subtle duplication
-
-### Patterns for future changes
-1. **One concern per file** — `boot.nix`, `nvidia.nix`, `audio.nix` etc. are independently testable
-2. **Host files are wiring, not logic** — `hosts/*/default.nix` only `imports` and sets identity (username, homeDirectory, stateVersion)
-3. **Common modules must be platform-agnostic** — if it references `/mnt/c`, Wayland, or `hardware-configuration.nix`, it doesn't belong in `common/`
-4. **Modular files are canonical** — all new work goes into `modules/nixos/*` and `home/*`; avoid reintroducing root-level monolith files
-
-## Remaining Work
-
-- [ ] Execute rollout gate interactively on host: `sudo nixos-rebuild dry-activate --flake /etc/nixos#desktop`, then user `test` → `switch` (blocked here: non-interactive sudo/systemd auth)
-- [ ] Add `hashedPasswordFile` for `users.users.see2et` once a secure secret path/mechanism is provided
-- [ ] Darwin nix-darwin build/switch verification on an actual aarch64-darwin machine
+- 配布先 `~/.agents/skills` や Nix Store を直接編集せず、編集用 checkout から push して pin を更新します。
+- private GitHub input は `flake = false` の `git+ssh://git@github.com/<owner>/<repo>.git` を使います。取得内容は Store に入るため、秘密鍵・認証情報を含めません。秘密鍵は通常ユーザーの `~/.ssh/id_ed25519_personal` に置き、root のホームへコピーしません。
+- revision はルートの `flake.lock` に固定し、`skills/`、`codex-plugins/`、`pi-extensions/` に子の `flake.lock` を作りません。
+- Pi 拡張の登録は `pi-extensions/inventory.json` を編集し、生成される `pi-extensions/flake.nix` は直接編集しません。
+- 更新中は他の編集を止め、成功後に diff を確認します。Plugins の更新前にはユーザーに Codex セッションの終了を依頼します（適用時に旧キャッシュを整理するため）。
+- 無関係な Plugin・設定・認証・セッション・編集用 checkout を保持します。取得やビルドの成功を activation の成功とみなしません。
