@@ -818,11 +818,11 @@
     "pi-mentor": {
       "flake": false,
       "locked": {
-        "lastModified": 1793585306,
-        "narHash": "sha256-ta8IsZrRfj6TpUrDpCoznXs86yNO/4wnn1maeq92qlw=",
+        "lastModified": 1793596688,
+        "narHash": "sha256-xzdNFR/IS1J4uRjMzobLz1lPsFp90KcNzDB9XN9PpJM=",
         "ref": "refs/heads/main",
-        "rev": "ad15d7689178baefdef895b73dd76519e349f5f2",
-        "revCount": 6,
+        "rev": "325c871e8d8b1d51d112a035d45e4bfc0e3929b0",
+        "revCount": 7,
         "type": "git",
         "url": "ssh://git@github.com/See2et/pi-mentor.git"
       },
