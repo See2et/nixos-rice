@@ -169,7 +169,8 @@ nix run .#update-pi-extensions -- pi-astraeus pi-interview
 更新時の注意:
 
 - 名前を全件検証してから、対象 Git input または npm の latest を exact version に固定します。未選択の直接依存・無関係な input は保持しますが、選択した npm 拡張の推移的依存は変わり得ます。npm install script は実行しません。
-- stage 済み・未 stage の変更と非 ignored の新規ファイルを含む一時コピーで hash 計算と `nix build .#pi --no-link` を行い、成功後に対象の宣言・pin・hash だけを戻します。元の Git index は変更しません。Git revision はルートの `flake.lock` に固定し、`pi-extensions/flake.lock` は作りません。
+- Git 拡張（専用 packaging のあるものを除く）の実行時 npm 依存は `packages/pi-git-extensions/lock.json` に固定し、ソースと同梱します。共通処理は単一パッケージ・npm 公開 registry に対応し、workspace・ローカル依存・実行時 install script が必要な構成は専用 packaging が必要です。開発依存と prepare script は実行・配布しません。
+- stage 済み・未 stage の変更と非 ignored の新規ファイルを含む一時コピーで hash 計算、`nix build .#pi --no-link`、一時設定による拡張ロード検証（推論なし）を行い、成功後に対象の宣言・pin・hash だけを戻します。元の Git index は変更しません。Git revision はルートの `flake.lock` に固定し、`pi-extensions/flake.lock` は作りません。
 - network・認証・hash 計算・ビルド（既存 patch の適用失敗を含む）の失敗、コピー後のソース編集を検出した場合は元の checkout へ反映しません。通常の書き込みエラーでは復元しますが、process/host crash に対して atomic ではありません。**更新中は他の編集を止め、成功後に diff を確認**してください。
 - inventory から削除すると読み込まれなくなりますが、依存成果物の削除は別途レビューします。更新処理は未選択の依存を勝手に削除しません。
 - `packages/pi-extensions/package.json` の sharp override は [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w) 対策です。上流の修正版採用を確認するまで保持し、解除時は lock・ビルド・画像処理を確認します。

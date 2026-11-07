@@ -20,7 +20,8 @@ import tempfile
 INVENTORY = "pi-extensions/inventory.json"
 CHILD = "pi-extensions/flake.nix"
 NPM = "packages/pi-extensions"
-MANAGED = (CHILD, "flake.lock", f"{NPM}/package.json", f"{NPM}/package-lock.json", f"{NPM}/default.nix")
+GIT_RUNTIME = "packages/pi-git-extensions/lock.json"
+MANAGED = (CHILD, "flake.lock", f"{NPM}/package.json", f"{NPM}/package-lock.json", f"{NPM}/default.nix", GIT_RUNTIME)
 NAME = r"[a-z0-9][a-z0-9._-]*"
 GIT_NAME = r"[a-z][a-z0-9_-]*"
 NIX_KEYWORDS = {"assert", "else", "if", "in", "inherit", "let", "rec", "then", "with"}
@@ -37,7 +38,7 @@ def run(args, cwd, capture=False, env=None):
     result = subprocess.run(args, cwd=cwd, text=True, stdout=subprocess.PIPE if capture else None, env=env)
     if result.returncode:
         raise UpdateError(f"{args[0]} failed (exit {result.returncode}); no update published")
-    return result.stdout if capture else None
+    return result.stdout or ""
 
 
 def read_json(path):
@@ -187,6 +188,67 @@ def replace_hash(path, value):
     path.write_text(HASH.sub(lambda _: f'npmDepsHash = "{value}";', content))
 
 
+def runtime_manifest(source):
+    manifest = read_json(source / "package.json")
+    workspace = source / "pnpm-workspace.yaml"
+    if "workspaces" in manifest or (workspace.exists() and re.search(r"(?m)^\s*packages\s*:", workspace.read_text())):
+        raise UpdateError(f"{source}: workspace packages need dedicated packaging")
+    scripts = manifest.get("scripts", {})
+    if any(scripts.get(name) for name in ("preinstall", "install", "postinstall")) or (source / "binding.gyp").exists():
+        raise UpdateError(f"{source}: runtime install scripts need dedicated packaging")
+    for field in ("dependencies", "optionalDependencies"):
+        dependencies = manifest.get(field, {})
+        if not isinstance(dependencies, dict):
+            raise UpdateError(f"{source}: {field} must be an object")
+        for name, version in dependencies.items():
+            if not PACKAGE.fullmatch(name) or not isinstance(version, str) or not re.fullmatch(r"[A-Za-z0-9*~^<>=][A-Za-z0-9.*+~^<>=| -]*", version):
+                raise UpdateError(f"{source}: only npm registry dependencies are supported: {name}={version!r}")
+    # Pi supplies peers. Development tools and prepare scripts (e.g. Husky)
+    # must not become part of the runtime closure or run during locking/build.
+    return {k: v for k, v in manifest.items() if k not in {"devDependencies", "scripts", "packageManager", "pnpm"}}
+
+
+def check_runtime_lock(lock):
+    for path, package in lock["packages"].items():
+        if not path:
+            continue
+        if package.get("hasInstallScript"):
+            raise UpdateError(f"{path}: runtime dependency install scripts need dedicated packaging")
+        if package.get("link") or not package.get("resolved", "").startswith("https://registry.npmjs.org/") or not package.get("integrity"):
+            raise UpdateError(f"{path}: only integrity-pinned npm registry dependencies are supported")
+
+
+def lock_git_runtime(work, name):
+    # Resolve inputs without evaluating the configured wrapper: its old runtime
+    # pins are deliberately stale until this step completes.
+    expression = f'let s = (builtins.getFlake (toString ./.)).inputs.pi-extensions.inputs.{name}; in {{ path = s.outPath; rev = s.rev; }}'
+    source = json.loads(run(["nix", "eval", "--json", "--impure", "--expr", expression], work, capture=True))
+    manifest = runtime_manifest(Path(source["path"]))
+    result = {"rev": source["rev"], "manifest": manifest, "packageLock": None, "npmDepsHash": None}
+    if not (manifest.get("dependencies") or manifest.get("optionalDependencies")):
+        return result
+    with tempfile.TemporaryDirectory(prefix="git-runtime-", dir=work) as temporary:
+        directory = Path(temporary)
+        (directory / "package.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        for config in ("user.npmrc", "global.npmrc"):
+            (directory / config).touch()
+        env = dict(os.environ, npm_config_cache=str(work / ".npm-cache"),
+                   npm_config_userconfig=str(directory / "user.npmrc"),
+                   npm_config_globalconfig=str(directory / "global.npmrc"),
+                   npm_config_registry="https://registry.npmjs.org/")
+        run(["npm", "install", "--package-lock-only", "--ignore-scripts", "--legacy-peer-deps", "--no-audit", "--no-fund"], directory, env=env)
+        lock = read_json(directory / "package-lock.json")
+        check_runtime_lock(lock)
+        # Match builtins.toJSON in the Nix builder: the cache hash includes the
+        # lock file bytes, not just the dependency graph.
+        (directory / "package-lock.json").write_text(json.dumps(lock, sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+        value = run(["prefetch-npm-deps", str(directory / "package-lock.json")], work, capture=True).strip()
+        if not re.fullmatch(r"sha256-[A-Za-z0-9+/]{43}=", value):
+            raise UpdateError(f"invalid Git runtime dependency hash: {value!r}")
+        result.update(packageLock=lock, npmDepsHash=value)
+    return result
+
+
 def stage_update(work, entries, selected):
     old_lock = read_json(work / "flake.lock")
     old_manifest = read_json(work / NPM / "package.json")
@@ -196,6 +258,11 @@ def stage_update(work, entries, selected):
     npm_names = [e["package"] for e in selected if e["kind"] == "npm"]
     if git_names:
         run(["nix", "flake", "update", *[f"pi-extensions/{n}" for n in git_names]], work)
+    runtime_pins = read_json(work / GIT_RUNTIME)
+    for entry in selected:
+        if entry["kind"] == "git" and "packaging" not in entry:
+            runtime_pins[entry["name"]] = lock_git_runtime(work, entry["name"])
+    (work / GIT_RUNTIME).write_text(json.dumps(runtime_pins, indent=2) + "\n")
     if npm_names:
         env = dict(os.environ, npm_config_cache=str(work / ".npm-cache"))
         versions = []
@@ -214,7 +281,9 @@ def stage_update(work, entries, selected):
     check_lock_preservation(old_lock, read_json(work / "flake.lock"), git_names)
     # Snapshot additions must be visible to the Git flake without touching live index.
     run(["git", "add", "--", *MANAGED, INVENTORY], work)
-    run(["nix", "build", ".#pi", "--no-link", "--no-update-lock-file"], work)
+    output = json.loads(run(["nix", "build", ".#pi", "--no-link", "--no-update-lock-file", "--json"], work, capture=True))
+    binary = Path(output[0]["outputs"]["out"]) / "bin/pi"
+    run([sys.executable, str(work / "packages/pi-extensions/smoke-load.py"), str(binary)], work)
     # A build must not mutate lock inputs either.
     check_lock_preservation(old_lock, read_json(work / "flake.lock"), git_names)
 
@@ -241,6 +310,7 @@ def publish(root, work, baseline):
     written = []
     try:
         for p, value in changes.items():
+            assert value is not None and value[0] == "file"
             if file_state(root / p) != baseline[p]:
                 raise UpdateError(f"concurrent edit to {p}; refusing overwrite")
             atomic_write(root / p, value[2], baseline[p][1])

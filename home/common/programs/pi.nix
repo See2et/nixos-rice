@@ -12,6 +12,7 @@ let
   extensions = pkgs.callPackage ../../../packages/pi-extensions { };
   inventory = builtins.fromJSON (builtins.readFile ../../../pi-extensions/inventory.json);
   extensionSource = entry: extensionInputs.${entry.name};
+  gitRuntimePins = lib.importJSON ../../../packages/pi-git-extensions/lock.json;
   extensionPackage =
     entry:
     if entry.kind == "npm" then
@@ -22,7 +23,13 @@ let
           src = extensionSource entry;
         }
       else
-        extensionSource entry
+        pkgs.callPackage ../../../packages/pi-git-extensions {
+          src = extensionSource entry;
+          extensionName = entry.name;
+          pin =
+            gitRuntimePins.${entry.name}
+              or (throw "${entry.name}: missing runtime dependency pin; run update-pi-extensions ${entry.name}");
+        }
     else
       throw "Unknown Pi extension route: ${entry.kind}";
   agentFiles = lib.concatMap (

@@ -18,6 +18,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "pi-extensions/update.py"
 spec = importlib.util.spec_from_file_location("updater", SCRIPT)
+assert spec is not None and spec.loader is not None
 updater = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(updater)
 
@@ -55,13 +56,27 @@ if tool == "nix" and args[:2] == ["flake", "update"]:
     if os.environ.get("UNRELATED"):
         lock["nodes"]["pi-nix"]["locked"]["rev"] = "unwanted-upgrade"
     (p / "flake.lock").write_text(json.dumps(lock))
+elif tool == "nix" and args[0] == "eval":
+    name = args[-1].split(".inputs.")[-1].split(";")[0]
+    source = pathlib.Path(os.environ["FAKE_SOURCES"]) / name
+    source.mkdir(exist_ok=True)
+    manifest = {"name": name, "version": "1.0.0", "dependencies": {"runtime-dep": "1.0.0"}, "devDependencies": {"husky": "1.0.0"}, "scripts": {"prepare": "husky"}}
+    (source / "package.json").write_text(json.dumps(manifest))
+    print(json.dumps({"path": str(source), "rev": "new-" + name}))
 elif tool == "npm" and args[0] == "view":
     assert args[1].endswith("@latest")
     print(json.dumps("99.0.0"))
 elif tool == "npm" and args[0] == "install":
-    for flag in ["--package-lock-only", "--ignore-scripts", "--legacy-peer-deps", "--save-exact"]:
+    for flag in ["--package-lock-only", "--ignore-scripts", "--legacy-peer-deps"]:
         assert flag in args
     manifest = json.loads((p / "package.json").read_text())
+    if "--save-exact" not in args:
+        assert "devDependencies" not in manifest and "scripts" not in manifest
+        lock = {"lockfileVersion": 3, "packages": {"": manifest}}
+        for name, version in manifest["dependencies"].items():
+            lock["packages"]["node_modules/" + name] = {"version": version, "resolved": "https://registry.npmjs.org/" + name, "integrity": "sha512-fixture"}
+        (p / "package-lock.json").write_text(json.dumps(lock))
+        sys.exit(0)
     lock = json.loads((p / "package-lock.json").read_text())
     for argument in args[1:]:
         if not argument.startswith("--"):
@@ -76,7 +91,7 @@ elif tool == "prefetch-npm-deps":
     assert pathlib.Path(args[0]).is_file()
     print("sha256-eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=")
 elif tool == "nix" and args[0] == "build":
-    assert args[1:] == [".#pi", "--no-link", "--no-update-lock-file"]
+    assert args[1:] == [".#pi", "--no-link", "--no-update-lock-file", "--json"]
     # Prove this is the current working tree, not HEAD-only, and new files are
     # visible to flakes. The live index itself must not be touched.
     assert (p / "user.txt").read_text() == "unstaged user change"
@@ -85,6 +100,16 @@ elif tool == "nix" and args[0] == "build":
     original = pathlib.Path(os.environ["ORIGINAL_ROOT"])
     if os.environ.get("CONCURRENT"):
         (original / "user.txt").write_text("concurrent edit")
+    output = pathlib.Path(os.environ["FAKE_SOURCES"]) / "built"
+    (output / "bin").mkdir(parents=True, exist_ok=True)
+    binary = output / "bin/pi"
+    code = '#!' + sys.executable + '\\nimport json, sys\\njson.loads(sys.stdin.readline())\\n'
+    if os.environ.get("FAIL") == "load":
+        code += 'print("Failed to load extension: Cannot find package neverthrow", file=sys.stderr)\\n'
+    code += 'print(json.dumps({"id":"load-check","type":"response","success":True}))\\n'
+    binary.write_text(code)
+    binary.chmod(0o755)
+    print(json.dumps([{"outputs": {"out": str(output)}}]))
 else:
     raise AssertionError([tool, args])
 '''
@@ -104,11 +129,14 @@ class CommandTests(unittest.TestCase):
             target.write_text(FAKE_TOOL.replace("PYTHON", sys.executable, 1))
             target.chmod(0o755)
         self.log = base / "tools.jsonl"
-        self.env = dict(os.environ, PATH=str(self.bin) + os.pathsep + os.environ["PATH"], TOOL_LOG=str(self.log), ORIGINAL_ROOT=str(self.repo), PYTHONDONTWRITEBYTECODE="1")
+        sources = base / "sources"
+        sources.mkdir()
+        self.env = dict(os.environ, PATH=str(self.bin) + os.pathsep + os.environ["PATH"], TOOL_LOG=str(self.log), ORIGINAL_ROOT=str(self.repo), FAKE_SOURCES=str(sources), PYTHONDONTWRITEBYTECODE="1")
         for path in (*updater.MANAGED, updater.INVENTORY):
             target = self.repo / path
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / path, target)
+        shutil.copyfile(ROOT / "packages/pi-extensions/smoke-load.py", self.repo / "packages/pi-extensions/smoke-load.py")
         self.write("flake.nix", "{ outputs = _: {}; }")
         manifest = updater.read_json(self.repo / updater.NPM / "package.json")
         manifest["dependencies"]["user-only"] = "3.0.0"
@@ -180,14 +208,24 @@ class CommandTests(unittest.TestCase):
                 old = json.loads(self.before[updater.NPM + "/package.json"])
                 for n, pin in old["dependencies"].items():
                     self.assertEqual(manifest["dependencies"][n], "99.0.0" if n in expected_npm else pin)
-                self.assertEqual(sum(c[0] == "prefetch-npm-deps" for c in calls), bool(expected_npm))
+                runtime_names = {e["name"] for e in selected if e["kind"] == "git" and "packaging" not in e}
+                self.assertEqual(sum(c[0] == "prefetch-npm-deps" for c in calls), bool(expected_npm) + len(runtime_names))
+                pins = updater.read_json(self.repo / updater.GIT_RUNTIME)
+                old_pins = json.loads(self.before[updater.GIT_RUNTIME])
+                for name in old_pins.keys() | runtime_names:
+                    if name in runtime_names:
+                        self.assertEqual(pins[name]["rev"], "new-" + name)
+                        self.assertEqual(pins[name]["manifest"]["dependencies"], {"runtime-dep": "1.0.0"})
+                        self.assertNotIn("devDependencies", pins[name]["manifest"])
+                    else:
+                        self.assertEqual(pins[name], old_pins[name])
                 lock = updater.read_json(self.repo / "flake.lock")
                 original = json.loads(self.before["flake.lock"])
                 for e in entries:
                     if e["kind"] == "git":
                         n = e["name"]
                         self.assertEqual(lock["nodes"][n]["locked"]["rev"], "new-" + n if n in expected_git else original["nodes"][n]["locked"]["rev"])
-                self.assertIn(["nix", "build", ".#pi", "--no-link", "--no-update-lock-file"], calls)
+                self.assertIn(["nix", "build", ".#pi", "--no-link", "--no-update-lock-file", "--json"], calls)
                 self.assert_preserved()
 
     def test_validate_all_names_and_inventory_before_mutation(self):
@@ -216,7 +254,7 @@ class CommandTests(unittest.TestCase):
         self.assert_preserved()
 
     def test_tool_failures_do_not_publish(self):
-        for stage in ("nix", "npm", "hash", "build"):
+        for stage in ("nix", "npm", "hash", "build", "load"):
             with self.subTest(stage=stage):
                 result = self.command(FAIL=stage)
                 self.assertNotEqual(result.returncode, 0)
@@ -297,9 +335,9 @@ class CommandTests(unittest.TestCase):
                 self.assertIn(f'      url = "{change["url"]}";', child)
                 updater.check_generated_child(child)
                 calls = self.calls()
-                self.assertEqual(calls, [
+                self.assertEqual([c for c in calls if c[:2] in (["nix", "flake"], ["nix", "build"])], [
                     ["nix", "flake", "update", "pi-extensions/" + change["name"]],
-                    ["nix", "build", ".#pi", "--no-link", "--no-update-lock-file"],
+                    ["nix", "build", ".#pi", "--no-link", "--no-update-lock-file", "--json"],
                 ])
                 lock = updater.read_json(self.repo / "flake.lock")
                 parent = lock["nodes"][lock["nodes"][lock["root"]]["inputs"]["pi-extensions"]]
@@ -398,6 +436,43 @@ class RecapConfigTests(unittest.TestCase):
             self.assertNotEqual(self.configure(path).returncode, 0)
             self.assertTrue(path.is_symlink())
             self.assertEqual(target.read_text(), '{"model": "user/model"}')
+
+
+class GitRuntimeTests(unittest.TestCase):
+    def test_runtime_manifest_excludes_development_and_lifecycle_scripts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp)
+            (source / "package.json").write_text(json.dumps({
+                "name": "fixture", "version": "1.0.0", "type": "module",
+                "dependencies": {"neverthrow": "8.2.0"},
+                "devDependencies": {"husky": "9.1.7"},
+                "scripts": {"prepare": "husky"},
+                "pi": {"extensions": ["./index.ts"]},
+            }))
+            manifest = updater.runtime_manifest(source)
+            self.assertNotIn("devDependencies", manifest)
+            self.assertNotIn("scripts", manifest)
+            self.assertEqual(manifest["dependencies"], {"neverthrow": "8.2.0"})
+            self.assertEqual(manifest["pi"], {"extensions": ["./index.ts"]})
+
+    def test_transitive_install_script_is_rejected(self):
+        with self.assertRaisesRegex(updater.UpdateError, "install scripts"):
+            updater.check_runtime_lock({"packages": {
+                "": {},
+                "node_modules/native-runtime": {"hasInstallScript": True},
+            }})
+
+    def test_unsupported_runtime_install_requirements_are_explicit(self):
+        for extra, diagnostic in (
+            ({"workspaces": ["packages/*"]}, "workspace"),
+            ({"dependencies": {"local": "file:../local"}}, "registry"),
+            ({"scripts": {"postinstall": "node build.js"}}, "install script"),
+        ):
+            with self.subTest(extra=extra), tempfile.TemporaryDirectory() as temp:
+                source = Path(temp)
+                (source / "package.json").write_text(json.dumps({"name": "fixture", "version": "1.0.0", **extra}))
+                with self.assertRaisesRegex(updater.UpdateError, diagnostic):
+                    updater.runtime_manifest(source)
 
 
 class ArtifactTests(unittest.TestCase):
