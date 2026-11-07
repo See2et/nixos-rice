@@ -148,7 +148,9 @@ in
       with pkgs;
       [
         google-chrome
-        pkgsUnstable.discord
+        (
+          if hostId == "desktop" then import ./discord.nix { pkgs = pkgsUnstable; } else pkgsUnstable.discord
+        )
         pkgsUnstable.discord-canary
         slack
         zoom-us
