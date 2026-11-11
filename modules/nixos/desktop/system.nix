@@ -1,7 +1,20 @@
 { pkgs, ... }:
 
 {
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    dispatcherScripts = [
+      {
+        type = "pre-up";
+        source = pkgs.writeShellScript "desktop-disable-eee" ''
+          # Avoid intermittent RTL8125B link drops; leave other interfaces untouched.
+          if [ "$1" = "enp12s0" ] && [ "$2" = "pre-up" ]; then
+            exec ${pkgs.ethtool}/bin/ethtool --set-eee "$1" eee off
+          fi
+        '';
+      }
+    ];
+  };
 
   time.timeZone = "Asia/Tokyo";
 
