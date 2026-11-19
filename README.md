@@ -164,7 +164,7 @@ nix run .#update-pi-extensions -- pi-interview          # 指定した拡張だ�
 nix run .#update-pi-extensions -- pi-astraeus pi-interview
 ```
 
-登録は `pi-extensions/inventory.json` に統一し、配列順に読み込みます。新規登録も inventory を編集して対象名を指定します。生成される `pi-extensions/flake.nix` は直接編集しません。手動編集を検出すると更新前に停止しますが、これは悪意ある改変への整合性保証ではありません。Git 登録名は `[a-z][a-z0-9_-]*`（Nix 予約語不可）、npm は scoped 名も使えます。
+登録は `pi-extensions/inventory.json` に統一し、配列順に読み込みます。`hosts` は読み込むホストを限定し、空配列なら無効です（pi-astraeus は無効化済み）。`kind: "local"` はホーム相対の既存 checkout をコピー・更新せず読み込みます。Desktop の miloa-management は管理用・pi-factory の両 Extension／Skill を同 checkout の manifest から読み込み、依存関係の準備は checkout 側で行います。`node:sqlite` が必要なため、Desktop の Pi ラッパーは同 checkout の Pi 1.0.4 CLI を Node.js 24 で実行します（通常の Pi 認証・設定を継続利用）。Git/npm の新規登録も inventory を編集して対象名を指定します。生成される `pi-extensions/flake.nix` は直接編集しません。手動編集を検出すると更新前に停止しますが、これは悪意ある改変への整合性保証ではありません。Git 登録名は `[a-z][a-z0-9_-]*`（Nix 予約語不可）、npm は scoped 名も使えます。
 
 更新時の注意:
 
@@ -190,6 +190,8 @@ Pi の認証・セッションは Pi が保存し、Nix に認証情報を書き
 - Recap: アイドル・再開時にも追加のモデル呼び出しが発生します。Home Manager は `~/.pi/agent/extensions/pi-recap.json` の model を `openai-codex/gpt-6.1-sol` に戻します。既存の `openai-codex` 認証を使い、利用不可・未認証時に別モデルへフォールバックしません。独自の `PI_CODING_AGENT_DIR` には同じ設定を別途用意してください。
 - Usage: Codex 利用枠取得には native `/login openai` とは別に、同じアカウント・workspace で `/login openai-codex` が必要です。`Codex:✓` だけでは数値取得の成功を示しません。返されない枠は 0% として扱いません。
 - 通知: 適用後は Pi を再起動して `/notify-test` で確認します。`Idle` は応答終了であり、非同期質問の回答や依頼全体の完了を意味しません。
+
+Desktop の `miloa-management-background.service` は手動起動専用です。適用だけでは起動せず、既存の Pi／Herdr／miloa MCP とユーザー認証を使います。`~/ghq/github.com/see2et/miloa-management` の依存関係と `dist/background.js` を準備し、必要なら既存の `~/.config/miloa-management/service.env` を利用します（認証情報の複製は不要）。`test` 後に Home Manager の成功を確認し、実行許可済みのキューを処理してよい場合だけ、ユーザー自身が `systemctl --user start miloa-management-background.service` を実行してください。確認は `systemctl --user status miloa-management-background.service` と `journalctl --user -u miloa-management-background.service`、停止は `systemctl --user stop miloa-management-background.service`。アプリの詳細は checkout の README を参照してください。
 
 SubAgent の完了通知・記録の期限切れ・元セッションの復旧は [pi-subagent-recovery.md](docs/pi-subagent-recovery.md) を参照してください。
 

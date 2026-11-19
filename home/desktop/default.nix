@@ -7,6 +7,7 @@
     ./android.nix
     ./packages.nix
     ./herdr.nix
+    ./miloa-management.nix
     ./lazydocker.nix
     ./obs.nix
     ./voxtype.nix
