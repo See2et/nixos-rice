@@ -2,6 +2,7 @@
 # ~/.agents/skills is already deployed by agent-skills.nix and discovered by Pi.
 {
   config,
+  hostId,
   inputs,
   lib,
   pkgs,
@@ -10,12 +11,16 @@
 let
   extensionInputs = inputs.pi-extensions.inputs;
   extensions = pkgs.callPackage ../../../packages/pi-extensions { };
-  inventory = builtins.fromJSON (builtins.readFile ../../../pi-extensions/inventory.json);
+  inventory = builtins.filter (entry: !(entry ? hosts) || builtins.elem hostId entry.hosts) (
+    builtins.fromJSON (builtins.readFile ../../../pi-extensions/inventory.json)
+  );
   extensionSource = entry: extensionInputs.${entry.name};
   gitRuntimePins = lib.importJSON ../../../packages/pi-git-extensions/lock.json;
   extensionPackage =
     entry:
-    if entry.kind == "npm" then
+    if entry.kind == "local" then
+      "${config.home.homeDirectory}/${entry.path}"
+    else if entry.kind == "npm" then
       "${extensions}/node_modules/${entry.package}"
     else if entry.kind == "git" then
       if entry ? packaging then
@@ -41,7 +46,9 @@ let
   ) inventory;
   validatorPython = pkgs.python3.withPackages (ps: [ ps.jsonschema ]);
   pi = pkgs.callPackage ../../../packages/pi {
-    pi = inputs.pi-nix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    pi =
+      config._module.args.piBasePackage
+        or inputs.pi-nix.packages.${pkgs.stdenv.hostPlatform.system}.default;
     piPackages = map extensionPackage inventory;
     # Use the Nix browser on Linux instead of downloading an unpatched
     # Playwright browser. User-supplied overrides remain authoritative.

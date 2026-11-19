@@ -57,13 +57,17 @@ def inventory(path):
         if not isinstance(name, str) or not PACKAGE.fullmatch(name) or name in names:
             raise UpdateError(f"invalid or duplicate extension name: {name!r}")
         names.add(name)
+        if "hosts" in entry:
+            hosts = entry["hosts"]
+            if not isinstance(hosts, list) or any(h not in ("desktop", "wsl", "darwin") for h in hosts) or len(set(hosts)) != len(hosts):
+                raise UpdateError(f"invalid hosts for {name}")
         if kind == "git":
             if not re.fullmatch(GIT_NAME, name) or name in NIX_KEYWORDS:
                 raise UpdateError(f"Git input name must be a supported unquoted Nix identifier ({GIT_NAME}, excluding Nix keywords): {name}")
             url = entry.get("url")
             if not isinstance(url, str) or not url.startswith(("github:", "git+https://", "git+ssh://")) or any(c in url for c in ('"', '\\', '\n', '\r', '${')):
                 raise UpdateError(f"invalid Git URL for {name}")
-            if set(entry) - {"name", "kind", "url", "packaging", "agents"}:
+            if set(entry) - {"name", "kind", "url", "packaging", "agents", "hosts"}:
                 raise UpdateError(f"unknown metadata for {name}")
             if "packaging" in entry and entry["packaging"] != "pi-subagents":
                 raise UpdateError(f"unsupported packaging for {name}")
@@ -76,9 +80,13 @@ def inventory(path):
                     raise UpdateError(f"invalid agent roles for {name}")
         elif kind == "npm":
             package = entry.get("package")
-            if set(entry) != {"name", "kind", "package"} or not isinstance(package, str) or not PACKAGE.fullmatch(package) or package in packages:
+            if set(entry) - {"name", "kind", "package", "hosts"} or not isinstance(package, str) or not PACKAGE.fullmatch(package) or package in packages:
                 raise UpdateError(f"invalid or duplicate npm package for {name}")
             packages.add(package)
+        elif kind == "local":
+            path = entry.get("path")
+            if set(entry) != {"name", "kind", "path", "hosts"} or not isinstance(path, str) or not path or Path(path).is_absolute() or any(p in (".", "..", "") for p in path.split("/")):
+                raise UpdateError(f"invalid home-relative local path/metadata for {name}")
         else:
             raise UpdateError(f"unknown route for {name}: {kind!r}")
     return entries

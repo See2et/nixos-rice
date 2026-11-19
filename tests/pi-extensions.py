@@ -228,6 +228,16 @@ class CommandTests(unittest.TestCase):
                 self.assertIn(["nix", "build", ".#pi", "--no-link", "--no-update-lock-file", "--json"], calls)
                 self.assert_preserved()
 
+    def test_local_checkout_does_not_fetch_or_pin(self):
+        entries = updater.read_json(self.repo / updater.INVENTORY)
+        entries.append({"name": "local-fixture", "kind": "local", "path": "ghq/example/app", "hosts": ["desktop"]})
+        self.write(updater.INVENTORY, json.dumps(entries))
+        result = self.command("local-fixture")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.calls(), [["nix", "build", ".#pi", "--no-link", "--no-update-lock-file", "--json"]])
+        self.assertEqual(self.managed(), self.before)
+        self.assert_preserved()
+
     def test_validate_all_names_and_inventory_before_mutation(self):
         result = self.command("pi-interview", "missing")
         self.assertNotEqual(result.returncode, 0)
@@ -482,6 +492,18 @@ class ArtifactTests(unittest.TestCase):
             entries = [{"name": "1.extra", "kind": "npm", "package": "@example/1.extra"}]
             path.write_text(json.dumps(entries))
             self.assertEqual(updater.inventory(path), entries)
+
+    def test_host_scoped_local_checkout_validation(self):
+        entry = {"name": "local-app", "kind": "local", "path": "ghq/example/app", "hosts": ["desktop"]}
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "inventory.json"
+            path.write_text(json.dumps([entry]))
+            self.assertEqual(updater.inventory(path), [entry])
+            for extra in ({"path": "/tmp/app"}, {"path": "../app"}, {"hosts": ["laptop"]}, {"hosts": "desktop"}):
+                with self.subTest(extra=extra):
+                    path.write_text(json.dumps([{**entry, **extra}]))
+                    with self.assertRaises(updater.UpdateError):
+                        updater.inventory(path)
 
     def test_generated_child_is_in_sync(self):
         self.assertEqual((ROOT / updater.CHILD).read_text(), updater.render_child(updater.inventory(ROOT / updater.INVENTORY)))
