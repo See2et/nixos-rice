@@ -26,6 +26,7 @@ in
       zip
       unzip
       cargo
+      clippy
       biome
       rust-analyzer
       lua-language-server
