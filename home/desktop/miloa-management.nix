@@ -27,7 +27,7 @@ in
       Description = "Miloa Management authorized background queue (single host)";
       After = [ "network-online.target" ];
     };
-    # No Install/WantedBy: applying Home Manager must not launch authorized work.
+    Install.WantedBy = [ "default.target" ];
     Service = {
       Type = "simple";
       WorkingDirectory = checkout;

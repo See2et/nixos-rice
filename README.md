@@ -191,7 +191,7 @@ Pi の認証・セッションは Pi が保存し、Nix に認証情報を書き
 - Usage: Codex 利用枠取得には native `/login openai` とは別に、同じアカウント・workspace で `/login openai-codex` が必要です。`Codex:✓` だけでは数値取得の成功を示しません。返されない枠は 0% として扱いません。
 - 通知: 適用後は Pi を再起動して `/notify-test` で確認します。`Idle` は応答終了であり、非同期質問の回答や依頼全体の完了を意味しません。
 
-Desktop の `miloa-management-background.service` は手動起動専用です。適用だけでは起動せず、既存の Pi／Herdr／miloa MCP とユーザー認証を使います。`~/ghq/github.com/see2et/miloa-management` の依存関係と `dist/background.js` を準備し、必要なら既存の `~/.config/miloa-management/service.env` を利用します（認証情報の複製は不要）。`test` 後に Home Manager の成功を確認し、実行許可済みのキューを処理してよい場合だけ、ユーザー自身が `systemctl --user start miloa-management-background.service` を実行してください。確認は `systemctl --user status miloa-management-background.service` と `journalctl --user -u miloa-management-background.service`、停止は `systemctl --user stop miloa-management-background.service`。アプリの詳細は checkout の README を参照してください。
+Desktop の `miloa-management-background.service` はユーザー systemd の `default.target` で自動起動し、既存の Pi／Herdr／miloa MCP とユーザー認証を使います。Desktop は linger が有効なため、ログイン前から起動し、ログアウト後も動作します。起動後は保存済みの承認や実行許可済みのキューを処理するため、適用前に `~/ghq/github.com/see2et/miloa-management` の依存関係と `dist/background.js` を準備してください。必要なら既存の `~/.config/miloa-management/service.env` を利用します（認証情報の複製は不要）。ユーザー自身が `test` → `switch` の順で適用し、Home Manager の成功と `systemctl --user status miloa-management-background.service`、`journalctl --user -u miloa-management-background.service` を確認してください。停止は `systemctl --user stop miloa-management-background.service`、手動再開は `systemctl --user start miloa-management-background.service`。停止しても次のユーザー systemd 起動時には再び自動起動します。アプリの詳細は checkout の README を参照してください。
 
 SubAgent の完了通知・記録の期限切れ・元セッションの復旧は [pi-subagent-recovery.md](docs/pi-subagent-recovery.md) を参照してください。
 
