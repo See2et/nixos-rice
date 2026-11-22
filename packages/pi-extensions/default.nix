@@ -18,7 +18,7 @@ buildNpmPackage {
   # Preserve sharp's upstream $ORIGIN RPATHs; the Pi wrapper supplies libstdc++.
   # The scoped npm override pins patched sharp (GHSA-wq5f-xc86-pv6w).
   dontPatchELF = true;
-  npmDepsHash = "sha256-ZC9XrRbXHn1e9PuiGf+O6JBNQ6hTlAJ/nckwOqJRfLo=";
+  npmDepsHash = "sha256-Adlq1phYYiYiD1lkjQXYzX0TYk6pdm/GqfdtslwI19w=";
   npmFlags = [
     "--legacy-peer-deps"
     "--ignore-scripts"

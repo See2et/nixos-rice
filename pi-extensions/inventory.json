@@ -44,6 +44,11 @@
     "package": "pi-browser-actions"
   },
   {
+    "name": "pi-copy-picker",
+    "kind": "npm",
+    "package": "pi-copy-picker"
+  },
+  {
     "name": "pi-interview",
     "kind": "npm",
     "package": "pi-interview"
