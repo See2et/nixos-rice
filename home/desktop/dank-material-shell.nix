@@ -16,7 +16,7 @@ let
   profileImage = ./assets/waybar-logo.png;
   dmsCodexUsagePackage = import ./dms/codex-usage.nix { inherit pkgs; };
   codexUsagePlugin = ./dms/plugins/codex-usage;
-  emojiLauncherPlugin = ./dms/plugins/emoji-launcher;
+  emojiLauncherPlugin = import ./dms/emoji-launcher.nix { inherit pkgs; };
   dmsTheme = import ./dms/theme.nix { inherit t; };
   dmsSettings = import ./dms/settings.nix {
     inherit t customThemePath wallpaper;

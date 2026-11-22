@@ -539,6 +539,9 @@
           storage-notification = storageNotificationCheck;
           dms-security = dmsSecurityCheck;
           dms-codex-usage = dmsCodexUsageCheck;
+          dms-emoji-launcher = import ./home/desktop/dms/emoji-launcher.nix {
+            pkgs = mkPkgs system;
+          };
           dms-shell-policy = dmsShellPolicyCheck;
           niri-pip-workspace-follower = niriPipWorkspaceFollowerCheck;
           steamvr-tools = steamvrToolsCheck;
