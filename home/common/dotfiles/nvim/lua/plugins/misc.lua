@@ -8,7 +8,7 @@ return {
 		"folke/which-key.nvim",
 		lazy = false,
 		dependencies = {
-			{ "echasnovski/mini.nvim", version = false },
+			{ "nvim-mini/mini.nvim", version = false },
 			"nvim-tree/nvim-web-devicons",
 		},
 	},
@@ -122,7 +122,7 @@ return {
 	},
 
 	{
-		"phaazon/hop.nvim",
+		"smoka7/hop.nvim",
 		cmd = {
 			"HopWord",
 			"HopLineStart",
@@ -164,10 +164,18 @@ return {
 	},
 
 	{
-		"norcalli/nvim-colorizer.lua",
+		"catgoose/nvim-colorizer.lua",
 		event = { "BufReadPre", "BufNewFile" },
 		config = function()
-			require("colorizer").setup()
+			require("colorizer").setup({
+				options = {
+					parsers = {
+						hex = { rgb = true, rrggbb = true, rgba = false, rrggbbaa = false },
+						names = { enable = true },
+					},
+					display = { mode = "background" },
+				},
+			})
 		end,
 	},
 
@@ -242,23 +250,6 @@ return {
 					},
 					fill = {
 						bg = "#073642",
-					},
-				},
-			})
-		end,
-	},
-
-	{
-		"zbirenbaum/copilot.lua",
-		cmd = "Copilot",
-		build = ":Copilot auth",
-		event = "InsertEnter",
-		config = function()
-			require("copilot").setup({
-				suggestion = {
-					auto_trigger = true,
-					keymap = {
-						accept = "<Tab>",
 					},
 				},
 			})

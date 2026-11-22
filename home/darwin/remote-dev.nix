@@ -19,7 +19,9 @@ in
 
   # Runs on the Mac, not inside SSH/Mosh. Keep Cmd+V for terminal text paste;
   # Ctrl+V lets the local Herdr client bridge clipboard images to the host.
-  xdg.configFile."herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-mac-config.toml" macConfig;
+  xdg.configFile."herdr/config.toml".source =
+    (pkgs.formats.toml { }).generate "herdr-mac-config.toml"
+      macConfig;
 
   programs.zsh.shellAliases.h = "herdr --remote home --remote-keybindings server";
 

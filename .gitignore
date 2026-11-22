@@ -5,6 +5,8 @@ result-*
 /codex-plugins/flake.lock
 /pi-extensions/flake.lock
 target
+/node_modules/
+/.husky/_/
 
 # Local Pi configuration
 /.pi/

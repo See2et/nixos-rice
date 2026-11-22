@@ -1,5 +1,3 @@
-vim.g.mapleader = " "
-
 local wk = require("which-key")
 local keymap = vim.keymap
 local kmap = keymap.set

@@ -17,9 +17,18 @@ let
       (lib.makeBinPath runtimePackages)
     ]
     ++ lib.optionals (runtimeLibraries != [ ]) [
-      "--prefix" "LD_LIBRARY_PATH" ":" (lib.makeLibraryPath runtimeLibraries)
+      "--prefix"
+      "LD_LIBRARY_PATH"
+      ":"
+      (lib.makeLibraryPath runtimeLibraries)
     ]
-    ++ lib.concatLists (lib.mapAttrsToList (name: value: [ "--set-default" name value ]) environmentDefaults)
+    ++ lib.concatLists (
+      lib.mapAttrsToList (name: value: [
+        "--set-default"
+        name
+        value
+      ]) environmentDefaults
+    )
     # Pi dispatches CLI subcommands before parsing session options. Prefixing -e
     # hides the subcommand and breaks e.g. `pi mcp add --url ...`. Keep the same
     # runtime PATH/environment, but don't inject session extensions in CLI mode.

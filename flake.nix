@@ -109,9 +109,26 @@
 
       mkTreefmtConfig =
         pkgs:
+        let
+          mkInplaceFormatter =
+            name: tool: command:
+            pkgs.writeShellApplication {
+              inherit name;
+              runtimeInputs = [
+                tool
+                pkgs.coreutils
+              ];
+              text = ''
+                format() { ${command}; }
+                ${builtins.readFile ./lib/format-inplace.sh}
+              '';
+            };
+          nixfmtInplace = mkInplaceFormatter "nixfmt-inplace" pkgs.nixfmt "nixfmt";
+          jqInplace = mkInplaceFormatter "jq-inplace" pkgs.jq "jq --indent 2 .";
+        in
         pkgs.writeText "treefmt.toml" ''
           [formatter.nix]
-          command = "nixfmt"
+          command = "${nixfmtInplace}/bin/nixfmt-inplace"
           includes = ["*.nix"]
 
           [formatter.lua]
@@ -119,8 +136,7 @@
           includes = ["*.lua"]
 
           [formatter.json]
-          command = "jq"
-          options = ["--indent", "2", "."]
+          command = "${jqInplace}/bin/jq-inplace"
           includes = ["*.json"]
         '';
 
@@ -514,6 +530,16 @@
           formatting = mkFormattingCheck system;
           repo-policy = repoPolicyCheck;
           antidote-cache = antidoteCacheCheck;
+          neovim =
+            let
+              pkgs = mkPkgs system;
+            in
+            pkgs.runCommand "neovim-config-check" { nativeBuildInputs = [ pkgs.neovim ]; } ''
+              export HOME="$TMPDIR"
+              cd ${self}
+              nvim --headless -u NONE -l tests/neovim.lua
+              touch "$out"
+            '';
           pi-extensions =
             let
               pkgs = mkPkgs system;

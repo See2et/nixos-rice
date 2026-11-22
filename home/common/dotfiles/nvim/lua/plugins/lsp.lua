@@ -1,8 +1,6 @@
 return {
 	"neovim/nvim-lspconfig",
 	config = function()
-		local mason = require("mason")
-		local mason_lspconfig = require("mason-lspconfig")
 		local capabilities = vim.lsp.protocol.make_client_capabilities()
 		capabilities = vim.tbl_deep_extend("force", capabilities, require("cmp_nvim_lsp").default_capabilities())
 
@@ -20,7 +18,7 @@ return {
 			},
 		})
 
-		local mason_servers = {
+		local servers = {
 			"lua_ls",
 			"ts_ls",
 			"denols",
@@ -30,38 +28,21 @@ return {
 			"taplo",
 			"tinymist",
 			"yamlls",
-		}
-		local servers = vim.list_extend(vim.deepcopy(mason_servers), {
 			"nixd",
 			"basedpyright",
 			"ruff",
-		})
-
-		mason.setup({
-			PATH = "append",
-		})
-		mason_lspconfig.setup({
-			automatic_enable = false,
-			ensure_installed = mason_servers,
-		})
+		}
 
 		vim.lsp.enable(servers)
 	end,
 	dependencies = {
-		{ "williamboman/mason.nvim" },
-		{ "williamboman/mason-lspconfig.nvim" },
 		{
-			"glepnir/lspsaga.nvim",
+			"nvimdev/lspsaga.nvim",
 			cmd = "Lspsaga",
 			config = function()
 				require("lspsaga").setup({
 					ui = {
-						theme = "round",
-						winblend = 0,
 						border = "double",
-						colors = {
-							normal_bg = "",
-						},
 					},
 					lightbulb = {
 						sign = false,

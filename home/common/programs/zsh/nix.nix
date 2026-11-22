@@ -1,5 +1,10 @@
 # Interactive Nix command routing: Skills updates and the managed development shell.
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   # Python and scripts still invoke the real executable, bypassing this function.
   programs.zsh.initContent = lib.mkAfter ''

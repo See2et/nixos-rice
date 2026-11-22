@@ -30,6 +30,10 @@ in
       biome
       rust-analyzer
       lua-language-server
+      typescript-language-server
+      yaml-language-server
+      taplo
+      omnisharp-roslyn
       tre-command
       lsd
       nixfmt

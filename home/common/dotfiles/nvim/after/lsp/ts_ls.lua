@@ -1,5 +1,8 @@
 return {
 	root_dir = function(bufnr, callback)
+		if vim.fs.root(bufnr, { "deno.json", "deno.jsonc", "deps.ts" }) then
+			return
+		end
 		local found_dirs = vim.fs.find({
 			"package.json",
 		}, {

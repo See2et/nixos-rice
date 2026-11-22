@@ -1,5 +1,7 @@
+vim.g.mapleader = " "
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -8,6 +10,9 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 		"--branch=stable", -- latest stable release
 		lazypath,
 	})
+	if vim.v.shell_error ~= 0 then
+		error("Failed to clone lazy.nvim; check Git/network access and restart Neovim.")
+	end
 end
 vim.opt.rtp:prepend(lazypath)
 

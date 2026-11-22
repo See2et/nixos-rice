@@ -120,6 +120,8 @@ git pull --rebase
 nix flake check --show-trace
 ```
 
+編集する checkout では、初回に Node.js 24 以降で `npm ci` を実行して Husky を有効にします。通常の `git commit` 前に、ステージ済みの Nix / Lua / JSON を `nix fmt` で自動整形し、失敗時はコミットを止めます。部分ステージの未ステージ差分は lint-staged が退避・復元します。全体の確認は引き続き `nix flake check --show-trace`、hook の検証は `npm test` です。
+
 Desktop は各段階の結果を確認します。WSL は `#desktop` を `#wsl` に置き換えます。`test` / `switch` は実機ユーザー専用です。
 
 ```bash
@@ -136,6 +138,8 @@ sudo darwin-rebuild switch --flake path:/etc/nixos#darwin
 ```
 
 ## 依存の更新
+
+Neovim の外部ツール（LSP / formatter / linter）は Nix、プラグインは lazy.nvim で管理します。`:Lazy sync` 後、検証した `:lua print(require("lazy.core.config").options.lockfile)` のファイルを `home/common/dotfiles/nvim/lazy-lock.json` へコピーして pin を保存します。実行用 lock は書き込み可能な state 配下にあり、リポジトリの pin が変わると次回起動時に同期されます。Treesitter はプラグイン更新時に parser / query を一緒に再構築します。Rust などシステムライブラリを使うプロジェクトでは、必要な依存を含む devShell 内から `nvim` を起動してください。
 
 ### Skills / Codex Plugins
 

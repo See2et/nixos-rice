@@ -24,7 +24,9 @@
     "name": "miloa-management",
     "kind": "local",
     "path": "ghq/github.com/see2et/miloa-management",
-    "hosts": ["desktop"]
+    "hosts": [
+      "desktop"
+    ]
   },
   {
     "name": "pi-mentor",

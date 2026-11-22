@@ -1,0 +1,20 @@
+{
+  "name": "nixos-config",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "format:staged": "lint-staged",
+    "test": "python3 tests/pre-commit.py"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "husky": "9.1.7",
+    "lint-staged": "17.6.2"
+  },
+  "lint-staged": {
+    "*.{nix,lua,json}": "nix fmt --"
+  }
+}

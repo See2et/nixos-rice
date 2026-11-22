@@ -9,11 +9,6 @@ return {
 				return "textlint"
 			end
 
-			local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/textlint"
-			if vim.fn.executable(mason_bin) == 1 then
-				return mason_bin
-			end
-
 			return nil
 		end
 
@@ -30,27 +25,31 @@ return {
 					return vim.api.nvim_buf_get_name(0)
 				end,
 			},
-			stream = "stdout",
+			stream = "both",
 			ignore_exitcode = true,
-			parser = function(output)
-				local ok, decoded = pcall(vim.json.decode, output)
-				if not ok or type(decoded) ~= "table" then
-					return {}
-				end
+			parser = function(output, bufnr)
+				-- Let nvim-lint expose parse/configuration failures instead of clearing diagnostics silently.
+				local decoded = vim.json.decode(output)
+				assert(type(decoded) == "table" and vim.islist(decoded), "Expected textlint JSON results")
 
 				local diagnostics = {}
 				for _, file_result in ipairs(decoded) do
 					for _, message in ipairs(file_result.messages or {}) do
 						local lnum = math.max((message.line or 1) - 1, 0)
-						local col = math.max((message.column or 1) - 1, 0)
+						local line = vim.api.nvim_buf_get_lines(bufnr, lnum, lnum + 1, false)[1] or ""
+						local column = math.max((message.column or 1) - 1, 0)
+						local col = vim.str_byteindex(line, "utf-16", column, false)
+						local next_char = vim.str_utfindex(line, "utf-32", col, false) + 1
+						local end_col = vim.str_byteindex(line, "utf-32", next_char, false)
 						table.insert(diagnostics, {
 							lnum = lnum,
 							end_lnum = lnum,
 							col = col,
-							end_col = col + 1,
+							end_col = end_col,
 							message = message.message or "textlint warning",
 							source = message.ruleId and ("textlint:" .. message.ruleId) or "textlint",
-							severity = vim.diagnostic.severity.WARN,
+							severity = message.severity == 2 and vim.diagnostic.severity.ERROR
+								or vim.diagnostic.severity.WARN,
 						})
 					end
 				end
