@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@mtrojnar/pi-usage": "0.2.0",
+    "@narumitw/pi-worktree": "0.51.11",
     "@raidou/pi-notify": "0.9.0",
     "@tifan/pi-recap": "0.4.8",
     "pi-browser-actions": "1.1.1",

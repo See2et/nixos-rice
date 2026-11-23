@@ -191,6 +191,7 @@ Pi の認証・セッションは Pi が保存し、Nix に認証情報を書き
 
 - miloa: 各ホストで `pi mcp login miloa` を実行して承認し、`pi mcp list` で確認します。OAuth 認証情報は配布しません。起動中の Pi には `/reload` で反映します。
 - Browser: Linux は Nix の Chromium が既定で、`PLAYWRIGHT_MCP_EXECUTABLE_PATH` のユーザー指定を優先します。Darwin は利用できるブラウザーを別途指定します。
+- Worktree: Pi 内は `/worktree` で作成・切替、shell の `gw` / Alt-B は登録済み worktree への移動のみです。Home Manager は writable な `~/.pi/agent/pi-worktree.json` の root を `~/worktrees` に設定します。配置・起点・再開時の確認はグローバルな `~/.pi/agent/AGENTS.md` に従います（書込み隔離や自動更新の実装ではありません）。
 - Recap: アイドル・再開時にも追加のモデル呼び出しが発生します。Home Manager は `~/.pi/agent/extensions/pi-recap.json` の model を `openai-codex/gpt-6.1-sol` に戻します。既存の `openai-codex` 認証を使い、利用不可・未認証時に別モデルへフォールバックしません。独自の `PI_CODING_AGENT_DIR` には同じ設定を別途用意してください。
 - Usage: Codex 利用枠取得には native `/login openai` とは別に、同じアカウント・workspace で `/login openai-codex` が必要です。`Codex:✓` だけでは数値取得の成功を示しません。返されない枠は 0% として扱いません。
 - 通知: 適用後は Pi を再起動して `/notify-test` で確認します。`Idle` は応答終了であり、非同期質問の回答や依頼全体の完了を意味しません。

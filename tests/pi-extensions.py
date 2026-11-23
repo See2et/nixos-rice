@@ -448,6 +448,44 @@ class RecapConfigTests(unittest.TestCase):
             self.assertEqual(target.read_text(), '{"model": "user/model"}')
 
 
+class WorktreeConfigTests(unittest.TestCase):
+    def configure(self, path):
+        return subprocess.run([
+            sys.executable, str(ROOT / "packages/pi-extensions/configure-worktree.py"),
+            str(path), "~/worktrees",
+        ], text=True, capture_output=True)
+
+    def test_root_merge_preserves_other_settings_and_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "agent/pi-worktree.json"
+            self.assertEqual(self.configure(path).returncode, 0)
+            self.assertEqual(json.loads(path.read_text()), {"worktreeRoot": "~/worktrees"})
+            path.write_text('{"worktreeRoot":"~/old", "future":{"keep":true}}')
+            result = self.configure(path)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(path.read_text()), {
+                "worktreeRoot": "~/worktrees", "future": {"keep": True},
+            })
+            before = path.stat().st_mtime_ns
+            self.assertEqual(self.configure(path).returncode, 0)
+            self.assertEqual(path.stat().st_mtime_ns, before)
+
+    def test_invalid_or_symlink_config_is_preserved(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "pi-worktree.json"
+            for content in ("invalid JSON", "[]", "null"):
+                path.write_text(content)
+                self.assertNotEqual(self.configure(path).returncode, 0)
+                self.assertEqual(path.read_text(), content)
+            target = Path(temp) / "original.json"
+            target.write_text('{"worktreeRoot":"~/original"}')
+            path.unlink()
+            path.symlink_to(target)
+            self.assertNotEqual(self.configure(path).returncode, 0)
+            self.assertTrue(path.is_symlink())
+            self.assertEqual(target.read_text(), '{"worktreeRoot":"~/original"}')
+
+
 class GitRuntimeTests(unittest.TestCase):
     def test_runtime_manifest_excludes_development_and_lifecycle_scripts(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -119,203 +119,40 @@
                     }
                     abbr -S zp="peco-zoxide"
 
-                    function __fzf_gwt_resolve_repo() {
-                      local git_common_dir main_repo ghq_root repo_path remote_url
+          function fzf-git-worktree() {
+            local target record
+            git rev-parse --git-common-dir >/dev/null 2>&1 || {
+              print -u2 "fzf-git-worktree: not in a git repository"
+              return 1
+            }
+            IFS= read -r -d $'\0' target < <(
+              git worktree list --porcelain -z |
+                while IFS= read -r -d $'\0' record; do
+                  if [[ "$record" == "worktree "* ]]; then
+                    printf '%s\0' "''${record#worktree }"
+                  fi
+                done |
+                fzf --read0 --print0 --prompt 'WORKTREE> '
+            ) || return
+            [[ -d "$target" ]] || {
+              print -u2 "fzf-git-worktree: unavailable worktree: $target"
+              return 1
+            }
+            cd -- "$target"
+          }
+          abbr -S gw="fzf-git-worktree"
 
-                      git_common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || return 1
-
-                      if [[ "$git_common_dir" == ".git" ]]; then
-                        main_repo=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
-                      else
-                        main_repo="''${git_common_dir%/.git}"
-                      fi
-
-                      ghq_root=$(ghq root 2>/dev/null) || ghq_root=""
-                      if [[ -n "$ghq_root" && "$main_repo" == "$ghq_root/"* ]]; then
-                        repo_path="''${main_repo#"$ghq_root/"}"
-                      else
-                        remote_url=$(git -C "$main_repo" remote get-url origin 2>/dev/null) || remote_url=""
-                        if [[ -n "$remote_url" ]]; then
-                          repo_path=$(printf "%s" "$remote_url" | sed -E 's#(git@|https://)##; s#:#/#; s#\\.git$##')
-                        else
-                          repo_path=$(basename "$main_repo")
-                        fi
-                      fi
-
-                      printf "%s\n%s" "$main_repo" "$HOME/worktrees/$repo_path"
-                    }
-
-                    function __fzf_gwt_list() {
-                      local main_repo="$1" worktree_repo_root="$2"
-                      local branches branch wt_path
-
-                      branches=$(git -C "$main_repo" for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin | sed 's#^origin/##' | sort -u)
-
-                      while IFS= read -r branch; do
-                        [[ -z "$branch" ]] && continue
-                        wt_path="$worktree_repo_root/''${branch//\//-}"
-                        if [[ -d "$wt_path" ]]; then
-                          printf "\033[32m●\033[0m\t%-40s\t\033[2m%s\033[0m\n" "$branch" "$wt_path"
-                        else
-                          printf "\033[90m○\033[0m\t%-40s\t\n" "$branch"
-                        fi
-                      done <<< "$branches"
-                    }
-
-                    function fzf-git-worktree() {
-                      local main_repo worktree_repo_root repo_info
-                      local result query key selected branch wt_path
-                      local main_target ghq_root repo_path remote_url
-                      local fzf_default_opts
-
-                      repo_info=$(__fzf_gwt_resolve_repo) || {
-                        print -u2 "fzf-git-worktree: not in a git repository"
-                        return 1
-                      }
-                      main_repo=$(printf "%s" "$repo_info" | sed -n '1p')
-                      worktree_repo_root=$(printf "%s" "$repo_info" | sed -n '2p')
-                      mkdir -p "$worktree_repo_root"
-
-                      fzf_default_opts="$FZF_DEFAULT_OPTS"
-                      if [[ "$fzf_default_opts" == *"--layout=bottom-up"* ]]; then
-                        fzf_default_opts="''${fzf_default_opts//--layout=bottom-up/--layout=reverse}"
-                      fi
-
-                      local _gwt_preview _gwt_delete _gwt_reload
-
-                      _gwt_preview="
-                        branch=\$(echo {2} | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*\$//');
-                        wt_dir=\$(echo \$branch | tr / -);
-                        wt_path=$worktree_repo_root/\$wt_dir;
-                        if [ -d \$wt_path ]; then
-                          printf '\\033[1;34m━━━ Worktree Status ━━━\\033[0m\\n';
-                          git -C \$wt_path status --short --branch --color=always 2>/dev/null;
-                          echo;
-                        fi;
-                        printf '\\033[1;34m━━━ Recent Commits ━━━\\033[0m\\n';
-                        git -C $main_repo log --oneline --graph --date=short --color=always \
-                          --pretty='format:%C(auto)%cd %h%d %s' \$branch -- 2>/dev/null | head -40
-                      "
-
-                      _gwt_delete="
-                        branch=\$(echo {2} | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*\$//');
-                        wt_dir=\$(echo \$branch | tr / -);
-                        wt_path=$worktree_repo_root/\$wt_dir;
-                        [ -d \$wt_path ] && git -C $main_repo worktree remove \$wt_path 2>/dev/null
-                      "
-
-                      _gwt_reload="
-                        git -C $main_repo for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin \
-                        | sed 's#^origin/##' | sort -u | while IFS= read -r b; do
-                          [ -z \"\$b\" ] && continue;
-                          wp=$worktree_repo_root/\$(echo \$b | tr / -);
-                          if [ -d \$wp ]; then
-                            printf '\\033[32m●\\033[0m\\t%-40s\\t\\033[2m%s\\033[0m\\n' \"\$b\" \$wp;
-                          else
-                            printf '\\033[90m○\\033[0m\\t%-40s\\t\\n' \"\$b\";
-                          fi;
-                        done
-                      "
-
-                      result=$(__fzf_gwt_list "$main_repo" "$worktree_repo_root" \
-                        | FZF_DEFAULT_OPTS="$fzf_default_opts" fzf \
-                          --ansi \
-                          --height 90% \
-                          --layout=reverse \
-                          --border --border-label ' 🌴 Worktree ' --border-label-pos=2 \
-                          --color 'label:green,header:italic:dim' \
-                          --prompt 'WORKTREE> ' \
-                          --header $'Enter: switch │ Ctrl-A: new branch │ Ctrl-D: delete │ Ctrl-/: toggle preview' \
-                          --delimiter=$'\t' \
-                          --with-nth=1,2 \
-                          --preview "$_gwt_preview" \
-                          --preview-window 'right,50%,border-left' \
-                          --bind 'ctrl-/:change-preview-window(down,40%|hidden|right,50%)' \
-                          --bind 'ctrl-k:up,ctrl-j:down' \
-                          --bind "ctrl-d:execute-silent($_gwt_delete)+reload($_gwt_reload)" \
-                          --expect=ctrl-a \
-                          --print-query \
-                      ) || return
-
-                      query=$(printf "%s\n" "$result" | sed -n '1p')
-                      key=$(printf "%s\n" "$result" | sed -n '2p')
-                      selected=$(printf "%s\n" "$result" | sed -n '3p' | awk -F $'\t' '{print $2}' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
-
-                      case "$key" in
-                        ctrl-a)
-                          branch="$query"
-                          [[ -z "$branch" ]] && return
-                          ;;
-                        *)
-                          branch="$selected"
-                          [[ -z "$branch" ]] && return
-                          ;;
-                      esac
-
-                      if [[ "$branch" == "main" ]]; then
-                        main_target="$main_repo"
-                        ghq_root=$(ghq root 2>/dev/null) || ghq_root=""
-
-                        if [[ -n "$ghq_root" ]]; then
-                          if [[ "$main_repo" == "$ghq_root/"* ]]; then
-                            main_target="$main_repo"
-                          else
-                            remote_url=$(git -C "$main_repo" remote get-url origin 2>/dev/null) || remote_url=""
-                            if [[ -n "$remote_url" ]]; then
-                              repo_path=$(printf "%s" "$remote_url" | sed -E 's#(git@|https://)##; s#:#/#; s#\.git$##')
-                              if [[ -d "$ghq_root/$repo_path" ]]; then
-                                main_target="$ghq_root/$repo_path"
-                              fi
-                            fi
-                          fi
-                        fi
-
-                        if git -C "$main_target" show-ref --verify --quiet "refs/heads/main"; then
-                          git -C "$main_target" switch main || return
-                        elif git -C "$main_target" show-ref --verify --quiet "refs/remotes/origin/main"; then
-                          git -C "$main_target" switch -c main --track origin/main || return
-                        fi
-
-                        cd "$main_target"
-                        return
-                      fi
-
-                      wt_path="$worktree_repo_root/''${branch//\//-}"
-
-                      if [[ -d "$wt_path" ]]; then
-                        cd "$wt_path"
-                      else
-                        if git -C "$main_repo" show-ref --verify --quiet "refs/heads/$branch"; then
-                          git -C "$main_repo" worktree add "$wt_path" "$branch" || return
-                        else
-                          git -C "$main_repo" worktree add -b "$branch" "$wt_path" || return
-                        fi
-                        cd "$wt_path"
-
-                        # Set upstream tracking if remote branch exists and upstream not yet set
-                        if git -C "$main_repo" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-                          if ! git rev-parse --abbrev-ref --symbolic-full-name "$branch@{upstream}" >/dev/null 2>&1; then
-                            git branch --set-upstream-to="origin/$branch" "$branch"
-                            print "\033[1;32m✔\033[0m Upstream set to origin/$branch"
-                          fi
-                        else
-                          print "\033[1;33m→\033[0m No remote branch origin/$branch yet. Run 'git push' to create it and enable 'git pull'."
-                        fi
-                      fi
-                    }
-                    abbr -S gw="fzf-git-worktree"
-
-                    function fzf-git-worktree-widget() {
-                      if [[ -n "$WIDGET" ]]; then
-                        zle -I
-                        fzf-git-worktree
-                        zle reset-prompt
-                      else
-                        fzf-git-worktree
-                      fi
-                    }
-                    zle -N fzf-git-worktree-widget
-                    bindkey "^[b" fzf-git-worktree-widget
+          function fzf-git-worktree-widget() {
+            if [[ -n "$WIDGET" ]]; then
+              zle -I
+              fzf-git-worktree
+              zle reset-prompt
+            else
+              fzf-git-worktree
+            fi
+          }
+          zle -N fzf-git-worktree-widget
+          bindkey "^[b" fzf-git-worktree-widget
 
           function git-codex-commit() {
             local diff prompt msg tmp_output tmp_error cc_pattern

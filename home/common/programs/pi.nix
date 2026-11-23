@@ -98,5 +98,12 @@ in
       ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/mcp.json"} \
       ${lib.escapeShellArg "https://mcp.miloa.io"}
   '';
-  home.file = builtins.listToAttrs agentFiles;
+  home.activation.piWorktree = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run ${pkgs.python3}/bin/python3 ${../../../packages/pi-extensions/configure-worktree.py} \
+      ${lib.escapeShellArg "${config.home.homeDirectory}/.pi/agent/pi-worktree.json"} \
+      ${lib.escapeShellArg "${config.home.homeDirectory}/worktrees"}
+  '';
+  home.file = builtins.listToAttrs agentFiles // {
+    ".pi/agent/AGENTS.md".source = ../dotfiles/pi/AGENTS.md;
+  };
 }

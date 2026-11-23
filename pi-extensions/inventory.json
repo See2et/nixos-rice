@@ -59,6 +59,11 @@
     "package": "@raidou/pi-notify"
   },
   {
+    "name": "@narumitw/pi-worktree",
+    "kind": "npm",
+    "package": "@narumitw/pi-worktree"
+  },
+  {
     "name": "pi-lsp-extension",
     "kind": "npm",
     "package": "pi-lsp-extension"
