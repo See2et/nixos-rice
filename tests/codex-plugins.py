@@ -146,14 +146,4 @@ os.execv(os.environ['CODEX_BIN'], [os.environ['CODEX_BIN'], *sys.argv[1:]])
     apply([])
     assert "probe@managed" not in tomllib.loads(config.read_text()).get("plugins", {})
     preserved()
-
-    # Finally install the actual Nix-built Astraeus source, resources included.
-    astraeus = os.environ.get("ASTRAEUS_MARKETPLACE")
-    if astraeus:
-        apply([{"name": "astraeus", "root": astraeus}])
-        installed = Path(state()["plugins"]["astraeus@astraeus"]["path"])
-        for relative in ["skills/orchestrate/SKILL.md", "references/policy.md",
-                         "schemas/review.json", "scripts/astraeus.py"]:
-            assert (installed / relative).is_file(), relative
-        preserved()
 print("Codex plugin lifecycle: migration, idempotency, update/retry, rollback, repair, removal, preservation passed")

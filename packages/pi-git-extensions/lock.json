@@ -88,51 +88,5 @@
       }
     },
     "npmDepsHash": "sha256-2PHOte9wBGqcKGAONXFBW4KnKpxKCaNO2C7jaszgGyo="
-  },
-  "pi-astraeus": {
-    "rev": "0bfe5db156c18fa35890f1fd29201274e563b800",
-    "manifest": {
-      "name": "@see2et/pi-astraeus",
-      "version": "0.1.0",
-      "private": true,
-      "description": "Astraeus policy and evidence-bound review workflow for Pi",
-      "keywords": [
-        "pi-package"
-      ],
-      "license": "MIT",
-      "repository": {
-        "type": "git",
-        "url": "git+ssh://git@github.com/See2et/pi-astraeus.git"
-      },
-      "type": "module",
-      "peerDependencies": {
-        "@earendil-works/pi-ai": "*",
-        "@earendil-works/pi-coding-agent": "*",
-        "typebox": "*"
-      },
-      "lint-staged": {
-        "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": [
-          "bun --bun oxfmt",
-          "bun --bun oxlint --deny-warnings"
-        ],
-        "*.json": [
-          "bun --bun oxfmt"
-        ]
-      },
-      "engines": {
-        "bun": ">=1.3.13",
-        "node": ">=22"
-      },
-      "pi": {
-        "extensions": [
-          "./extensions/index.ts"
-        ],
-        "skills": [
-          "./skills"
-        ]
-      }
-    },
-    "packageLock": null,
-    "npmDepsHash": null
   }
 }

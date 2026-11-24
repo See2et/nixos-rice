@@ -6,21 +6,6 @@
     "packaging": "pi-subagents"
   },
   {
-    "name": "pi-astraeus",
-    "kind": "git",
-    "hosts": [],
-    "url": "git+ssh://git@github.com/See2et/pi-astraeus.git",
-    "agents": {
-      "prefix": "astraeus",
-      "roles": [
-        "worker",
-        "designer",
-        "reviewer",
-        "adjudicator"
-      ]
-    }
-  },
-  {
     "name": "miloa-management",
     "kind": "local",
     "path": "ghq/github.com/see2et/miloa-management",

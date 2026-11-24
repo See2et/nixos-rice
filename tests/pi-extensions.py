@@ -188,7 +188,7 @@ class CommandTests(unittest.TestCase):
         self.assertFalse((self.repo / "pi-extensions/flake.lock").exists())
 
     def test_all_and_named_routing(self):
-        for names in ([], ["pi-interview"], ["pi-astraeus"], ["pi-astraeus", "pi-interview", "pi-interview"]):
+        for names in ([], ["pi-interview"], ["pi-mentor"], ["pi-mentor", "pi-interview", "pi-interview"]):
             with self.subTest(names=names):
                 # Restore only the disposable fixture between selections.
                 for p, data in self.before.items():
@@ -273,7 +273,7 @@ class CommandTests(unittest.TestCase):
                 self.assert_preserved()
 
     def test_unrelated_input_change_rejected(self):
-        result = self.command("pi-astraeus", UNRELATED="1")
+        result = self.command("pi-mentor", UNRELATED="1")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("unrelated inputs", result.stderr)
         self.assertEqual(self.managed(), self.before)

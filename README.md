@@ -156,7 +156,7 @@ nix flake update skills
 nix flake update codex-plugins
 # 個別更新
 nix flake update skills/yomiyasu
-nix flake update codex-plugins/astraeus
+nix flake update codex-plugins/<name>
 ```
 
 Plugins は Home Manager 適用時に Codex CLI で自動登録・更新され、リストから外すと以前管理した Plugin を削除します。旧キャッシュを整理するため、**更新前に利用中の Codex セッションを終了し、適用後に新しいセッションを開始**してください。無関係な Plugin・設定・認証と編集用 checkout は保持します。
@@ -169,10 +169,10 @@ Pi は Desktop / WSL / Darwin 共通です。本体は `nix flake update pi-nix`
 nix run .#update-pi-extensions -- --list
 nix run .#update-pi-extensions                          # 全拡張
 nix run .#update-pi-extensions -- pi-interview          # 指定した拡張だけ
-nix run .#update-pi-extensions -- pi-astraeus pi-interview
+nix run .#update-pi-extensions -- pi-mentor pi-interview
 ```
 
-登録は `pi-extensions/inventory.json` に統一し、配列順に読み込みます。`hosts` は読み込むホストを限定し、空配列なら無効です（pi-astraeus は無効化済み）。`kind: "local"` はホーム相対の既存 checkout をコピー・更新せず読み込みます。Desktop の miloa-management は管理用・pi-factory の両 Extension／Skill を同 checkout の manifest から読み込み、依存関係の準備は checkout 側で行います。`node:sqlite` が必要なため、Desktop の Pi ラッパーは同 checkout の Pi 1.0.4 CLI を Node.js 24 で実行します（通常の Pi 認証・設定を継続利用）。Git/npm の新規登録も inventory を編集して対象名を指定します。生成される `pi-extensions/flake.nix` は直接編集しません。手動編集を検出すると更新前に停止しますが、これは悪意ある改変への整合性保証ではありません。Git 登録名は `[a-z][a-z0-9_-]*`（Nix 予約語不可）、npm は scoped 名も使えます。
+登録は `pi-extensions/inventory.json` に統一し、配列順に読み込みます。`hosts` は読み込むホストを限定し、空配列なら無効です。`kind: "local"` はホーム相対の既存 checkout をコピー・更新せず読み込みます。Desktop の miloa-management は管理用・pi-factory の両 Extension／Skill を同 checkout の manifest から読み込み、依存関係の準備は checkout 側で行います。`node:sqlite` が必要なため、Desktop の Pi ラッパーは同 checkout の Pi 1.0.4 CLI を Node.js 24 で実行します（通常の Pi 認証・設定を継続利用）。Git/npm の新規登録も inventory を編集して対象名を指定します。生成される `pi-extensions/flake.nix` は直接編集しません。手動編集を検出すると更新前に停止しますが、これは悪意ある改変への整合性保証ではありません。Git 登録名は `[a-z][a-z0-9_-]*`（Nix 予約語不可）、npm は scoped 名も使えます。
 
 更新時の注意:
 

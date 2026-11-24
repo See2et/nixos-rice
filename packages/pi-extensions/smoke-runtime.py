@@ -24,7 +24,7 @@ export default function(pi) {
   pi.on("agent_settled", (_event,ctx)=>ctx.shutdown());
   pi.on("before_agent_start", () => {
     const tools=pi.getActiveTools();
-    for (const name of ["codemode","lsp_hover","lsp_diagnostics","astraeus_workflow"]) {
+    for (const name of ["codemode","lsp_hover","lsp_diagnostics"]) {
       if (!tools.includes(name)) throw new Error("Missing active tool: " + name);
     }
     for (const name of ["usage","lsp"]) {
@@ -65,4 +65,4 @@ export default function(pi) {
     events = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
     final = [event["message"] for event in events if event.get("type")=="message_end" and event.get("message",{}).get("role")=="assistant" and event["message"].get("stopReason")=="stop"]
     assert final and any(item.get("text")=="PI_TOOLS_SMOKE_OK" for item in final[-1]["content"]), result.stdout[-3000:]
-    print("Actual Pi CodeMode -> TypeScript LSP hover, usage/LSP commands, and Astraeus coexistence: passed")
+    print("Actual Pi CodeMode -> TypeScript LSP hover and usage/LSP commands: passed")

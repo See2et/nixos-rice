@@ -541,8 +541,6 @@
               {
                 nativeBuildInputs = [ pkgs.python3 ];
                 CODEX_BIN = "${inputs.codex-cli-nix.packages.${system}.codex}/bin/codex";
-                ASTRAEUS_MARKETPLACE =
-                  self.nixosConfigurations.desktop.config.home-manager.users.see2et.home.file.".local/share/codex-nix-marketplaces/astraeus".source;
               }
               ''
                 export PYTHONDONTWRITEBYTECODE=1

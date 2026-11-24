@@ -16,10 +16,9 @@ let
   codex = inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex;
   merge = ../common/programs/merge-agent-config.py;
   trustedWorkspaces = import ../../lib/agent-trusted-workspaces.nix config.home.homeDirectory;
-  claudeControlRoot = "${config.xdg.stateHome}/astraeus/claude-control";
   claudeTrust = pkgs.writeText "claude-workspace-trust.json" (
     builtins.toJSON {
-      projects = lib.genAttrs (trustedWorkspaces ++ [ claudeControlRoot ]) (_: {
+      projects = lib.genAttrs trustedWorkspaces (_: {
         hasTrustDialogAccepted = true;
       });
     }
@@ -105,7 +104,6 @@ in
   ];
   home.file.".bb/skills/bb-factory".source = "${bbFactory}/share/bb/skills/bb-factory";
   home.activation.agentWorkspaceTrust = lib.hm.dag.entryAfter [ "writeBoundary" "sharedAgentMcp" ] ''
-    run ${pkgs.coreutils}/bin/install -d -m 0700 ${lib.escapeShellArg claudeControlRoot}
     run ${pkgs.python3}/bin/python3 ${merge} \
       "${config.home.homeDirectory}/.claude.json" ${claudeTrust}
     run ${pkgs.python3}/bin/python3 ${merge} \

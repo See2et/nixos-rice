@@ -43,7 +43,7 @@ export default function(pi) {
   pi.on("agent_settled", (_event, ctx) => ctx.shutdown());
   pi.on("before_agent_start", () => {
     const names = pi.getAllTools().map(t => t.name);
-    for (const n of ["browser_session", "browser", "browser_web_search", "web_fetch", "web_enable", "astraeus_workflow"]) {
+    for (const n of ["browser_session", "browser", "browser_web_search", "web_fetch", "web_enable"]) {
       if (names.filter(x => x === n).length !== 1) throw new Error("Missing/duplicate tool " + n);
     }
     // web-access exposes its enable tool indirectly by default. This fixture

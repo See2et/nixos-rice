@@ -20,22 +20,6 @@
         "type": "github"
       }
     },
-    "astraeus": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1791076680,
-        "narHash": "sha256-ATOuIZ/N7FjtJtGvf53hPiHcFTYoatibEGAP/wLtgEc=",
-        "ref": "refs/heads/main",
-        "rev": "c8f80d02b5416a779afce6a59cbe7c6088bdbb2c",
-        "revCount": 15,
-        "type": "git",
-        "url": "ssh://git@github.com/See2et/astraeus.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/See2et/astraeus.git"
-      }
-    },
     "ax": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -135,9 +119,6 @@
       }
     },
     "codex-plugins": {
-      "inputs": {
-        "astraeus": "astraeus"
-      },
       "locked": {
         "path": "./codex-plugins",
         "type": "path"
@@ -800,25 +781,8 @@
         "url": "ssh://git@github.com/See2et/agent-skills.git"
       }
     },
-    "pi-astraeus": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793970809,
-        "narHash": "sha256-FQeAfU9pw4fkfxSb5A+wX6VK0vAk36vtiVrMgf6Ol2g=",
-        "ref": "refs/heads/main",
-        "rev": "0bfe5db156c18fa35890f1fd29201274e563b800",
-        "revCount": 22,
-        "type": "git",
-        "url": "ssh://git@github.com/See2et/pi-astraeus.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/See2et/pi-astraeus.git"
-      }
-    },
     "pi-extensions": {
       "inputs": {
-        "pi-astraeus": "pi-astraeus",
         "pi-mentor": "pi-mentor",
         "pi-subagents": "pi-subagents"
       },
