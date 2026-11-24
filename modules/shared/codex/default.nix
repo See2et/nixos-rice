@@ -1,5 +1,13 @@
-{ pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
+  trustedWorkspaces = lib.optionals (pkgs.stdenv.isLinux && config.users.users ? see2et) (
+    import ../../../lib/agent-trusted-workspaces.nix config.users.users.see2et.home
+  );
   gmailMcp = pkgs.writeShellApplication {
     name = "gmail-multi-account-mcp";
     runtimeInputs = [
@@ -40,6 +48,9 @@ in
   environment.etc."codex/config.toml".source = (pkgs.formats.toml { }).generate "codex-config.toml" (
     builtins.fromTOML (builtins.readFile ./config.toml)
     // {
+      projects = lib.genAttrs trustedWorkspaces (_: {
+        trust_level = "trusted";
+      });
       mcp_servers = lib.mapAttrs (
         name: server:
         server

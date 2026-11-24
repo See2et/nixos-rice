@@ -69,6 +69,10 @@
     };
     # Group skill repositories so `nix flake update skills` updates them together.
     skills.url = "path:./skills";
+    bb-factory = {
+      url = "git+ssh://git@github.com/See2et/bb-factory.git?ref=main";
+      flake = false;
+    };
     codex-plugins.url = "path:./codex-plugins";
     opencode.url = "github:anomalyco/opencode";
     herdr.url = "github:herdrdev/herdr/v0.9.0";

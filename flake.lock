@@ -57,6 +57,23 @@
         "type": "github"
       }
     },
+    "bb-factory": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795524562,
+        "narHash": "sha256-QF4qYMvGvnFz8KN5U+QQGjpDNZ26lqpGYglfIKA5J74=",
+        "ref": "main",
+        "rev": "54ba92fa016ad9f62a4eba5fdf0dbea95d055f9d",
+        "revCount": 4,
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/bb-factory.git"
+      },
+      "original": {
+        "ref": "main",
+        "type": "git",
+        "url": "ssh://git@github.com/See2et/bb-factory.git"
+      }
+    },
     "brew-src": {
       "flake": false,
       "locked": {
@@ -869,6 +886,7 @@
       "inputs": {
         "agent-skills-nix": "agent-skills-nix",
         "ax": "ax",
+        "bb-factory": "bb-factory",
         "codex-cli-nix": "codex-cli-nix",
         "codex-plugins": "codex-plugins",
         "dms": "dms",

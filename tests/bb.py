@@ -116,6 +116,20 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(backup.stat().st_mode & 0o777, 0o600)
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
 
+    def test_workspace_trust_merges_with_existing_approvals(self):
+        with tempfile.TemporaryDirectory() as directory:
+            settings = Path(directory) / "settings.json"
+            settings.write_text(json.dumps({"trustedWorkspaces": ["/other", "/known"], "theme": "dark"}))
+            patch = {"trustedWorkspaces": ["/known", "/declared"]}
+            merge.apply(settings, patch, append_lists=["trustedWorkspaces"])
+            first = settings.read_bytes()
+            self.assertEqual(json.loads(first), {
+                "trustedWorkspaces": ["/other", "/known", "/declared"],
+                "theme": "dark",
+            })
+            merge.apply(settings, patch, append_lists=["trustedWorkspaces"])
+            self.assertEqual(settings.read_bytes(), first)
+
     def test_invalid_or_linked_configuration_is_not_replaced(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.json"

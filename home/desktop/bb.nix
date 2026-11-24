@@ -7,10 +7,26 @@
 }:
 let
   bb = pkgs.callPackage ../../packages/bb { };
+  bbFactory = pkgs.callPackage ../../packages/bb-factory {
+    inherit bb;
+    src = inputs.bb-factory;
+  };
   agy = pkgs.callPackage ../../packages/agy { };
   claude = pkgs.callPackage ../../packages/claude-code { };
   codex = inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex;
   merge = ../common/programs/merge-agent-config.py;
+  trustedWorkspaces = import ../../lib/agent-trusted-workspaces.nix config.home.homeDirectory;
+  claudeControlRoot = "${config.xdg.stateHome}/astraeus/claude-control";
+  claudeTrust = pkgs.writeText "claude-workspace-trust.json" (
+    builtins.toJSON {
+      projects = lib.genAttrs (trustedWorkspaces ++ [ claudeControlRoot ]) (_: {
+        hasTrustDialogAccepted = true;
+      });
+    }
+  );
+  agyTrust = pkgs.writeText "agy-workspace-trust.json" (
+    builtins.toJSON { inherit trustedWorkspaces; }
+  );
   settings = pkgs.writeText "bb-settings.json" (
     builtins.toJSON {
       config.BB_APP_URL = "https://nixos.taile209b8.ts.net:38886";
@@ -58,6 +74,10 @@ let
             id = "miloa-management";
             source = "path:${config.home.homeDirectory}/ghq/github.com/see2et/miloa-management";
           }
+          {
+            id = "mentor";
+            source = "path:${config.home.homeDirectory}/ghq/github.com/see2et/bb-mentor";
+          }
         ];
       agy = {
         id = "agy";
@@ -80,8 +100,18 @@ in
   imports = [ ../common/programs/bb-client.nix ];
   home.packages = [
     bb
+    bbFactory
     agy
   ];
+  home.file.".bb/skills/bb-factory".source = "${bbFactory}/share/bb/skills/bb-factory";
+  home.activation.agentWorkspaceTrust = lib.hm.dag.entryAfter [ "writeBoundary" "sharedAgentMcp" ] ''
+    run ${pkgs.coreutils}/bin/install -d -m 0700 ${lib.escapeShellArg claudeControlRoot}
+    run ${pkgs.python3}/bin/python3 ${merge} \
+      "${config.home.homeDirectory}/.claude.json" ${claudeTrust}
+    run ${pkgs.python3}/bin/python3 ${merge} \
+      "${config.home.homeDirectory}/.gemini/antigravity-cli/settings.json" ${agyTrust} \
+      --append-list trustedWorkspaces
+  '';
   systemd.user.services.bb = {
     Unit = {
       Description = "bb coding-agent server and local execution host";
@@ -98,6 +128,7 @@ in
         "PATH=${
           lib.makeBinPath [
             bb
+            bbFactory
             agy
             claude
             codex
