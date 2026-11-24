@@ -35,10 +35,10 @@ let
   manifest = pkgs.writeText "bb-plugins.json" (
     builtins.toJSON {
       plugins =
-        map
+        (map
           (name: {
             id = name;
-            source = name;
+            source = "builtin:${name}";
           })
           [
             "provider-codex"
@@ -51,7 +51,14 @@ let
             "push-notifications"
             "environment-git-worktree"
             "monaco-editor"
-          ];
+          ]
+        )
+        ++ [
+          {
+            id = "miloa-management";
+            source = "path:${config.home.homeDirectory}/ghq/github.com/see2et/miloa-management";
+          }
+        ];
       agy = {
         id = "agy";
         displayName = "Antigravity";

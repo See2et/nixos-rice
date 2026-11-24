@@ -1,4 +1,4 @@
-"""Configure only the selected built-in plugins and the agy provider via bb CLI."""
+"""Configure only the declared plugins and the agy provider via bb CLI."""
 
 import json
 import os
@@ -39,8 +39,16 @@ def configure(manifest):
 
     for plugin in manifest["plugins"]:
         existing = plugins.get(plugin["id"])
+        if existing is not None and existing.get("source") != plugin["source"]:
+            raise ValueError(
+                f"plugin {plugin['id']} source conflicts: "
+                f"expected {plugin['source']!r}, found {existing.get('source')!r}"
+            )
+
+    for plugin in manifest["plugins"]:
+        existing = plugins.get(plugin["id"])
         if existing is None:
-            cli("plugin", "install", "builtin:" + plugin["source"], "--yes")
+            cli("plugin", "install", plugin["source"], "--yes")
         elif not existing["enabled"]:
             cli("plugin", "enable", plugin["id"])
 

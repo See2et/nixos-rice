@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,6 +21,74 @@ def load(name, path):
 
 merge = load("agent_config", "home/common/programs/merge-agent-config.py")
 tailnet = load("bb_tailnet", "modules/nixos/desktop/scripts/bb-tailnet.py")
+bb = load("configure_bb", "home/desktop/scripts/configure-bb.py")
+
+
+class PluginTests(unittest.TestCase):
+    source = "path:/home/test/ghq/github.com/see2et/miloa-management"
+    manifest = {"plugins": [
+        {"id": "tasks", "source": "builtin:tasks"},
+        {"id": "miloa-management", "source": source},
+    ], "agy": {"id": "agy", "command": "/nix/store/agy/bin/agy"}}
+
+    def test_local_and_builtin_registration_preserves_other_state_and_is_idempotent(self):
+        plugins = {"other": {"id": "other", "source": "path:/other", "enabled": False}}
+        other_agent = {"id": "private", "command": "keep", "env": {"TOKEN": "private"}}
+        settings = {"customAgents": json.dumps([other_agent]), "otherSetting": "keep"}
+        writes = []
+
+        def cli(*args):
+            if args == ("plugin", "list"):
+                return {"plugins": list(plugins.values())}
+            if args == ("plugin", "config", "provider-acp"):
+                return {"values": dict(settings)}
+            writes.append(args)
+            if args[:2] == ("plugin", "install"):
+                plugin_id = "tasks" if args[2].endswith("tasks") else "miloa-management"
+                plugins[plugin_id] = {"id": plugin_id, "source": args[2], "enabled": True}
+            elif args[:2] == ("plugin", "enable"):
+                plugins[args[2]]["enabled"] = True
+            elif args[:4] == ("plugin", "config", "provider-acp", "set"):
+                settings[args[4]] = args[5]
+            return {}
+
+        with patch.object(bb, "cli", side_effect=cli):
+            bb.configure(self.manifest)
+            self.assertEqual(plugins["tasks"]["source"], "builtin:tasks")
+            self.assertEqual(plugins["miloa-management"]["source"], self.source)
+            self.assertEqual(plugins["other"], {
+                "id": "other", "source": "path:/other", "enabled": False,
+            })
+            self.assertEqual(json.loads(settings["customAgents"]), [other_agent, self.manifest["agy"]])
+            self.assertEqual(settings["otherSetting"], "keep")
+            writes.clear()
+            bb.configure(self.manifest)
+            self.assertFalse(any(args[0] == "plugin" for args in writes))
+            plugins["miloa-management"]["enabled"] = False
+            writes.clear()
+            bb.configure(self.manifest)
+            self.assertEqual([args for args in writes if args[0] == "plugin"], [
+                ("plugin", "enable", "miloa-management"),
+            ])
+
+    def test_conflicting_local_source_is_refused_before_any_write(self):
+        existing = {"id": "miloa-management", "source": "path:/other-checkout", "enabled": False}
+
+        def read_only(*args):
+            if args == ("plugin", "list"):
+                return {"plugins": [existing]}
+            self.fail("conflicting plugin source caused a write")
+
+        with patch.object(bb, "cli", side_effect=read_only) as cli:
+            with self.assertRaisesRegex(ValueError, "miloa-management.*source"):
+                bb.configure(self.manifest)
+            self.assertEqual(cli.call_args_list, [unittest.mock.call("plugin", "list")])
+
+    def test_unknown_install_failure_is_not_retried(self):
+        with patch.object(bb, "cli", side_effect=[{"plugins": []}, RuntimeError("unknown write")]) as cli:
+            with self.assertRaisesRegex(RuntimeError, "unknown write"):
+                bb.configure(self.manifest)
+            self.assertEqual(cli.call_count, 2)
 
 
 class ConfigTests(unittest.TestCase):
