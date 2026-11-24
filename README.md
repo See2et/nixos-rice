@@ -141,6 +141,10 @@ sudo darwin-rebuild switch --flake path:/etc/nixos#darwin
 
 Neovim の外部ツール（LSP / formatter / linter）は Nix、プラグインは lazy.nvim で管理します。`:Lazy sync` 後、検証した `:lua print(require("lazy.core.config").options.lockfile)` のファイルを `home/common/dotfiles/nvim/lazy-lock.json` へコピーして pin を保存します。実行用 lock は書き込み可能な state 配下にあり、リポジトリの pin が変わると次回起動時に同期されます。Treesitter はプラグイン更新時に parser / query を一緒に再構築します。Rust などシステムライブラリを使うプロジェクトでは、必要な依存を含む devShell 内から `nvim` を起動してください。
 
+### Vite+
+
+Desktop / WSL / Darwin 共通で `vp`・`vpr`・`vpx` を導入します。Node.js とパッケージマネージャーは既存の Nix パッケージを使い、Vite+ による管理・ダウンロードは無効です。`vite-plus/config.json` は Home Manager 管理のため、`vp env on/off` では変更せず Nix 側を編集します。CLI の更新も `vp upgrade` ではなく `packages/vite-plus/` の version・配布 hash・npm lock・npmDepsHash を更新して行います。
+
 ### Skills / Codex Plugins
 
 Skills の取得元は `skills/flake.nix`、選択は `home/common/programs/agent-skills.nix` で管理します。配布先 `~/.agents/skills` は直接編集せず、編集用 checkout から push してください。Plugins は `codex-plugins/flake.nix` の取得元と `marketplaces.<name>.plugins` で管理します。

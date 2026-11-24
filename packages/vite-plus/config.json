@@ -1,0 +1,9 @@
+{
+  "nodeShimMode": "system_first",
+  "packageManagerShimModes": {
+    "npm": "system_first",
+    "pnpm": "system_first",
+    "yarn": "system_first",
+    "bun": "system_first"
+  }
+}

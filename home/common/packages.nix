@@ -10,9 +10,12 @@
 let
   claudeCode = pkgs.callPackage ../../packages/claude-code { };
   pencil-cli = pkgs.callPackage ../../packages/pencil-cli { };
+  vite-plus = pkgs.callPackage ../../packages/vite-plus { };
   python-debug = pkgs.python3.withPackages (ps: [ ps.debugpy ]);
 in
 {
+  xdg.configFile."vite-plus/config.json".source = ../../packages/vite-plus/config.json;
+
   home.packages =
     (with pkgs; [
       python-debug
@@ -77,5 +80,6 @@ in
       inputs.codex-cli-nix.packages.${pkgs.stdenv.hostPlatform.system}.codex
       opencodePackage
       pencil-cli
+      vite-plus
     ];
 }
