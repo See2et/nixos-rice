@@ -114,6 +114,7 @@
   };
 
   imports = [
+    ../common/programs/bb-client.nix
     ./rebuild.nix
     ./session.nix
     ./omniwm.nix

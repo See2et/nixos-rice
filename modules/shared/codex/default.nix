@@ -37,11 +37,20 @@ in
     pkgs.libsecret
     pkgs.xdg-utils
   ];
-  environment.etc."codex/config.toml".text = builtins.readFile ./config.toml + ''
-
-    [mcp_servers.gmail-multi-account]
-    command = "${gmailMcp}/bin/gmail-multi-account-mcp"
-    args = ["serve"]
-    enabled = true
-  '';
+  environment.etc."codex/config.toml".source = (pkgs.formats.toml { }).generate "codex-config.toml" (
+    builtins.fromTOML (builtins.readFile ./config.toml)
+    // {
+      mcp_servers = lib.mapAttrs (
+        name: server:
+        server
+        // {
+          enabled = true;
+        }
+        // lib.optionalAttrs (name == "miloa") { oauth_resource = server.url; }
+        // lib.optionalAttrs (name == "gmail-multi-account") {
+          command = "${gmailMcp}/bin/gmail-multi-account-mcp";
+        }
+      ) (import ../../../lib/agent-mcp.nix);
+    }
+  );
 }

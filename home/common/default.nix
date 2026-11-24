@@ -10,6 +10,7 @@
     ./programs/git.nix
     ./programs/gh.nix
     ./programs/agent-skills.nix
+    ./programs/agent-integration.nix
     ./programs/codex-plugins.nix
     ./programs/pi.nix
     ./programs/gpg.nix

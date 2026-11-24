@@ -182,6 +182,45 @@ Herdrのマウス捕捉は無効にし、通常の文字選択は外側のTermin
 Moshは画像転送や高度なkeyboard protocolを通常のローカルTerminal同様には扱わないため、Yaziの画像preview等は保証しない。
 設定変更後は`herdr config check`、`herdr server reload-config`。session snapshot/historyはHome Managerで上書きしない。
 
+## bb
+
+Desktop は bb 0.50.1 の user service（server + local host）と agy 1.5.16 を持ち、Codex / Claude Code / Antigravity (`agy acp`) を実行する。Desktop と Apple Silicon Mac には同じ版の公式 client を配布する（Linux client は upstream alpha）。Mac に常駐 server は作らない。初回の client 接続先だけを設定し、以後の Server メニューの選択は保持する。
+
+- Desktop: `http://127.0.0.1:38886`
+- Mac / tailnet: `https://nixos.taile209b8.ts.net:38886`
+- 既存 client の接続先が残っている場合: Server → Add Server で上記 URL を追加する。
+
+適用は [README](../README.md#desktopnixos) の手順どおりユーザーが行う。Tailscale の HTTPS Certificates を有効にしておく。Serve は 38886 だけを追加し、8443 等の既存ルートを変更しない。競合や同ポートの Funnel を検出すると停止する。**bb は shell / file 操作ができるため、このポートへの tailnet ACL は信頼する本人・端末に限定する。** 独立したアプリ認証を追加した構成ではない。Funnel や public firewall port は開かない。
+
+```bash
+systemctl --user status bb
+journalctl --user -u bb -b
+systemctl status bb-tailnet
+# Tailscale 未ログイン等で失敗した場合、原因を解消してから:
+sudo systemctl restart bb-tailnet
+```
+
+認証は Desktop 上の `codex` / `claude` / `agy acp --login` で本人が行う。OAuth token・CLI session はコピーせず、bb も同じユーザーの既存認証を使う。MCP 定義は `lib/agent-mcp.nix` を正本とし、Codex / Claude / Pi / agy の形式へ変換する。JSON は関連キーだけをマージし、初回変更前のファイルを mode 0600 の `*.pre-nix-bb` に残す。認証・他の server・プロジェクト設定は保持する。アプリ起動中の同時編集は避ける。各 CLI の MCP OAuth は別途認証が必要な場合がある。
+
+Skills は既存の `~/.agents/skills` と project の `.agents/skills` を bb の共有ルートにする。Pi 専用 tool を前提とした Skill / Extension の移植は含めない。bb 管理セッションの Plugin tools と、独立して起動した CLI の tools は別物。
+
+| Pi の用途 | bb 側 |
+| --- | --- |
+| browser | 公式 Browser Automation |
+| interview | 公式 Ask User Question |
+| subagents / workflow | 公式 Tasks / Workflows、native Threads |
+| worktree | 公式 Git Worktree environment |
+| notification | 公式 Push Notifications（client で許可が必要） |
+| usage | 組込み Provider Usage。agy の quota 取得は未対応 |
+| web search / LSP | Provider 自身の機能を利用。共通 Plugin としての同等性は保証しない |
+| recap / copy-picker | 今回は追加しない |
+
+Pi の環境と専用 workflow は残す。bb と選定 Plugin は npm lock / release hash で固定し、server の runtime update と client auto-update は無効にする。更新は `packages/bb` の npm lock と `packages/bb-desktop` の release hash を同時に更新してビルドする。Browser Automation は初回利用時に upstream が署名・digest を検証する固定版 DevBrowser を専用データ領域へ取得する。headless 用 Chromium は PATH に含める。headless 起動は upstream の仕様で `--no-sandbox` なので、信頼しないコードの隔離境界にはしない。
+
+適用後、3 Provider ごとに短い read-only 会話、Plugin tool、承認/質問、キャンセル、再接続を確認する。Mac では同じ Thread が見えることと、新規 Thread の実行先が NixOS であることを確認する。Browser Automation の初回取得・headless 動作、通知許可、native client の起動も実機 QA が必要。設定評価や Plugin ロードだけでこれらの成功とは扱わない。
+
+削除時も Serve の登録は自動消去しない。停止後に本人が `sudo tailscale serve --https=38886 off` でこのルートだけを外す。`tailscale serve reset` は他の Preview を消すため使わない。
+
 ## Web Preview
 
 管理は同じ自宅ユーザーで統一する。初期権限は管理者が選ぶ。

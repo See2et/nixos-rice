@@ -361,6 +361,26 @@
               python3 -B ${self}/tests/skills-audit.py
               touch "$out"
             '';
+          bbCheck =
+            let
+              pkgs = mkPkgs system;
+              desktop = self.nixosConfigurations.desktop.config;
+              home = desktop.home-manager.users.see2et;
+            in
+            assert desktop.users.users.see2et.linger;
+            assert !(self.nixosConfigurations.wsl.config.systemd.services ? bb-tailnet);
+            assert !(self.nixosConfigurations.wsl.config.home-manager.users.nixos.systemd.user.services ? bb);
+            assert
+              !(self.darwinConfigurations.darwin.config.home-manager.users.see2et.systemd.user.services ? bb);
+            assert builtins.elem "default.target" home.systemd.user.services.bb.Install.WantedBy;
+            pkgs.runCommand "bb-config-check" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+              python3 -B ${self}/tests/bb.py
+              export HOME="$TMPDIR/bb-home"
+              mkdir -p "$HOME"
+              ${home.systemd.user.services.bb.Service.ExecStartPre}
+              ${self.packages.${system}.bb}/bin/bb-app config list --data-dir "$HOME/.bb"
+              touch "$out"
+            '';
           antidoteCacheCheck =
             let
               pkgs = mkPkgs system;
@@ -572,6 +592,7 @@
           niri-pip-workspace-follower = niriPipWorkspaceFollowerCheck;
           steamvr-tools = steamvrToolsCheck;
           remote-development = remoteDevCheck;
+          bb-config = bbCheck;
         }
       );
 
@@ -579,6 +600,7 @@
 
       # Build/run the configured Pi without activating a system generation.
       packages.${darwinSystem} = {
+        bb-desktop = (mkPkgs darwinSystem).callPackage ./packages/bb-desktop { };
         update-pi-extensions = import ./pi-extensions {
           pkgs = mkPkgs darwinSystem;
         };
@@ -589,6 +611,9 @@
         );
       };
       packages.${linuxSystem} = {
+        bb = (mkPkgs linuxSystem).callPackage ./packages/bb { };
+        bb-desktop = (mkPkgs linuxSystem).callPackage ./packages/bb-desktop { };
+        agy = (mkPkgs linuxSystem).callPackage ./packages/agy { };
         update-pi-extensions = import ./pi-extensions {
           pkgs = mkPkgs linuxSystem;
         };
