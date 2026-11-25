@@ -602,6 +602,7 @@
 
       # Build/run the configured Pi without activating a system generation.
       packages.${darwinSystem} = {
+        agy = (mkPkgs darwinSystem).callPackage ./packages/agy { };
         bb-desktop = (mkPkgs darwinSystem).callPackage ./packages/bb-desktop { };
         update-pi-extensions = import ./pi-extensions {
           pkgs = mkPkgs darwinSystem;

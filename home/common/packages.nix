@@ -8,6 +8,7 @@
   ...
 }:
 let
+  agy = pkgs.callPackage ../../packages/agy { };
   claudeCode = pkgs.callPackage ../../packages/claude-code { };
   pencil-cli = pkgs.callPackage ../../packages/pencil-cli { };
   vite-plus = pkgs.callPackage ../../packages/vite-plus { };
@@ -44,6 +45,7 @@ in
       gh
       ghq
       lazygit
+      agy
       claudeCode
       zenn-cli
       peco

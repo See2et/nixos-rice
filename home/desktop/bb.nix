@@ -100,7 +100,6 @@ in
   home.packages = [
     bb
     bbFactory
-    agy
   ];
   home.file.".bb/skills/bb-factory".source = "${bbFactory}/share/bb/skills/bb-factory";
   home.activation.agentWorkspaceTrust = lib.hm.dag.entryAfter [ "writeBoundary" "sharedAgentMcp" ] ''
