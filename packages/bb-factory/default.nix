@@ -23,6 +23,7 @@ stdenvNoCC.mkDerivation {
     export PATH="${git}/bin:$PATH"
     export HOME="$TMPDIR/bb-factory-home"
     mkdir -p "$HOME"
+    patchShebangs --build test/fixtures/bb-cli
     # The adapter fixture creates its executable at runtime inside the sandbox.
     substituteInPlace test/factory.test.js \
       --replace-fail '#!/usr/bin/env node' '#!${nodejs_24}/bin/node'
@@ -35,7 +36,7 @@ stdenvNoCC.mkDerivation {
     app="$out/lib/bb-factory"
     skill="$out/share/bb/skills/bb-factory"
     mkdir -p "$app" "$skill" "$out/bin"
-    cp -R bin src examples package.json README.md "$app/"
+    cp -R bin src examples contracts package.json README.md "$app/"
     makeWrapper ${nodejs_24}/bin/node "$out/bin/bb-factory" \
       --add-flags "$app/bin/bb-factory.js" \
       --prefix PATH : ${
