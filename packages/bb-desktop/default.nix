@@ -12,6 +12,7 @@ if pkgs.stdenv.hostPlatform.isDarwin then
     };
     nativeBuildInputs = [ pkgs.unzip ];
     sourceRoot = ".";
+    dontFixup = true;
     installPhase = ''
       mkdir -p "$out/share" "$out/Applications/bb.app/Contents/MacOS"
       # Keep the signed upstream bundle intact; Finder launches a small Nix-owned wrapper.
