@@ -70,6 +70,11 @@ let
         )
         ++ [
           {
+            id = "bb-antigravity-usage";
+            # PR #3 reads quota through agy /usage with the current sign-in storage.
+            source = "git:https://github.com/mrdavidlaing/bb-antigravity-usage.git@b78b04eed930c087da7c5d6217102d3f5a11d03c";
+          }
+          {
             id = "miloa-management";
             source = "path:${config.home.homeDirectory}/ghq/github.com/see2et/miloa-management";
           }
