@@ -1,4 +1,4 @@
-"""Configure only the declared plugins and the agy provider via bb CLI."""
+"""Configure the declared plugins and provider settings via bb CLI."""
 
 import json
 import os
@@ -51,6 +51,10 @@ def configure(manifest):
             cli("plugin", "install", plugin["source"], "--yes")
         elif not existing["enabled"]:
             cli("plugin", "enable", plugin["id"])
+
+    claude = cli("plugin", "config", "provider-claude-code")["values"]
+    if claude.get("fullAccessApprovalsEnabled") is not True:
+        cli("plugin", "config", "provider-claude-code", "set", "fullAccessApprovalsEnabled", "true")
 
     settings = cli("plugin", "config", "provider-acp")["values"]
     agents = json.loads(settings.get("customAgents") or "[]")

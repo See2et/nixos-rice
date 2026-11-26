@@ -35,6 +35,7 @@ class PluginTests(unittest.TestCase):
         plugins = {"other": {"id": "other", "source": "path:/other", "enabled": False}}
         other_agent = {"id": "private", "command": "keep", "env": {"TOKEN": "private"}}
         settings = {"customAgents": json.dumps([other_agent]), "otherSetting": "keep"}
+        claude = {"fullAccessApprovalsEnabled": False}
         writes = []
 
         def cli(*args):
@@ -42,6 +43,8 @@ class PluginTests(unittest.TestCase):
                 return {"plugins": list(plugins.values())}
             if args == ("plugin", "config", "provider-acp"):
                 return {"values": dict(settings)}
+            if args == ("plugin", "config", "provider-claude-code"):
+                return {"values": dict(claude)}
             writes.append(args)
             if args[:2] == ("plugin", "install"):
                 plugin_id = "tasks" if args[2].endswith("tasks") else "miloa-management"
@@ -50,6 +53,8 @@ class PluginTests(unittest.TestCase):
                 plugins[args[2]]["enabled"] = True
             elif args[:4] == ("plugin", "config", "provider-acp", "set"):
                 settings[args[4]] = args[5]
+            elif args == ("plugin", "config", "provider-claude-code", "set", "fullAccessApprovalsEnabled", "true"):
+                claude["fullAccessApprovalsEnabled"] = True
             return {}
 
         with patch.object(bb, "cli", side_effect=cli):
@@ -61,6 +66,7 @@ class PluginTests(unittest.TestCase):
             })
             self.assertEqual(json.loads(settings["customAgents"]), [other_agent, self.manifest["agy"]])
             self.assertEqual(settings["otherSetting"], "keep")
+            self.assertTrue(claude["fullAccessApprovalsEnabled"])
             writes.clear()
             bb.configure(self.manifest)
             self.assertFalse(any(args[0] == "plugin" for args in writes))

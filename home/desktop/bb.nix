@@ -106,6 +106,12 @@ in
     bb
     bbFactory
   ];
+  home.file.".bb/AGENTS.md".text = ''
+    # BB 共通の作業ルール
+
+    - 「整理して」「見ておいて」など、変更を求めているか曖昧な依頼では、まず読み取り専用で現状を確認する。変更が必要そうなら、変更内容を示して、実際に反映してよいかユーザーに確認する。
+    - Issue や PR を扱う場合は、自動化などで対象と許可された操作について別途事前の許可がある場合を除き、作成・編集・コメント・ラベル操作・状態変更などの前に、対象と文面や変更内容の草稿をチャット欄に出し、ユーザーの承認を待つ。承認された範囲だけを反映する。
+  '';
   home.file.".bb/skills/bb-factory".source = "${bbFactory}/share/bb/skills/bb-factory";
   home.activation.agentWorkspaceTrust = lib.hm.dag.entryAfter [ "writeBoundary" "sharedAgentMcp" ] ''
     run ${pkgs.python3}/bin/python3 ${merge} \
