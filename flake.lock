@@ -44,11 +44,11 @@
     "bb-factory": {
       "flake": false,
       "locked": {
-        "lastModified": 1795678180,
-        "narHash": "sha256-Ac+B1yMek84JBvrnuLySvXUrWYLQwZ5lFVhJnJgZ85Y=",
+        "lastModified": 1795861196,
+        "narHash": "sha256-U4vRWjMi5uM3QGZh3gjTik1Q7wE5vkFZ/JET6trmOYU=",
         "ref": "main",
-        "rev": "e3d8041cb4d785e1ca1ceed55b9a56c3fa4ba1ec",
-        "revCount": 9,
+        "rev": "bee79d27237c1fc18c5112a23e22d6c8b90aa31e",
+        "revCount": 10,
         "type": "git",
         "url": "ssh://git@github.com/See2et/bb-factory.git"
       },
